@@ -247,7 +247,7 @@ void moveBase(){
         // TODO: switch PID to go for target angle, switch actual to use current sensor angle
         target_v = normalizeJoystick(-leftX, -leftY).scalar(MAX_SPEED);
         target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR);
-pros::lcd::print(3, "target_r X %%.1lf", target_r.x);
+        pros::lcd::print(3, "target_r X %%.1lf", target_r.x);
         pros::lcd::print(4, "target_r Y %.1lf", target_r.y);
         pros::lcd::print(5, "target_r Z %.1lf", target_r.z);
         micros_prev = micros_now;
@@ -258,7 +258,7 @@ pros::lcd::print(3, "target_r X %%.1lf", target_r.x);
         target_v = target_v + v_fterm;
         target_r = target_r + r_fterm;
         
-                pros::lcd::print(6, "rot_v_y %3.8f", rotational_v_vector.y);
+        pros::lcd::print(6, "rot_v_y %3.8f", rotational_v_vector.y);
         pros::lcd::print(7, "rot_v_x %3.8f", rotational_v_vector.x);
         
         /*
@@ -333,10 +333,10 @@ pros::lcd::print(3, "target_r X %%.1lf", target_r.x);
         lscale = scale * ((1.0-base_v)*fabs((l_error))+base_v);
         rscale = scale * ((1.0-base_v)*fabs((r_error))+base_v);
 
-        lu = (int32_t)std::clamp(lscale * (l_velocity_pid - l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); //this side seems less powerful on the robot
-        ll = (int32_t)std::clamp(lscale * (l_velocity_pid + l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
-        ru = (int32_t)std::clamp(rscale * (r_velocity_pid - r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
-        rl = (int32_t)std::clamp(rscale * (r_velocity_pid + r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
+        lu = (int32_t)std::clamp(lscale * (l_velocity_pid + l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); //this side seems less powerful on the robot
+        ll = (int32_t)std::clamp(lscale * (l_velocity_pid - l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
+        ru = (int32_t)std::clamp(rscale * (r_velocity_pid + r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
+        rl = (int32_t)std::clamp(rscale * (r_velocity_pid - r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
 
         
         
