@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "SwerveDrive",
+    "project_name": "johnswerve",
     "target": "v5",
     "templates": {
       "kernel": {
@@ -309,9 +309,9 @@
       }
     },
     "upload_options": {
-      "slot": 3,
-      "icon": "pizza",
-      "after": "run"
+      "slot": 1,
+      "icon": "alien",
+      "after": "none"
     },
     "use_early_access": true
   }

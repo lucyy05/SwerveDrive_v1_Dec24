@@ -66,7 +66,6 @@ public:
     vector3D operator^ (vector3D &obj){ //cross product
         return vector3D(y * obj.z - obj.y * z, z * obj.x - obj.z * x, x * obj.y - obj.x * y);
     }
-
     double getAngle(){
         if(x == 0 && y == 0){
             return NAN;
@@ -75,4 +74,7 @@ public:
             return atan2(y, x);
         }
     }
+    double getX()  { return x; }
+    double getY()  { return y; }
+    double getZ()  { return z; }
 };
