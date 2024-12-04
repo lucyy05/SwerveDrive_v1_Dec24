@@ -231,8 +231,8 @@ void moveBase(){
 
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;
-        current_left_vector = vector3D(cos(left_angle),sin(left_angle),0.0);
-        current_right_vector = vector3D(cos(right_angle),sin(right_angle),0.0);
+        current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);
+        current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0);
 
         current_l_velocity = ((luA.get_actual_velocity()+luB.get_actual_velocity()+llA.get_actual_velocity()+llB.get_actual_velocity())/4.0);
         current_r_velocity = ((ruA.get_actual_velocity()+ruB.get_actual_velocity()+rlA.get_actual_velocity()+rlB.get_actual_velocity())/4.0);
@@ -244,12 +244,14 @@ void moveBase(){
 
         prev_target_v = target_v;
         prev_target_r = target_r;
+        
         // TODO: switch PID to go for target angle, switch actual to use current sensor angle
-        target_v = normalizeJoystick(-leftX, -leftY).scalar(MAX_SPEED);
-        target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR);
+        target_v = normalizeJoystick(-leftX, leftY).scalar(MAX_SPEED);
+        target_r = normalizeRotation(-rightX).scalar(MAX_ANGULAR);
         pros::lcd::print(3, "target_r X %%.1lf", target_r.x);
         pros::lcd::print(4, "target_r Y %.1lf", target_r.y);
         pros::lcd::print(5, "target_r Z %.1lf", target_r.z);
+
         micros_prev = micros_now;
         micros_now = pros::micros();
         dt = micros_now-micros_prev;
