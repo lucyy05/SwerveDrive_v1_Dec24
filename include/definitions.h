@@ -157,26 +157,30 @@ vector3D v_right;
 vector3D v_left;
 double theta; // angle between direction vector and robot right, radians
 
-const double angle_kP = 28.0;   //swerve wheel pivoting in driver control and auton
-const double angle_kI = 0.00;
-const double angle_kD = 5000.0;
 
-// const double angle_kD = 5000.0;
-const double distance_kP = 29.0; //swerve wheel rotation distance for auton
+
+const double angle_kP = 25.0;   //swerve wheel pivoting in driver control and auton
+const double angle_kI = 0.00;
+const double angle_kD = 3000.0;
+
+const double distance_kP = 0.4; //swerve wheel rotation distance for auton
 const double distance_kI = 0.0;
 const double distance_kD = 500.0;
 
 const double MAX_VOLTAGE = 12000;
 
-const double velocity_kP = 0.002;   //swerve wheel rotation velocity for driver
+const double velocity_kP = 0.005;   //swerve wheel rotation velocity for driver
 const double velocity_kI = 0.000;
-const double velocity_kD = 160.0;
+const double velocity_kD = 100.0;
 
-const double r_kF = 0.07;   //feedforward compensation for rotation
-const double v_kF = 0.30;    //feedforward compensation for translation
+const double r_kF = 0.08;   //feedforward compensation for rotation
+const double v_kF = 0.32;    //feedforward compensation for translation
 
-const double scale  = 30.0;
+const double scale  = 40.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
+
+
+
 
 const double ticks_per_mm = 2.5; //convert mm to ticks
 
