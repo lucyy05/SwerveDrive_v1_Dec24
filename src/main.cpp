@@ -358,6 +358,85 @@ void moveBase(){
     } 
 }
 
+void pivotWheels(double l_target_angle, double r_target_angle, double allowed_error) //pivot the left and right wheels by a certain amount
+{
+    allowed_error = fabs(allowed_error);
+    double left_angle, right_angle; //numerical angle for each wheel in radians from -pi to pi
+    //power output for angle component of pid
+    double l_angle_pid = 0.0;
+    double r_angle_pid = 0.0;
+
+    //pivot angle error
+    double l_angle_error = 9999999999;
+    double r_angle_error =  9999999999;
+
+    int32_t lu; //voltage variables for the four motor pairs of the base
+    int32_t ll;
+    int32_t ru;
+    int32_t rl;
+
+    PID left_angle_PID(angle_kP, angle_kI, angle_kD);
+    PID right_angle_PID(angle_kP, angle_kI, angle_kD);
+    
+    while(fabs( l_angle_error) > allowed_error || fabs( r_angle_error) > allowed_error){ //while we havent reached the target pivot angles
+        //get the current pivot angles of the left and right wheels in radians
+        left_angle = (getNormalizedSensorAngle(left_rotation_sensor)) * TO_RADIANS; //note that the function getNormalizedSensorAngle already implements wrapAngle to bound the angle between -180 and 180 degrees
+        right_angle = (getNormalizedSensorAngle(right_rotation_sensor)) * TO_RADIANS;
+        //update pivot angle errors
+        pros::lcd::print(0, "A");
+
+        vector3D current_left_vector = vector3D(cos(left_angle),sin(left_angle),0.0);
+        vector3D current_right_vector = vector3D(cos(right_angle),sin(right_angle),0.0);
+        vector3D target_left_vector = vector3D(cos(l_target_angle),sin(l_target_angle),0.0);
+        vector3D target_right_vector = vector3D(cos(r_target_angle),sin(r_target_angle),0.0);
+        l_angle_error = angle(current_left_vector, target_left_vector);
+        r_angle_error = angle(current_right_vector, target_right_vector);
+
+
+        if (std::isnan(l_angle_error) || std::isnan(r_angle_error)) {
+            l_angle_error = 0.0; r_angle_error = 0.0;
+        }
+
+        pros::lcd::print(4, "l_angle_error %lf", l_angle_error);
+        pros::lcd::print(5, "r_angle_error %lf", r_angle_error);
+        
+        //calculate the PID output
+        l_angle_pid = left_angle_PID.step(l_angle_error);
+        r_angle_pid = right_angle_PID.step(r_angle_error);
+        
+        pros::lcd::print(6, "1_angle_pid %lf", l_angle_pid);
+        pros::lcd::print(7, "r_angle_pid %lf", r_angle_pid);
+
+        lu = (int32_t)(l_angle_pid * scale);//this side seems less powerful on the robot
+        ll = (int32_t)(-l_angle_pid * scale);   
+        ru = (int32_t)(r_angle_pid * scale);
+        rl = (int32_t)(-r_angle_pid * scale);
+        
+        //calculate voltages required to run each motor, and scale them into the acceptable voltage range so they dont exceed max voltage
+        //we have to scale the voltages because if we don't, it can happen that one or more motors dont move as fast as we expected because we ordered it to move
+        //at a higher voltage than it can physically achieve, and this will throw off the proportions of velocity of the four motor pairs, and cause the robot
+        //to move in unexpected ways. Scaling means that sometimes the robot moves slower than expected, but at least it moves correctly otherwise.
+        clampVoltage(lu, ll, ru, rl); //ensure the voltages are within usable range
+
+        luA.move_voltage(lu);
+        luB.move_voltage(lu);
+
+        llA.move_voltage(ll);
+        llB.move_voltage(ll);
+
+        ruA.move_voltage(ru);
+        ruB.move_voltage(ru);
+
+        rlA.move_voltage(rl);
+        rlB.move_voltage(rl);
+    
+        pros::delay(5);
+    }
+    pros::lcd::print(0, "B");
+    brake();
+    pros::delay(5);
+}
+
 void rotateWheels(double l_distance, double r_distance, double allowed_error){ 
     //rotate the left and right wheels by a certain amount WHILE maintaining pivot angle
     double l_distance_moved = 0.0; //distance that the left and right wheel moved
