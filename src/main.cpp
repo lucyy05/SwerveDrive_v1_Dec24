@@ -1,5 +1,6 @@
 #include "main.h"
 
+
 void disabled(){}
 void competition_initialize(){}
 
@@ -97,6 +98,7 @@ void clampVoltage(double lu, double ll, double ru, double rl)
         rl = rl / VoltageScalingFactor;
     }
 }
+
 double wrapAngle(double angle){ //forces the angle to be within the -180 < angle < 180 range
     if (angle > 180.0)
         while (angle > 180.0)
@@ -134,7 +136,8 @@ vector3D normalizeJoystick(int x_in, int y_in){ //convert translation joystick i
     scaleLength = fabs(scaleLength) - DEADBAND; //force scaleLength to be positive and subtract deadband
     magnitude = (length - DEADBAND) / scaleLength; //find magnitude of translation vector and scale it down (note that magnitude will always be positive)
     
-    out.load(magnitude * cos(angle * TO_RADIANS), -magnitude * sin(angle * TO_RADIANS), 0.0); //assign values to the xyz attributes of the vector3D named "out"
+    //assign values to the xyz attributes of the vector3D named "out"
+    out.load(magnitude * cos(angle * TO_RADIANS), magnitude * sin(angle * TO_RADIANS), 0.0);
     return out;
 }
 
@@ -152,7 +155,7 @@ vector3D normalizeRotation(int x_in){ //get rotation speed from rotation joystic
     //this is SUPPOSED to be a vector, its not wrong
     //both normaliseRotation and normaliseJoystick return a vector for standardisation. This is intended behaviour.
     out.load(0.0, 0.0, -value); //assign values to the xyz attributes of the vector3D named "out"
-    return -out;
+    return out;
 }
 
 
@@ -261,8 +264,8 @@ void moveBase(){
         micros_prev = micros_now; 
         micros_now = pros::micros(); 
         dt = micros_now-micros_prev; 
-        v_fterm = (target_v-prev_target_v)*(v_kF/dt); // rate of change of joystick input * constant v_kF 
-        r_fterm = (target_r-prev_target_r)*(r_kF/dt); // rate of change of joystick input * constant r_kF 
+        v_fterm = (target_v - prev_target_v)*(v_kF/dt); // rate of change of joystick input * constant v_kF 
+        r_fterm = (target_r - prev_target_r)*(r_kF/dt); // rate of change of joystick input * constant r_kF 
         target_v = target_v + v_fterm; // update the target_v and target_r 
         target_r = target_r + r_fterm; 
          
@@ -574,6 +577,8 @@ void initialize(){
     ruB.set_brake_mode(MOTOR_BRAKE_HOLD);
     rlA.set_brake_mode(MOTOR_BRAKE_HOLD);
     rlB.set_brake_mode(MOTOR_BRAKE_HOLD);
+    conveyor.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE); 
+    roller.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE); 
 
     //while(!left_rotation_sensor.reset());
     //while(!right_rotation_sensor.reset());
@@ -587,7 +592,7 @@ void initialize(){
     pros::Task move_base(moveBase);
     //pros::Task serial_read(serialRead);
 
-    //master.clear();
+    master.clear();
 }
 
 void opcontrol(){
@@ -597,6 +602,34 @@ void opcontrol(){
         rightX = master.get_analog(ANALOG_RIGHT_X);
         if(master.get_digital_new_press(DIGITAL_B)) autonomous();
 
-        pros::delay(5);
+        if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { 
+            pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
+            conveyor.move(110); 
+            } 
+        else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
+            pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
+            conveyor.move(-110);
+            }
+        else { 
+            pros::lcd::print(0, "CONVEYOR STOPPED\n");
+            conveyor.move(0);
+            } 
+
+	// L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
+	// when L1 is pressed, rollers move forward with NEGATIVE velocity??
+    if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) { 
+		pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
+		roller.move(110); 
+        } 
+    else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
+		pros::lcd::print(0, "L1: ROLLER forward, -ve velocity??\n");
+		roller.move(-110);
+        } 
+    else {
+		pros::lcd::print(0, "ROLLER STOPPED\n");
+		roller.move(0); 
+    }
+    
+    pros::delay(5);
     }
 }

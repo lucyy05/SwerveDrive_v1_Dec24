@@ -173,14 +173,11 @@ const double velocity_kP = 0.005;   //swerve wheel rotation velocity for driver
 const double velocity_kI = 0.000;
 const double velocity_kD = 100.0;
 
-const double r_kF = 0.08;   //feedforward compensation for rotation
+const double r_kF = 0.12;   //feedforward compensation for rotation
 const double v_kF = 0.32;    //feedforward compensation for translation
 
 const double scale  = 40.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
-
-
-
 
 const double ticks_per_mm = 2.5; //convert mm to ticks
 
