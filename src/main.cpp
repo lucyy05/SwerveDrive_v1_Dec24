@@ -138,7 +138,7 @@ vector3D normalizeJoystick(int x_in, int y_in){ //convert translation joystick i
     
     //assign values to the xyz attributes of the vector3D named "out"
     out.load(magnitude * cos(angle * TO_RADIANS), magnitude * sin(angle * TO_RADIANS), 0.0);
-    return out;
+    return -out;
 }
 
 vector3D normalizeRotation(int x_in){ //get rotation speed from rotation joystick
@@ -155,7 +155,7 @@ vector3D normalizeRotation(int x_in){ //get rotation speed from rotation joystic
     //this is SUPPOSED to be a vector, its not wrong
     //both normaliseRotation and normaliseJoystick return a vector for standardisation. This is intended behaviour.
     out.load(0.0, 0.0, -value); //assign values to the xyz attributes of the vector3D named "out"
-    return out;
+    return -out;
 }
 
 

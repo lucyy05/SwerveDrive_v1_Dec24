@@ -92,7 +92,6 @@
 
 #define ZERO_VECTOR INFINITY
 
-
 pros::Controller master(pros::E_CONTROLLER_MASTER);
   
 pros::Motor luA(LEFT_UPPER_BEVEL_MOTOR_1, pros::E_MOTOR_GEARSET_06,  false, pros::E_MOTOR_ENCODER_DEGREES);
