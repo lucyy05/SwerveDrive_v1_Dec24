@@ -138,7 +138,7 @@ vector3D normalizeJoystick(int x_in, int y_in){ //convert translation joystick i
     
     //assign values to the xyz attributes of the vector3D named "out"
     out.load(magnitude * cos(angle * TO_RADIANS), magnitude * sin(angle * TO_RADIANS), 0.0);
-    return -out;
+    return out;
 }
 
 vector3D normalizeRotation(int x_in){ //get rotation speed from rotation joystick
@@ -155,7 +155,7 @@ vector3D normalizeRotation(int x_in){ //get rotation speed from rotation joystic
     //this is SUPPOSED to be a vector, its not wrong
     //both normaliseRotation and normaliseJoystick return a vector for standardisation. This is intended behaviour.
     out.load(0.0, 0.0, -value); //assign values to the xyz attributes of the vector3D named "out"
-    return -out;
+    return out;
 }
 
 
@@ -229,8 +229,8 @@ void moveBase(){
     int32_t ru; // right upper 
     int32_t rl; // right lower 
  
-    PID left_angle_PID(angle_kP, angle_kI, angle_kD); 
-    PID right_angle_PID(angle_kP, angle_kI, angle_kD); 
+    PID left_angle_PID(angle_kP_left, angle_kI_left, angle_kD_left); 
+    PID right_angle_PID(angle_kP_right, angle_kI_right, angle_kD_right); 
     PID left_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
     PID right_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
      
@@ -379,8 +379,8 @@ void pivotWheels(double l_target_angle, double r_target_angle, double allowed_er
     int32_t ru;
     int32_t rl;
 
-    PID left_angle_PID(angle_kP, angle_kI, angle_kD);
-    PID right_angle_PID(angle_kP, angle_kI, angle_kD);
+    PID left_angle_PID(angle_kP_left, angle_kI_left, angle_kD_left);
+    PID right_angle_PID(angle_kP_right, angle_kI_right, angle_kD_right);
     
     while(fabs( l_angle_error) > allowed_error || fabs( r_angle_error) > allowed_error){ //while we havent reached the target pivot angles
         //get the current pivot angles of the left and right wheels in radians
@@ -469,8 +469,8 @@ void rotateWheels(double l_distance, double r_distance, double allowed_error){
     int32_t ru;
     int32_t rl;
 
-    PID left_angle_PID(angle_kP, angle_kI, angle_kD);
-    PID right_angle_PID(angle_kP, angle_kI, angle_kD);
+    PID left_angle_PID(angle_kP_left, angle_kI_left, angle_kD_left);
+    PID right_angle_PID(angle_kP_right, angle_kI_right, angle_kD_right);
     PID left_distance_PID(distance_kP, distance_kI, distance_kD);
     PID right_distance_PID(distance_kP, distance_kI, distance_kD);
 

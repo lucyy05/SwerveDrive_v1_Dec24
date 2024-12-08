@@ -156,9 +156,14 @@ vector3D v_right;
 vector3D v_left;
 double theta; // angle between direction vector and robot right, radians
 
-const double angle_kP = 25.0;   //swerve wheel pivoting in driver control and auton
-const double angle_kI = 0.00;
-const double angle_kD = 3000.0;
+const double angle_kP_left = 50.0;   //swerve wheel pivoting in driver control and auton
+const double angle_kI_left = 0.00;
+const double angle_kD_left = 3100.0;
+
+const double angle_kP_right = 26.0;   //swerve wheel pivoting in driver control and auton
+const double angle_kI_right = 0.00;
+const double angle_kD_right = 2800.0;
+
 
 const double distance_kP = 0.4; //swerve wheel rotation distance for auton
 const double distance_kI = 0.0;
@@ -166,7 +171,7 @@ const double distance_kD = 500.0;
 
 const double MAX_VOLTAGE = 12000;
 
-const double velocity_kP = 0.005;   //swerve wheel rotation velocity for driver
+const double velocity_kP = 0.004;   //swerve wheel rotation velocity for driver
 const double velocity_kI = 0.000;
 const double velocity_kD = 90;
 
