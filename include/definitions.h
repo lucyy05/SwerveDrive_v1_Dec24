@@ -58,18 +58,9 @@
 #define RIGHT_LOWER_BEVEL_MOTOR_1 4
 #define RIGHT_LOWER_BEVEL_MOTOR_2 5
 
-// #define LEFT_UPPER_BEVEL_MOTOR_1 14
-// #define LEFT_UPPER_BEVEL_MOTOR_2 15
-// #define LEFT_LOWER_BEVEL_MOTOR_1 16
-// #define LEFT_LOWER_BEVEL_MOTOR_2 17
-// #define RIGHT_UPPER_BEVEL_MOTOR_1 4
-// #define RIGHT_UPPER_BEVEL_MOTOR_2 5
-// #define RIGHT_LOWER_BEVEL_MOTOR_1 9
-// #define RIGHT_LOWER_BEVEL_MOTOR_2 10
-
-
 #define LEFT_ROTATION_SENSOR_PORT 18
 #define RIGHT_ROTATION_SENSOR_PORT 8
+
 
 // robot without base
 // #define LEFT_UPPER_BEVEL_MOTOR_1 11
@@ -84,11 +75,16 @@
 // #define LEFT_ROTATION_SENSOR_PORT 13
 // #define RIGHT_ROTATION_SENSOR_PORT 1
 
-#define POTENTIOMETER_SENSOR_PORT 'H'
-#define SOLENOID_SENSOR_PORT 'G'
+
+
+#define SOLENOID_SENSOR_PORT 'H'
+#define front_roller_adi 'G'
 
 #define CONVEYOR_MOTOR 7
 #define ROLLER_MOTOR 6
+
+#define SERIALPORT 19
+#define IMU_SENSOR_PORT 2
 
 #define ZERO_VECTOR INFINITY
 
@@ -113,14 +109,15 @@ pros::Motor rlB(RIGHT_LOWER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros
 
 pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, false);
 pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, false);
-// pros::Imu imu(IMU_SENSOR_PORT);
+pros::Imu imu(IMU_SENSOR_PORT);
 
 // CONVEYOR AND ROLLER
 pros::Motor conveyor(CONVEYOR_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor roller(ROLLER_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
 // pros::ADIAnalogIn lifter(POTENTIOMETER_SENSOR_PORT);
-// pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
+pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
+pros::ADIDigitalOut front_roller(front_roller_adi);
 
 extern "C" int32_t vexGenericSerialReceive( uint32_t index, uint8_t *buffer, int32_t length );
 extern "C" void vexGenericSerialEnable(  uint32_t index, uint32_t nu );
@@ -178,7 +175,10 @@ const double v_kF = 0.30;    //feedforward compensation for translation
 const double scale  = 30.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
 
-const double ticks_per_mm = 2.5; //convert mm to ticks
+// const double ticks_per_mm = 2.5; //convert mm to ticks
+const double ticks_per_mm = 1.7;
+double base_error = 2.0;
+// double decelerationThreshold = 0;
 
 
 double target_angle = 0.0;
@@ -206,4 +206,8 @@ double global_distY = 0.0;
 double global_distX = 0.0;
 double global_errorY = 0.0;
 double global_errorX = 0.0;
+double original_x = 0;
 
+bool mobile_goal_actuated = false;
+
+bool front_roller_actuated = false;
