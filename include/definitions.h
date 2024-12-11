@@ -1,4 +1,4 @@
-// john chai asked me to write a comment and smile thru the pain this week ig:) mergeconflict time!
+//new
 #include <cstdint>
 #include "pros/motors.hpp"
 #include "pros/adi.hpp"
