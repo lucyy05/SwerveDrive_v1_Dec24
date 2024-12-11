@@ -1,3 +1,4 @@
+// john chai asked me to write a comment and commit:) smile thru the pain this week ig:)
 #include <cstdint>
 #include "pros/motors.hpp"
 #include "pros/adi.hpp"
