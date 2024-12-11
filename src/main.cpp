@@ -178,7 +178,8 @@ void moveBase(){
     double v_right_velocity; // target velocityy 
     double v_left_velocity; 
  
- 
+    double battery_voltage;
+
     double left_angle; 
     double right_angle; 
     double left_target_angle; 
@@ -233,9 +234,13 @@ void moveBase(){
     PID right_angle_PID(angle_kP_right, angle_kI_right, angle_kD_right); 
     PID left_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
     PID right_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
+    PID rotate_robot_PID(azim_kP, azim_kI, azim_kD);
      
     vector3D L2I_pos(WHEEL_BASE_RADIUS,0.0,0.0); 
- 
+    vector3D imu_angular;
+    vector3D angular_error;
+    vector3D rot_pid;
+
     while(true){ 
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS; 
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS; 
@@ -252,11 +257,14 @@ void moveBase(){
  
         prev_target_v = target_v; // prev target velocity 
         prev_target_r = target_r; // prev target rotation 
-         
+        imu_angular = vector3D(0.0,0.0, imu.get_gyro_rate().z * TO_RADIANS); // Radians per second
+
         // TODO: switch PID to go for target angle, switch actual to use current sensor angle 
         target_v = normalizeJoystick(-leftX, leftY).scalar(MAX_SPEED); // target velocity 
-        target_r = normalizeRotation(-rightX).scalar(MAX_ANGULAR); // target rotation 
- 
+        target_r = normalizeRotation(-rightX).scalar(MAX_ANGULAR*0.8); // target rotation 
+
+        battery_voltage = pros::battery::get_voltage();
+         
         // pros::lcd::print(3, "target_r X %%.1lf", target_r.x); 
         // pros::lcd::print(4, "target_r Y %.1lf", target_r.y); 
         // pros::lcd::print(5, "target_r Z %.1lf", target_r.z); 
@@ -272,9 +280,11 @@ void moveBase(){
         // pros::lcd::print(6, "rot_v_y %3.8f", rotational_v_vector.y); 
         // pros::lcd::print(7, "rot_v_x %3.8f", rotational_v_vector.x); 
          
- 
-        rotational_v_vector = L2I_pos^target_r; 
-         
+        angular_error = target_r - imu_angular;
+        rot_pid = vector3D(0.0,0.0, rotate_robot_PID.step(angular_error.z));
+        rot_pid = (L2I_pos^rot_pid);
+        rotational_v_vector = (L2I_pos^target_r) + rot_pid; 
+        
         v_left = target_v-rotational_v_vector; 
         v_right = target_v+rotational_v_vector; 
  
@@ -315,7 +325,7 @@ void moveBase(){
         //calculate the wheel error 
         current_l_tl_error = (v_left_velocity-current_l_velocity); 
         current_r_tl_error = (v_right_velocity-current_r_velocity); 
- 
+
         // velocity pid: based on the rate of change of velocity, pid updates the power the wheels 
         l_velocity_pid += left_velocity_PID.step(current_l_tl_error); 
         r_velocity_pid += right_velocity_PID.step(current_r_tl_error); 
@@ -325,8 +335,8 @@ void moveBase(){
         r_angle_pid = right_angle_PID.step(r_error); 
  
         // higher base_v: drifts and lower base_v: lags 
-        lscale = scale * ((1.0-base_v)*fabs((l_error))+base_v); 
-        rscale = scale * ((1.0-base_v)*fabs((r_error))+base_v); 
+        lscale = (battery_voltage/MAX_VOLTAGE) * scale * ((1.0-base_v)*fabs((l_error))+base_v); 
+        rscale = (battery_voltage/MAX_VOLTAGE) * scale * ((1.0-base_v)*fabs((r_error))+base_v); 
  
         lu = (int32_t)std::clamp(lscale * (l_velocity_pid + l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); //this side seems less powerful on the robot 
         ll = (int32_t)std::clamp(lscale * (l_velocity_pid - l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
@@ -569,6 +579,9 @@ void autonomous(){
 
 void initialize(){
     pros::lcd::initialize();
+    
+    imu.reset();
+
     luA.set_brake_mode(MOTOR_BRAKE_HOLD); // once target position reached it locks it instead of cont moving
     luB.set_brake_mode(MOTOR_BRAKE_HOLD);
     llA.set_brake_mode(MOTOR_BRAKE_HOLD);
@@ -579,7 +592,6 @@ void initialize(){
     rlB.set_brake_mode(MOTOR_BRAKE_HOLD);
     conveyor.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE); 
     roller.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE); 
-
     //while(!left_rotation_sensor.reset());
     //while(!right_rotation_sensor.reset());
 
