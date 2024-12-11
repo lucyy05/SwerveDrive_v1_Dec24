@@ -1,3 +1,4 @@
+//zihui's branch for zihui's changes
 #include <cstdint>
 #include "pros/motors.hpp"
 #include "pros/adi.hpp"
@@ -61,7 +62,6 @@
 #define LEFT_ROTATION_SENSOR_PORT 18
 #define RIGHT_ROTATION_SENSOR_PORT 8
 
-
 // robot without base
 // #define LEFT_UPPER_BEVEL_MOTOR_1 11
 // #define LEFT_UPPER_BEVEL_MOTOR_2 12
@@ -88,7 +88,6 @@
 
 #define ZERO_VECTOR INFINITY
 
-
 pros::Controller master(pros::E_CONTROLLER_MASTER);
   
 pros::Motor luA(LEFT_UPPER_BEVEL_MOTOR_1, pros::E_MOTOR_GEARSET_06,  false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -99,6 +98,8 @@ pros::Motor ruA(RIGHT_UPPER_BEVEL_MOTOR_1, pros::E_MOTOR_GEARSET_06, false, pros
 pros::Motor ruB(RIGHT_UPPER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor rlA(RIGHT_LOWER_BEVEL_MOTOR_1, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor rlB(RIGHT_LOWER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
+
+pros::IMU imu(IMU_PORT);
 
 // pros::Motor intakeLower(UPPER_INTAKE_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
 // pros::Motor intakeUpper(LOWER_INTAKE_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
@@ -154,25 +155,34 @@ vector3D v_right;
 vector3D v_left;
 double theta; // angle between direction vector and robot right, radians
 
-const double angle_kP = 28.0;   //swerve wheel pivoting in driver control and auton
-const double angle_kI = 0.00;
-const double angle_kD = 5000.0;
+const double angle_kP_left = 20.0;   //swerve wheel pivoting in driver control and auton
+const double angle_kI_left = 0.00;
+const double angle_kD_left = 5000.0;
 
-// const double angle_kD = 5000.0;
-const double distance_kP = 29.0; //swerve wheel rotation distance for auton
+const double angle_kP_right = 20.0;   //swerve wheel pivoting in driver control and auton
+const double angle_kI_right = 0.00;
+const double angle_kD_right = 5000.0;
+
+
+const double distance_kP = 0.4; //swerve wheel rotation distance for auton
 const double distance_kI = 0.0;
 const double distance_kD = 500.0;
 
-const double MAX_VOLTAGE = 12000;
+const double MAX_VOLTAGE = 12800;
 
 const double velocity_kP = 0.002;   //swerve wheel rotation velocity for driver
-const double velocity_kI = 0.000;
-const double velocity_kD = 160.0;
+const double velocity_kI = 0.000;   //tune for translate
+const double velocity_kD = 160;
 
-const double r_kF = 0.07;   //feedforward compensation for rotation
-const double v_kF = 0.30;    //feedforward compensation for translation
+const double azim_kP = 15.0; //azimuth, for correcting rotation
+const double azim_kI = 0.0;    //drunk
+const double azim_kD = 1.0;
 
-const double scale  = 30.0;
+
+const double r_kF = 0.12;   //feedforward compensation for rotation //flick
+const double v_kF = 0.3;    //feedforward compensation for translation
+
+const double scale  = 25.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
 
 // const double ticks_per_mm = 2.5; //convert mm to ticks
