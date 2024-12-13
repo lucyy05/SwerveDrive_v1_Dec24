@@ -607,6 +607,125 @@ void initialize(){
     master.clear();
 }
 
+/* CONVEYOR TODO:
+ - [ ] implement conveyor "proprioception"
+ - [ ] implement conveyor auto-store from 
+*/
+
+// #====# conveyor util functions
+
+void bound_conveyor_position(double binding_value){
+    if(conveyor.get_position() >= binding_value){	// if within 90% to end 
+		conveyor.set_zero_position(conveyor.get_position() - binding_value);
+	}
+}
+
+
+// #====# sensor based movements #====#
+
+// possible improvement: after detecting hook, move backwards slowly till hook is undetected in case of inertia overshooting 
+/// IMPT: THIS USES THE PROXIMITY SENSOR TO DETECT THE CONVEYOR HOOK AND **WILL NOT WORK WHEN A RING IS BEING TRANSPORTED**
+void conveyor_go_home_by_sensor(int voltage){       
+	conveyor.move(voltage);
+	while(conveyor_optical.get_proximity() > CONVEYOR_THRES_PROX);       // if detect hook, leave first
+	while(conveyor_optical.get_proximity() < CONVEYOR_THRES_PROX);       // run till detect hook again, home is considered the point where the hook is first detected
+	conveyor.brake(); 
+	conveyor.tare_position();
+}
+
+
+// #====# sensor-less based movements #====#
+
+double conveyor_loop_period = 800;        // TODO: identify and set as constant, or keep as variable and have it constantly updated
+double _calibrate_at_voltage(int voltage){
+	conveyor_go_home_by_sensor(voltage);
+	double ori_pos = conveyor.get_position();   // identify overshoot, if any
+	pros::delay(500);
+	pros::lcd::print(2,"ori_pos: %f", ori_pos);
+	pros::delay(5);
+
+	// find motor distance to next hook
+	conveyor.move(voltage);
+	while(conveyor_optical.get_proximity() > CONVEYOR_THRES_PROX);
+	while(conveyor_optical.get_proximity() < CONVEYOR_THRES_PROX);
+	conveyor.brake();
+	double stepped_pos = conveyor.get_position();
+	pros::delay(500);
+	pros::lcd::print(3,"stepped_pos: %f", stepped_pos);
+	pros::delay(5);
+
+	return stepped_pos - ori_pos;
+}
+// Uses the conveyor_loop_period variable and therefore requires calibration before using 
+// code is also blocking (for now?)
+void conveyor_go_home(int voltage){     
+    bound_conveyor_position(conveyor_loop_period);
+	conveyor.move(voltage);
+	while(conveyor.get_position() < conveyor_loop_period);
+    conveyor.brake();
+}
+void conveyor_go_to_absolute(double percentage_position, int voltage){
+    bound_conveyor_position(conveyor_loop_period);
+    double as_encoder_pos = percentage_position * conveyor_loop_period;
+    double conveyor_goal = ((conveyor.get_position() > as_encoder_pos) ? conveyor_loop_period : 0) + as_encoder_pos;
+    
+    pros::lcd::print(4, "goal: %.2f, cur: %.2f", conveyor_goal, conveyor.get_position());
+    pros::delay(3);
+
+	conveyor.move(voltage);
+	while(conveyor.get_position() < conveyor_goal){
+        pros::lcd::print(4, "goal: %.2f, cur: %.2f", conveyor_goal, conveyor.get_position());
+        pros::delay(3);
+    }
+    conveyor.brake();
+}
+
+/* conveyor_step variable - state machine's state / position
+ 0 - resting (right below the intersection of intake and conveyor)
+ 1 - store (middle of conveyor, possible to store another ring at intersection)
+ 2 - score (score the ring, returns to resting position)
+*/
+int conveyor_step = 0;
+void step_conveyor(){
+    conveyor_step = (conveyor_step+1) % 4;
+    pros::lcd::print(1, "stp: %d/3, pos: %f", conveyor_step, conveyor.get_position());
+    switch(conveyor_step){
+        case 0:
+            conveyor_go_to_absolute(0.65, 40);       // go to rest     (allowed to receive)
+            break;
+        case 1:
+            conveyor_go_to_absolute(0.25, 40);       // store       (waiting to score)
+            break;
+        case 2:
+            conveyor_go_to_absolute(0.1, 110);     // Score     (score, now rehome)
+            pros::delay(500);
+            step_conveyor();
+            break;
+        case 3:
+            conveyor_go_home_by_sensor(40);     // rehome   (rehomed, now wait to receive)
+            pros::delay(500);
+            step_conveyor();
+            break;
+    }
+}
+
+void calibrate_conveyor(){
+    double conveyor_loop_periods_sense = _calibrate_at_voltage(40);
+
+    conveyor_go_home(0);
+    double conveyor_loop_period_senseless = conveyor.get_position();
+
+    if(conveyor_optical.get_proximity() > CONVEYOR_THRES_PROX){
+        pros::lcd::print(6, "Conveyor passed %d", conveyor_optical.get_proximity());
+        conveyor_loop_period = conveyor_loop_periods_sense;
+    }else{
+        pros::lcd::print(6, "Conveyor failed %d", conveyor_optical.get_proximity());
+        // oh no, the motors might have slipped too fast 
+    }
+    pros::lcd::print(0, "C_S: %f, C_SL: %f", conveyor_loop_periods_sense, conveyor_loop_period_senseless);
+    pros::delay(5);
+}
+
 void opcontrol(){
     while(true){
         leftX = master.get_analog(ANALOG_LEFT_X);
@@ -614,16 +733,20 @@ void opcontrol(){
         rightX = master.get_analog(ANALOG_RIGHT_X);
         if(master.get_digital_new_press(DIGITAL_B)) autonomous();
 
-        if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { 
-            pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
-            conveyor.move(110); 
+        pros::lcd::print(5,"pos: %.2f, %%: %.3f", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period);
+
+        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
+            // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
+            // conveyor.move(110); 
+            step_conveyor();
             } 
-        else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
-            pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
-            conveyor.move(-110);
+        else if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
+            // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
+            // conveyor.move(-110);
+            calibrate_conveyor();
             }
         else { 
-            pros::lcd::print(0, "CONVEYOR STOPPED\n");
+            //pros::lcd::print(0, "CONVEYOR STOPPED\n");
             conveyor.move(0);
             } 
 
@@ -636,9 +759,10 @@ void opcontrol(){
     else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
 		pros::lcd::print(0, "L1: ROLLER forward, -ve velocity??\n");
 		roller.move(-110);
+        // detect ring and move conveyor later
         } 
     else {
-		pros::lcd::print(0, "ROLLER STOPPED\n");
+		//pros::lcd::print(0, "ROLLER STOPPED\n");
 		roller.move(0); 
     }
     

@@ -90,6 +90,8 @@
 #define POTENTIOMETER_SENSOR_PORT 'H'
 #define SOLENOID_SENSOR_PORT 'G'
 
+#define CONVEYOR_THRES_PROX 50
+#define CONVEYOR_OPTICAL 1
 #define CONVEYOR_MOTOR 7
 #define ROLLER_MOTOR 6
 
@@ -122,6 +124,7 @@ pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, false);
 // CONVEYOR AND ROLLER
 pros::Motor conveyor(CONVEYOR_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor roller(ROLLER_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Optical conveyor_optical(CONVEYOR_OPTICAL);
 
 // pros::ADIAnalogIn lifter(POTENTIOMETER_SENSOR_PORT);
 // pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
