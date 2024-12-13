@@ -81,6 +81,7 @@
 #define front_roller_adi 'H'
 
 #define SLAM_DUNK_SENSOR_PORT 'A'
+#define SLAM_DUNK_SOLENOID 'B'
 
 #define CONVEYOR_MOTOR 7
 #define ROLLER_MOTOR 6
@@ -115,7 +116,7 @@ pros::IMU imu(IMU_SENSOR_PORT);
 
 pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, false);
 pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, false);
-pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEAR_RED, true, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEAR_RED, false, pros::E_MOTOR_ENCODER_DEGREES);
 
 // CONVEYOR AND ROLLER
 pros::Motor conveyor(CONVEYOR_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -124,6 +125,8 @@ pros::Motor roller(ROLLER_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_
 // pros::ADIAnalogIn lifter(POTENTIOMETER_SENSOR_PORT);
 pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
 pros::ADIDigitalOut front_roller(front_roller_adi);
+pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
+
 pros::ADIAnalogIn slam_dunk(SLAM_DUNK_SENSOR_PORT);
 
 extern "C" int32_t vexGenericSerialReceive( uint32_t index, uint8_t *buffer, int32_t length );
@@ -239,6 +242,8 @@ double original_x = 0;
 bool mobile_goal_actuated = false;
 
 bool front_roller_actuated = false;
+
+bool slam_dunk_actuated = false;
 
 int slammingState = 0;
 double slam_target = 0;
