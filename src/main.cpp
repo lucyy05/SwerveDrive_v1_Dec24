@@ -636,7 +636,7 @@ void conveyor_go_home_by_sensor(int voltage){
 
 // #====# sensor-less based movements #====#
 
-double conveyor_loop_period = 800;        // TODO: identify and set as constant, or keep as variable and have it constantly updated
+double conveyor_loop_period = 913;        // TODO: identify and set as constant, or keep as variable and have it constantly updated
 double _calibrate_at_voltage(int voltage){
 	conveyor_go_home_by_sensor(voltage);
 	double ori_pos = conveyor.get_position();   // identify overshoot, if any
@@ -658,13 +658,13 @@ double _calibrate_at_voltage(int voltage){
 }
 // Uses the conveyor_loop_period variable and therefore requires calibration before using 
 // code is also blocking (for now?)
-void conveyor_go_home(int voltage){     
+void conveyor_go_home(int voltage, double conveyor_loop_dist){     
     bound_conveyor_position(conveyor_loop_period);
 	conveyor.move(voltage);
-	while(conveyor.get_position() < conveyor_loop_period);
+	while(conveyor.get_position() < conveyor_loop_dist);
     conveyor.brake();
 }
-void conveyor_go_to_absolute(double percentage_position, int voltage){
+bool conveyor_go_to_absolute(double percentage_position, int voltage){
     bound_conveyor_position(conveyor_loop_period);
     double as_encoder_pos = percentage_position * conveyor_loop_period;
     double conveyor_goal = ((conveyor.get_position() > as_encoder_pos) ? conveyor_loop_period : 0) + as_encoder_pos;
@@ -673,11 +673,25 @@ void conveyor_go_to_absolute(double percentage_position, int voltage){
     pros::delay(3);
 
 	conveyor.move(voltage);
+    bool conveyor_timed_out = false;
+    uint32_t start_time = pros::millis();
 	while(conveyor.get_position() < conveyor_goal){
-        pros::lcd::print(4, "goal: %.2f, cur: %.2f", conveyor_goal, conveyor.get_position());
-        pros::delay(3);
+        pros::lcd::print(4, "goal: %.0f, cur: %.0f t: %d", conveyor_goal, conveyor.get_position(), 1500 - pros::millis() + start_time);
+        pros::delay(4);
+        if(pros::millis() - start_time > 1500){
+            conveyor_timed_out = true;
+            break;
+        }
+    }
+    if(conveyor_timed_out){
+        pros::lcd::print(7, "fuck");
+        conveyor.move(-70);
+        pros::delay(100);
+    }else{
+        pros::lcd::print(7,"okay");
     }
     conveyor.brake();
+    return conveyor_timed_out;
 }
 
 /* conveyor_step variable - state machine's state / position
@@ -691,15 +705,17 @@ void step_conveyor(){
     pros::lcd::print(1, "stp: %d/3, pos: %f", conveyor_step, conveyor.get_position());
     switch(conveyor_step){
         case 0:
-            conveyor_go_to_absolute(0.65, 40);       // go to rest     (allowed to receive)
+            conveyor_go_to_absolute(0.55, 40);       // go to rest     (allowed to receive)
             break;
         case 1:
             conveyor_go_to_absolute(0.25, 40);       // store       (waiting to score)
             break;
         case 2:
-            conveyor_go_to_absolute(0.1, 110);     // Score     (score, now rehome)
+        {
+            bool should_continue = !conveyor_go_to_absolute(0.90, 110);     // Score     (score, now rehome)
             pros::delay(500);
-            step_conveyor();
+            if (should_continue) step_conveyor();
+        }
             break;
         case 3:
             conveyor_go_home_by_sensor(40);     // rehome   (rehomed, now wait to receive)
@@ -712,7 +728,9 @@ void step_conveyor(){
 void calibrate_conveyor(){
     double conveyor_loop_periods_sense = _calibrate_at_voltage(40);
 
-    conveyor_go_home(0);
+    conveyor_go_home(40,conveyor_loop_periods_sense);
+    pros::delay(100);
+    
     double conveyor_loop_period_senseless = conveyor.get_position();
 
     if(conveyor_optical.get_proximity() > CONVEYOR_THRES_PROX){
@@ -733,7 +751,7 @@ void opcontrol(){
         rightX = master.get_analog(ANALOG_RIGHT_X);
         if(master.get_digital_new_press(DIGITAL_B)) autonomous();
 
-        pros::lcd::print(5,"pos: %.2f, %%: %.3f", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period);
+        pros::lcd::print(5,"pos: %.2f, %%: %.3f, prx: %d", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period, conveyor_optical.get_proximity());
 
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
             // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
