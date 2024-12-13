@@ -49,7 +49,7 @@
 // #define IMU_SENSOR_PORT 17
 // #define SERIALPORT 16
 
-// robot with base(new robot)
+// robot with base(new robot) USE THIS LTR AFTER USING SMALL SWERVE :DDDDDDDDDDDDDDDDDDDDDDDD
 #define LEFT_UPPER_BEVEL_MOTOR_1 16
 #define LEFT_UPPER_BEVEL_MOTOR_2 17
 #define LEFT_LOWER_BEVEL_MOTOR_1 14
@@ -58,6 +58,8 @@
 #define RIGHT_UPPER_BEVEL_MOTOR_2 10
 #define RIGHT_LOWER_BEVEL_MOTOR_1 4
 #define RIGHT_LOWER_BEVEL_MOTOR_2 5
+
+
 
 // #define LEFT_UPPER_BEVEL_MOTOR_1 14
 // #define LEFT_UPPER_BEVEL_MOTOR_2 15
@@ -73,8 +75,13 @@
 #define RIGHT_ROTATION_SENSOR_PORT 8
 
 #define IMU_PORT 13
+#define ARM_MOTOR 3
 
-// robot without base
+// Global variables to maintain state and target position
+int armState = 0;
+int targetPosition = -600;
+
+// robot without base !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // #define LEFT_UPPER_BEVEL_MOTOR_1 11
 // #define LEFT_UPPER_BEVEL_MOTOR_2 12
 // #define LEFT_LOWER_BEVEL_MOTOR_1 19
@@ -86,6 +93,9 @@
 
 // #define LEFT_ROTATION_SENSOR_PORT 13
 // #define RIGHT_ROTATION_SENSOR_PORT 1
+// #define IMU_PORT 17
+
+
 
 #define POTENTIOMETER_SENSOR_PORT 'H'
 #define SOLENOID_SENSOR_PORT 'G'
@@ -122,6 +132,8 @@ pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, false);
 // CONVEYOR AND ROLLER
 pros::Motor conveyor(CONVEYOR_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor roller(ROLLER_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
+
+pros::Motor arm(ARM_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
 // pros::ADIAnalogIn lifter(POTENTIOMETER_SENSOR_PORT);
 // pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
@@ -161,9 +173,9 @@ vector3D v_right;
 vector3D v_left;
 double theta; // angle between direction vector and robot right, radians
 
-const double angle_kP_left = 20.0;   //swerve wheel pivoting in driver control and auton
+const double angle_kP_left = 28.0;   //swerve wheel pivoting in driver control and auton
 const double angle_kI_left = 0.00;
-const double angle_kD_left = 5000.0;
+const double angle_kD_left = 6000.0;
 
 const double angle_kP_right = 20.0;   //swerve wheel pivoting in driver control and auton
 const double angle_kI_right = 0.00;
@@ -180,9 +192,9 @@ const double velocity_kP = 0.002;   //swerve wheel rotation velocity for driver
 const double velocity_kI = 0.000;   //tune for translate
 const double velocity_kD = 160;
 
-const double azim_kP = 15.0; //azimuth, for correcting rotation
-const double azim_kI = 0.0;    //drunk
-const double azim_kD = 1.0;
+// const double azim_kP = 15.0; //azimuth, for correcting rotation
+// const double azim_kI = 0.0;    //drunk
+// const double azim_kD = 1.0;
 
 
 const double r_kF = 0.12;   //feedforward compensation for rotation //flick

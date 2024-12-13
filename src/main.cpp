@@ -1,4 +1,6 @@
 #include "main.h"
+// #include "pros.h"
+#include <iostream>
 
 
 void disabled(){}
@@ -122,7 +124,7 @@ vector3D normalizeJoystick(int x_in, int y_in){ //convert translation joystick i
     vector3D out;
     if(length < DEADBAND){ //if the joystick is too close to the origin, dont bother moving (this is to correct for stick drift, where the joystick doesnt default to the 0,0 position due to physical damage)
         out.load(0.0, 0.0, 0.0); //assign zero values to the xyz attributes of the vector3D named "out"
-        return out;
+        return -out;
     }
     //forcing the joystick output to be a circle not the square bounding box of the joystick
     //for any radial line of the circle, we find its length from the deadband radius to the radius of the circle of the joystick, then map the speed from 0 to 1 of that length
@@ -138,7 +140,7 @@ vector3D normalizeJoystick(int x_in, int y_in){ //convert translation joystick i
     
     //assign values to the xyz attributes of the vector3D named "out"
     out.load(magnitude * cos(angle * TO_RADIANS), magnitude * sin(angle * TO_RADIANS), 0.0);
-    return out;
+    return -out;
 }
 
 vector3D normalizeRotation(int x_in){ //get rotation speed from rotation joystick
@@ -172,6 +174,8 @@ double max(double a, double b) { //returns the larger of two doubles
 double min(double a, double b) { //returns the smaller of two doubles
     return (a < b)? a : b;
 }
+
+
 
 // Driver code
 void moveBase(){ 
@@ -234,7 +238,7 @@ void moveBase(){
     PID right_angle_PID(angle_kP_right, angle_kI_right, angle_kD_right); 
     PID left_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
     PID right_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
-    PID rotate_robot_PID(azim_kP, azim_kI, azim_kD);
+    // PID rotate_robot_PID(azim_kP, azim_kI, azim_kD);
      
     vector3D L2I_pos(WHEEL_BASE_RADIUS,0.0,0.0); 
     vector3D imu_angular;
@@ -281,7 +285,7 @@ void moveBase(){
         // pros::lcd::print(7, "rot_v_x %3.8f", rotational_v_vector.x); 
          
         angular_error = target_r - imu_angular;
-        rot_pid = vector3D(0.0,0.0, rotate_robot_PID.step(angular_error.z));
+        // rot_pid = vector3D(0.0,0.0, rotate_robot_PID.step(angular_error.z));
         rot_pid = (L2I_pos^rot_pid);
         rotational_v_vector = (L2I_pos^target_r) + rot_pid; 
         
@@ -370,6 +374,61 @@ void moveBase(){
      
         pros::delay(2); 
     } 
+}
+
+// Helper function to check if the motor is at the target
+bool isMotorAtTarget(int port, int target) {
+    int currentPosition = pros::c::motor_get_position(port);
+    return (currentPosition >= target - 5) && (currentPosition <= target + 5);
+}
+
+// Arms code
+// Arms control function
+void moveArms() {
+    switch (armState) {
+    case 0: // Resting position
+        if (master.get_digital_new_press(DIGITAL_B)) {
+            std::cout << "Grab ring\n";
+            pros::c::motor_move_relative(3, targetPosition, 500); // Move to grab position
+            pros::c::delay(10);
+            
+            armState = 1; // Transition to the next state
+        }
+        // break;
+
+    case 1: // Arm moving to grab position
+        if (isMotorAtTarget(3, targetPosition)) {
+            pros::lcd::print(1, "Case 1\n");
+        }
+
+        if (master.get_digital_new_press(DIGITAL_A)) {
+            pros::lcd::print(1, "Case 2\n");
+            pros::c::motor_move_relative(3, -2000, 500); // Perform flipping motion
+            pros::delay(10);
+
+            armState = 2; // Move to scoring state
+        }
+        // break;
+
+    case 2: // Scoring position
+    
+        if (master.get_digital_new_press(DIGITAL_X)) {
+            pros::lcd::print(1, "To resting state\n");
+            pros::c::motor_move_relative(3, 2500, 500); // Move to original arm position before all movements
+            pros::c::delay(10);
+
+            armState = 0; // Move to resting state
+        }
+        // break;
+    }
+}
+
+// Start the task
+void moveArmsTask() {
+    while (true) {
+        moveArms();        // Continuously execute the moveArms function
+        pros::delay(10);   // Prevent task hogging
+    }
 }
 
 void pivotWheels(double l_target_angle, double r_target_angle, double allowed_error) //pivot the left and right wheels by a certain amount
@@ -602,6 +661,7 @@ void initialize(){
     right_rotation_sensor.set_position(0);
 
     pros::Task move_base(moveBase);
+    pros::Task move_arms(moveArmsTask);
     //pros::Task serial_read(serialRead);
 
     master.clear();
@@ -612,7 +672,7 @@ void opcontrol(){
         leftX = master.get_analog(ANALOG_LEFT_X);
         leftY = master.get_analog(ANALOG_LEFT_Y);
         rightX = master.get_analog(ANALOG_RIGHT_X);
-        if(master.get_digital_new_press(DIGITAL_B)) autonomous();
+        // if(master.get_digital_new_press(DIGITAL_B)) autonomous();
 
         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { 
             pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
