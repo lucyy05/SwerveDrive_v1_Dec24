@@ -49,7 +49,7 @@
 // #define IMU_SENSOR_PORT 17
 // #define SERIALPORT 16
 
-// robot with base(new robot) USE THIS LTR AFTER USING SMALL SWERVE :DDDDDDDDDDDDDDDDDDDDDDDD
+// robot with base(new robot) :DDDDDDDD
 #define LEFT_UPPER_BEVEL_MOTOR_1 16
 #define LEFT_UPPER_BEVEL_MOTOR_2 17
 #define LEFT_LOWER_BEVEL_MOTOR_1 14
@@ -81,7 +81,7 @@
 int armState = 0;
 int targetPosition = -600;
 
-// robot without base !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! robot without base 
 // #define LEFT_UPPER_BEVEL_MOTOR_1 11
 // #define LEFT_UPPER_BEVEL_MOTOR_2 12
 // #define LEFT_LOWER_BEVEL_MOTOR_1 19
@@ -191,10 +191,6 @@ const double MAX_VOLTAGE = 12800;
 const double velocity_kP = 0.002;   //swerve wheel rotation velocity for driver
 const double velocity_kI = 0.000;   //tune for translate
 const double velocity_kD = 160;
-
-// const double azim_kP = 15.0; //azimuth, for correcting rotation
-// const double azim_kI = 0.0;    //drunk
-// const double azim_kD = 1.0;
 
 
 const double r_kF = 0.12;   //feedforward compensation for rotation //flick

@@ -176,10 +176,9 @@ double min(double a, double b) { //returns the smaller of two doubles
 }
 
 
-
 // Driver code
 void moveBase(){ 
-    double v_right_velocity; // target velocityy 
+    double v_right_velocity; // target velocity
     double v_left_velocity; 
  
     double battery_voltage;
@@ -237,8 +236,7 @@ void moveBase(){
     PID left_angle_PID(angle_kP_left, angle_kI_left, angle_kD_left); 
     PID right_angle_PID(angle_kP_right, angle_kI_right, angle_kD_right); 
     PID left_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
-    PID right_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
-    // PID rotate_robot_PID(azim_kP, azim_kI, azim_kD);
+    PID right_velocity_PID(velocity_kP, velocity_kI, velocity_kD);
      
     vector3D L2I_pos(WHEEL_BASE_RADIUS,0.0,0.0); 
     vector3D imu_angular;
@@ -327,8 +325,8 @@ void moveBase(){
         } 
  
         //calculate the wheel error 
-        current_l_tl_error = (v_left_velocity-current_l_velocity); 
-        current_r_tl_error = (v_right_velocity-current_r_velocity); 
+        current_l_tl_error = (v_left_velocity - current_l_velocity); 
+        current_r_tl_error = (v_right_velocity - current_r_velocity); 
 
         // velocity pid: based on the rate of change of velocity, pid updates the power the wheels 
         l_velocity_pid += left_velocity_PID.step(current_l_tl_error); 
@@ -388,8 +386,8 @@ void moveArms() {
     switch (armState) {
     case 0: // Resting position
         if (master.get_digital_new_press(DIGITAL_B)) {
-            std::cout << "Grab ring\n";
-            pros::c::motor_move_relative(3, targetPosition, 500); // Move to grab position
+            pros::lcd::print(1, "Grab ring\n");
+            pros::c::motor_move_relative(ARM_MOTOR, targetPosition, 500); // Move to grab position
             pros::c::delay(10);
             
             armState = 1; // Transition to the next state
@@ -403,7 +401,7 @@ void moveArms() {
 
         if (master.get_digital_new_press(DIGITAL_A)) {
             pros::lcd::print(1, "Case 2\n");
-            pros::c::motor_move_relative(3, -2000, 500); // Perform flipping motion
+            pros::c::motor_move_relative(ARM_MOTOR, -2000, 500); // Perform flipping motion
             pros::delay(10);
 
             armState = 2; // Move to scoring state
@@ -414,7 +412,7 @@ void moveArms() {
     
         if (master.get_digital_new_press(DIGITAL_X)) {
             pros::lcd::print(1, "To resting state\n");
-            pros::c::motor_move_relative(3, 2500, 500); // Move to original arm position before all movements
+            pros::c::motor_move_relative(ARM_MOTOR, 2500, 500); // Move to original arm position before all movements
             pros::c::delay(10);
 
             armState = 0; // Move to resting state
