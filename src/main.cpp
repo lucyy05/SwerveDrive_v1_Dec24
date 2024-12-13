@@ -607,9 +607,26 @@ void initialize(){
     master.clear();
 }
 
-/* CONVEYOR TODO:
- - [ ] implement conveyor "proprioception"
- - [ ] implement conveyor auto-store from 
+/* CONVEYOR FUNCTION USAGE
+ - run calibrate_conveyor() at ideally once first (ideally, run until the conveyor is slightly higher than the center of the hook)
+   - (you could technically skip the calibrate_conveyor() function since a good ish period value has been supplied)
+ - step_conveyor() is the function to use to automatically go thru the subroutine to:
+   - receive ring (from intake)
+   - store (free up intake)
+   - score 
+   - "calibrate"
+ - use conveyor_go_to_absolute() to move conveyor to where you want. 
+   Location is supplied by a decimal between 0-1 where 0 is the home position (aka where the hook is first detected by the optical sensor)
+   and 1 is the home position for the next hook
+ - use conveyor_go_home_by_sensor() to "calibrate" the conveyor position, since it uses the prox sensor, IT IS NOT RELIABLE WHEN IT IS TRANSPORTING A RING
+ - use conveyor_go_home() to return to the home position of the conveyor, there might not be much of a need for thsi function.
+ - there shouldn't be a need to use _calibrate_at_voltage() outside of the conveyor functions 
+
+CONVEYOR TODO:
+ - [/] implement conveyor "proprioception"
+ - [ ] implement conveyor auto-store from intake
+ - [ ] implement conveyor colour detection
+ - [ ] figure out how to put the conveyor functions in another file for organisation 
 */
 
 // #====# conveyor util functions
@@ -709,6 +726,8 @@ void step_conveyor(){
             break;
         case 1:
             conveyor_go_to_absolute(0.25, 40);       // store       (waiting to score)
+            // check colour
+            //conveyor_optical.
             break;
         case 2:
         {
