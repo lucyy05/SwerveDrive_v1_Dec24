@@ -126,8 +126,8 @@ pros::IMU imu(IMU_SENSOR_PORT);
 // pros::Motor liftR(RIGHT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
 
-pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, false);
-pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, false);
+pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, true);
+pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, true);
 pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEAR_RED, false, pros::E_MOTOR_ENCODER_DEGREES);
 
 // CONVEYOR AND ROLLER
@@ -187,28 +187,28 @@ const double angle_kP_mehmeh = 10.0;   //swerve wheel pivoting in driver control
 
 bool toggleBase = false;
 
-const double angle_kP_left = 20.0;   //swerve wheel pivoting in driver control and auton
-const double angle_kI_left = 0.00;
-const double angle_kD_left = 5000.0;
+const double angle_kP_left = 28.0;   //swerve wheel pivoting in driver control and auton
+const double angle_kI_left = 0.0;
+const double angle_kD_left = 1200.0; // was 2000
 
-const double angle_kP_right = 20.0;   //swerve wheel pivoting in driver control and auton
-const double angle_kI_right = 0.00;
-const double angle_kD_right = 5000.0;
+const double angle_kP_right = 26.0;   //swerve wheel pivoting in driver control and auton
+const double angle_kI_right = 0.0001;
+const double angle_kD_right = 1200.0; // was 2000
+
 
 
 // const double distance_kP = 0.4; //swerve wheel rotation distance for auton
 // const double distance_kI = 0.0;
 // const double distance_kD = 500.0;
 
-const double distance_kP = 29.0; //swerve wheel rotation distance for auton
+const double distance_kP = 0.4; //swerve wheel rotation distance for auton
 const double distance_kI = 0.0;
 const double distance_kD = 500.0;
-
 const double MAX_VOLTAGE = 12800;
 
-const double velocity_kP = 0.002;   //swerve wheel rotation velocity for driver
-const double velocity_kI = 0.000;   //tune for translate
-const double velocity_kD = 160;
+const double velocity_kP = 0.004;   //swerve wheel rotation velocity for driver
+const double velocity_kI = 0.000;
+const double velocity_kD = 90;
 
 const double azim_kP = 15.0; //azimuth, for correcting rotation
 const double azim_kI = 0.0;    //drunk
@@ -216,9 +216,9 @@ const double azim_kD = 1.0;
 
 
 const double r_kF = 0.12;   //feedforward compensation for rotation //flick
-const double v_kF = 0.3;    //feedforward compensation for translation
+const double v_kF = 0.32;    //feedforward compensation for translation
 
-const double scale  = 25.0;
+const double scale  = 40.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
 
 // const double ticks_per_mm = 2.5; //convert mm to ticks
