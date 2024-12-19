@@ -59,6 +59,17 @@
 #define RIGHT_LOWER_BEVEL_MOTOR_1 4
 #define RIGHT_LOWER_BEVEL_MOTOR_2 5
 
+
+// #define LEFT_UPPER_BEVEL_MOTOR_1 14
+// #define LEFT_UPPER_BEVEL_MOTOR_2 15
+// #define LEFT_LOWER_BEVEL_MOTOR_1 16
+// #define LEFT_LOWER_BEVEL_MOTOR_2 17
+// #define RIGHT_UPPER_BEVEL_MOTOR_1 4
+// #define RIGHT_UPPER_BEVEL_MOTOR_2 5
+// #define RIGHT_LOWER_BEVEL_MOTOR_1 9
+// #define RIGHT_LOWER_BEVEL_MOTOR_2 10
+
+
 #define LEFT_ROTATION_SENSOR_PORT 18
 #define RIGHT_ROTATION_SENSOR_PORT 8
 
@@ -79,6 +90,7 @@
 
 #define SOLENOID_SENSOR_PORT 'G'
 #define front_roller_adi 'H'
+#define mobilegoal_bottom 'D'
 
 #define SLAM_DUNK_SENSOR_PORT 'A'
 #define SLAM_DUNK_SOLENOID 'B'
@@ -126,6 +138,7 @@ pros::Motor roller(ROLLER_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_
 pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
 pros::ADIDigitalOut front_roller(front_roller_adi);
 pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
+pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
 
 pros::ADIAnalogIn slam_dunk(SLAM_DUNK_SENSOR_PORT);
 
@@ -187,7 +200,9 @@ const double angle_kD_right = 5000.0;
 // const double distance_kI = 0.0;
 // const double distance_kD = 500.0;
 
-
+const double distance_kP = 29.0; //swerve wheel rotation distance for auton
+const double distance_kI = 0.0;
+const double distance_kD = 500.0;
 
 const double MAX_VOLTAGE = 12800;
 
@@ -240,6 +255,7 @@ double global_errorX = 0.0;
 double original_x = 0;
 
 bool mobile_goal_actuated = false;
+bool mobile_goal_jaw = false;
 
 bool front_roller_actuated = false;
 
@@ -250,3 +266,7 @@ double slam_target = 0;
 double slam_Kp = 0.4;
 double slam_Kd = 0.1;
 double slam_Ki = 0.0;
+
+bool is_turning = false;
+double turn_target_angle;
+double turn_previous_error = 0;
