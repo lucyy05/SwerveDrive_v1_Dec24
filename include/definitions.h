@@ -87,14 +87,14 @@ int leftX = 0, leftY = 0, rightX = 0;
 
 //PARAMETERS
 const double DEADBAND =  3.0;
-const double MAX_RPM = 600.0;
+const double MAX_RPM = 540.0;
 const double TRANSLATE_RATIO = 1.0;
 const double ROTATE_RATIO = 3.0;
 const double WHEEL_RADIUS = 34.925;
 const double WHEEL_BASE_RADIUS = 161.50;   // mm
 const double MAX_SPEED = (2.0*M_PI*WHEEL_RADIUS*MAX_RPM)/60.0 ; //mm per second
 const double SPEED_TO_RPM = 60.0/(2.0*M_PI*WHEEL_RADIUS);
-const double MAX_ANGULAR = MAX_SPEED/WHEEL_BASE_RADIUS; // rad/s
+const double MAX_ANGULAR = 0.628 * MAX_SPEED/WHEEL_BASE_RADIUS; // rad/s
 const double ACCEL = 8000.0;    // mm/s2
 const double ANGULAR_ACCEL = 1.0;   // rad/s2
 const double SCALING_FACTOR = MAX_RPM / 127.0;
@@ -114,11 +114,11 @@ double theta; // angle between direction vector and robot right, radians
 
 const double angle_kP_left = 28.0;   //swerve wheel pivoting in driver control and auton
 const double angle_kI_left = 0.0;
-const double angle_kD_left = 2000.0;
+const double angle_kD_left = 1200.0; // was 2000
 
 const double angle_kP_right = 26.0;   //swerve wheel pivoting in driver control and auton
-const double angle_kI_right = 0.00;
-const double angle_kD_right = 2800.0;
+const double angle_kI_right = 0.0001;
+const double angle_kD_right = 1200.0; // was 2000
 
 
 const double distance_kP = 0.4; //swerve wheel rotation distance for auton

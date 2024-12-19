@@ -275,7 +275,7 @@ void moveBase(){
  
         rotational_v_vector = L2I_pos^target_r; 
          
-        v_left = target_v-rotational_v_vector; 
+        v_left = target_v-rotational_v_vector;
         v_right = target_v+rotational_v_vector; 
  
         bool reverse_right = false; 
@@ -296,6 +296,11 @@ void moveBase(){
  
         v_right_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_right*current_right_vector); 
         v_left_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_left*current_left_vector); 
+
+        v_right_velocity = v_right_velocity > MAX_RPM ? MAX_RPM : v_right_velocity;
+        v_right_velocity = v_right_velocity < -MAX_RPM ? -MAX_RPM : v_right_velocity;
+        v_left_velocity = v_right_velocity > MAX_RPM ? MAX_RPM : v_left_velocity;
+        v_left_velocity = v_right_velocity < -MAX_RPM ? -MAX_RPM : v_left_velocity;
  
         if(reverse_left){ 
             v_left_velocity = -v_left_velocity; 
