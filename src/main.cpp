@@ -241,6 +241,8 @@ void moveBase(){
     vector3D angular_error;
     vector3D rot_pid;
 
+    double rot_vector_double = 0.0;
+
     while(true){ 
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS; 
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS; 
@@ -281,9 +283,9 @@ void moveBase(){
         // pros::lcd::print(7, "rot_v_x %3.8f", rotational_v_vector.x); 
          
         angular_error = target_r - imu_angular;
-        rot_pid = vector3D(0.0,0.0, rotate_robot_PID.step(angular_error.z));
-        rot_pid = (L2I_pos^rot_pid);
-        rotational_v_vector = (L2I_pos^target_r) + rot_pid; 
+        rot_vector_double += rotate_robot_PID.step(angular_error.z)*L2I_pos.getX();
+        rot_pid = vector3D(0.0, rot_vector_double, 0.0);
+        
         
         v_left = target_v-rotational_v_vector; 
         v_right = target_v+rotational_v_vector; 

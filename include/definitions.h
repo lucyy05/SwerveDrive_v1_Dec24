@@ -1,4 +1,4 @@
-//zihui's branch for zihui's changes
+
 #include <cstdint>
 #include "pros/motors.hpp"
 #include "pros/adi.hpp"
@@ -182,7 +182,7 @@ const double velocity_kD = 160;
 
 const double azim_kP = 15.0; //azimuth, for correcting rotation
 const double azim_kI = 0.0;    //drunk
-const double azim_kD = 1.0;
+const double azim_kD = 0.0;
 
 
 const double r_kF = 0.12;   //feedforward compensation for rotation //flick
