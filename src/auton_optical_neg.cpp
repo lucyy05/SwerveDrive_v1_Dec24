@@ -323,25 +323,25 @@ void turn_angle(double targetTurning, double turn_Kp, double turn_Kd)
         // Adjust motor powers for turning
         if (targetTurning > 0)
         {
-            luA.move(turnPower + l_angle_pid); // Adjust left side for turning
-            luB.move(turnPower + l_angle_pid);
-            llA.move(turnPower - l_angle_pid);
-            llA.move(turnPower - l_angle_pid);
-            ruA.move(-turnPower + r_angle_pid); // Adjust right side for turning
-            ruB.move(-turnPower + r_angle_pid);
-            rlA.move(-turnPower  - r_angle_pid);
-            rlB.move(-turnPower  - r_angle_pid);
+            luA.move(turnPower - l_angle_pid); // Adjust left side for turning
+            luB.move(turnPower - l_angle_pid);
+            llA.move(turnPower + l_angle_pid);
+            llA.move(turnPower + l_angle_pid);
+            ruA.move(-turnPower - r_angle_pid); // Adjust right side for turning
+            ruB.move(-turnPower - r_angle_pid);
+            rlA.move(-turnPower  + r_angle_pid);
+            rlB.move(-turnPower  + r_angle_pid);
         }
         else if (targetTurning < 0)
         {
-            luA.move(-turnPower + l_angle_pid); // Adjust left side for turning
-            luB.move(-turnPower + l_angle_pid);
-            llA.move(-turnPower - l_angle_pid);
-            llA.move(-turnPower - l_angle_pid );
-            ruA.move(turnPower + r_angle_pid); // Adjust right side for turning
-            ruB.move(turnPower + r_angle_pid);
-            rlA.move(turnPower  - r_angle_pid);
-            rlB.move(turnPower  - r_angle_pid);
+            luA.move(-turnPower - l_angle_pid); // Adjust left side for turning
+            luB.move(-turnPower - l_angle_pid);
+            llA.move(-turnPower + l_angle_pid);
+            llA.move(-turnPower + l_angle_pid );
+            ruA.move(turnPower - r_angle_pid); // Adjust right side for turning
+            ruB.move(turnPower - r_angle_pid);
+            rlA.move(turnPower  + r_angle_pid);
+            rlB.move(turnPower  + r_angle_pid);
         }
 
         if (fabs(turnError) > fabs(targetTurning))
@@ -1660,7 +1660,7 @@ void initialize()
 
     // pros::Task move_base(moveBase);
     pros::Task serial_read(serialRead);
-    pros::Task mehmehisreal(printmehmeh);
+    // pros::Task mehmehisreal(printmehmeh);
 
     master.clear();
 }
@@ -1702,8 +1702,11 @@ void autonomousb()
 
 void autonomousy()
 {
+    turn_angle(-45, 1.5, 0.1);
 
-    set_wheel_angle_new(90,2.2,0,0.1);
+    // set_wheel_angle_new(90,2.2,0,0.1);
+
+
     // Control update rate
 
     //   set_wheel_angle(-90, 1.5, 0.00, 0.4);
