@@ -236,10 +236,7 @@ double rotational = 0.0;
 double rotationalL = 0.0;
 double rotationalR = 0.0;
 
-//MogoLift
-const double mkP = 0.88;
-const double mkI = 0.0; 
-const double mkD = 1.79;
+
 
 int liftTarget = 0;
 bool liftEnable = false;
