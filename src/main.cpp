@@ -9,7 +9,6 @@ template <typename T> int sgn(T val){
     return (T(0) < val) - (val < T(0));
 }
 
-/*
 void serialRead(void* params){
     vexGenericSerialEnable(SERIALPORT - 1, 0);
     vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
@@ -49,9 +48,9 @@ void serialRead(void* params){
                 if (thisDigit == 'Y') recordOpticalY = true;
             }
         }
-        pros::Task::delay(25);
+        pros::Task::delay(2);
     }
-}*/
+}
 
 void brake(){ //brakes all base motors
     luA.brake();
