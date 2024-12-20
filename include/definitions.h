@@ -267,3 +267,6 @@ double slam_Ki = 0.0;
 bool is_turning = false;
 double turn_target_angle;
 double turn_previous_error = 0;
+
+double mehmeh;
+double mehmeh2;
