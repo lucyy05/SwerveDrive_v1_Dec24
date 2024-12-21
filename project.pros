@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "auton",
+    "project_name": "Driver (21/12)",
     "target": "v5",
     "templates": {
       "kernel": {
@@ -309,8 +309,8 @@
       }
     },
     "upload_options": {
-      "slot": 2,
-      "icon": "pros",
+      "slot": 3,
+      "icon": "pizza",
       "after": "none"
     },
     "use_early_access": true
