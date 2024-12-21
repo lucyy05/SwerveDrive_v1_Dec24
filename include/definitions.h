@@ -249,21 +249,4 @@ double global_distY = 0.0;
 double global_distX = 0.0;
 double global_errorY = 0.0;
 double global_errorX = 0.0;
-double original_x = 0;
 
-bool mobile_goal_actuated = false;
-bool mobile_goal_jaw = false;
-
-bool front_roller_actuated = false;
-
-bool slam_dunk_actuated = false;
-
-int slammingState = 0;
-double slam_target = 0;
-double slam_Kp = 0.4;
-double slam_Kd = 0.1;
-double slam_Ki = 0.0;
-
-bool is_turning = false;
-double turn_target_angle;
-double turn_previous_error = 0;
