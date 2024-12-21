@@ -311,7 +311,7 @@ void moveBase(){
         target_r = target_r + r_fterm; 
             
         angular_error = target_r - imu_angular;
-        if(angular_error.z < ANGULAR_THRESH){
+        if(fabs(angular_error.z) < ANGULAR_THRESH){
             angular_error.load(0.0,0.0,0.0);
             rot_pid_double = 0.0;
         }
