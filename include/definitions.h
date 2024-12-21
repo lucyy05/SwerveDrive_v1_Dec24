@@ -49,15 +49,15 @@
 // #define IMU_SENSOR_PORT 17
 // #define SERIALPORT 16
 
-// robot with base(new robot)
-#define LEFT_UPPER_BEVEL_MOTOR_1 16
-#define LEFT_UPPER_BEVEL_MOTOR_2 17
-#define LEFT_LOWER_BEVEL_MOTOR_1 14
-#define LEFT_LOWER_BEVEL_MOTOR_2 15
-#define RIGHT_UPPER_BEVEL_MOTOR_1 9
-#define RIGHT_UPPER_BEVEL_MOTOR_2 10
-#define RIGHT_LOWER_BEVEL_MOTOR_1 4
-#define RIGHT_LOWER_BEVEL_MOTOR_2 5
+// robot with base(new robot) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// #define LEFT_UPPER_BEVEL_MOTOR_1 16
+// #define LEFT_UPPER_BEVEL_MOTOR_2 17
+// #define LEFT_LOWER_BEVEL_MOTOR_1 14
+// #define LEFT_LOWER_BEVEL_MOTOR_2 15
+// #define RIGHT_UPPER_BEVEL_MOTOR_1 9
+// #define RIGHT_UPPER_BEVEL_MOTOR_2 10
+// #define RIGHT_LOWER_BEVEL_MOTOR_1 4
+// #define RIGHT_LOWER_BEVEL_MOTOR_2 5
 
 // #define LEFT_UPPER_BEVEL_MOTOR_1 14
 // #define LEFT_UPPER_BEVEL_MOTOR_2 15
@@ -69,23 +69,24 @@
 // #define RIGHT_LOWER_BEVEL_MOTOR_2 10
 
 
-#define LEFT_ROTATION_SENSOR_PORT 18
-#define RIGHT_ROTATION_SENSOR_PORT 8
-
-#define IMU_PORT 13
+// robot with base(new robot) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// #define LEFT_ROTATION_SENSOR_PORT 18
+// #define RIGHT_ROTATION_SENSOR_PORT 8
+// robot with base(new robot) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// #define IMU_PORT 13
 
 // robot without base
-// #define LEFT_UPPER_BEVEL_MOTOR_1 11
-// #define LEFT_UPPER_BEVEL_MOTOR_2 12
-// #define LEFT_LOWER_BEVEL_MOTOR_1 19
-// #define LEFT_LOWER_BEVEL_MOTOR_2 20
-// #define RIGHT_UPPER_BEVEL_MOTOR_1 2
-// #define RIGHT_UPPER_BEVEL_MOTOR_2 3
-// #define RIGHT_LOWER_BEVEL_MOTOR_1 8
-// #define RIGHT_LOWER_BEVEL_MOTOR_2 9
+#define LEFT_UPPER_BEVEL_MOTOR_1 11
+#define LEFT_UPPER_BEVEL_MOTOR_2 12
+#define LEFT_LOWER_BEVEL_MOTOR_1 19
+#define LEFT_LOWER_BEVEL_MOTOR_2 20
+#define RIGHT_UPPER_BEVEL_MOTOR_1 2
+#define RIGHT_UPPER_BEVEL_MOTOR_2 3
+#define RIGHT_LOWER_BEVEL_MOTOR_1 8
+#define RIGHT_LOWER_BEVEL_MOTOR_2 9
 
-// #define LEFT_ROTATION_SENSOR_PORT 13
-// #define RIGHT_ROTATION_SENSOR_PORT 1
+#define LEFT_ROTATION_SENSOR_PORT 13
+#define RIGHT_ROTATION_SENSOR_PORT 1
 
 #define POTENTIOMETER_SENSOR_PORT 'H'
 #define SOLENOID_SENSOR_PORT 'G'
@@ -94,6 +95,8 @@
 #define ROLLER_MOTOR 6
 
 #define ZERO_VECTOR INFINITY
+
+#define IMU_PORT 17
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
   

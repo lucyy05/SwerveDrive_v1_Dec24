@@ -241,9 +241,14 @@ void moveBase(){
     vector3D angular_error;
     vector3D rot_pid;
 
+
     while(true){ 
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS; 
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS; 
+
+        pros::lcd::print(0, "left angle %lf", left_angle);
+        pros::lcd::print(1, "right angle %lf", right_angle);
+
         current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0); 
         current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0); 
  
@@ -309,7 +314,7 @@ void moveBase(){
  
         if(reverse_left){ 
             v_left_velocity = -v_left_velocity; 
-        } 
+        }
  
         if(reverse_right){ 
             v_right_velocity = -v_right_velocity; 
@@ -356,17 +361,17 @@ void moveBase(){
         target_r.getX(); 
         // pros::lcd::print(3, "ra %3.3f", right_angle); 
  
-        luA.move_voltage(lu); 
-        luB.move_voltage(lu); 
+        luA.move_voltage(0); 
+        luB.move_voltage(0); 
  
-        llA.move_voltage(ll); 
-        llB.move_voltage(ll); 
+        llA.move_voltage(0); 
+        llB.move_voltage(0); 
  
-        ruA.move_voltage(ru); 
-        ruB.move_voltage(ru); 
+        ruA.move_voltage(0); 
+        ruB.move_voltage(0); 
  
-        rlA.move_voltage(rl); 
-        rlB.move_voltage(rl); 
+        rlA.move_voltage(0); 
+        rlB.move_voltage(0); 
      
         pros::delay(2); 
     } 
@@ -615,30 +620,30 @@ void opcontrol(){
         if(master.get_digital_new_press(DIGITAL_B)) autonomous();
 
         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { 
-            pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
+            // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
             conveyor.move(110); 
             } 
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
-            pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
+            // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
             conveyor.move(-110);
             }
         else { 
-            pros::lcd::print(0, "CONVEYOR STOPPED\n");
+            // pros::lcd::print(0, "CONVEYOR STOPPED\n");
             conveyor.move(0);
             } 
 
 	// L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
 	// when L1 is pressed, rollers move forward with NEGATIVE velocity??
     if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) { 
-		pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
+		// pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
 		roller.move(110); 
         } 
     else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
-		pros::lcd::print(0, "L1: ROLLER forward, -ve velocity??\n");
+		// pros::lcd::print(0, "L1: ROLLER forward, -ve velocity??\n");
 		roller.move(-110);
         } 
     else {
-		pros::lcd::print(0, "ROLLER STOPPED\n");
+		// pros::lcd::print(0, "ROLLER STOPPED\n");
 		roller.move(0); 
     }
     
