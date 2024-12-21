@@ -10,82 +10,34 @@
 #include "vector.h"
 #include "pros/imu.hpp"
 
-// #define LEFT_UPPER_BEVEL_MOTOR_1 15
-// #define LEFT_UPPER_BEVEL_MOTOR_2 12 
-// #define LEFT_LOWER_BEVEL_MOTOR_1 1
-// #define LEFT_LOWER_BEVEL_MOTOR_2 2
-// #define RIGHT_UPPER_BEVEL_MOTOR_1 20
-// #define RIGHT_UPPER_BEVEL_MOTOR_2 19
-// #define RIGHT_LOWER_BEVEL_MOTOR_1 9
-// #define RIGHT_LOWER_BEVEL_MOTOR_2 7
-
-// #define LEFT_UPPER_BEVEL_MOTOR_1 11
-// #define LEFT_UPPER_BEVEL_MOTOR_2 12
-// #define LEFT_LOWER_BEVEL_MOTOR_1 19
-// #define LEFT_LOWER_BEVEL_MOTOR_2 20
-// #define RIGHT_UPPER_BEVEL_MOTOR_1 1
-// #define RIGHT_UPPER_BEVEL_MOTOR_2 2
-// #define RIGHT_LOWER_BEVEL_MOTOR_1 9
-// #define RIGHT_LOWER_BEVEL_MOTOR_2 10
-
-// #define LEFT_LIFT_MOTOR 18
-// #define RIGHT_LIFT_MOTOR 8
-
-// #define UPPER_INTAKE_MOTOR 15
-// #define LOWER_INTAKE_MOTOR 14
-
-// #define IMU_SENSOR_PORT 16
-// #define SERIALPORT 17
-
-// #define LEFT_ROTATION_SENSOR_PORT 13
-// #define RIGHT_ROTATION_SENSOR_PORT 3
-
-// #define LEFT_LIFT_MOTOR 18
-// #define RIGHT_LIFT_MOTOR 10
-
-// #define UPPER_INTAKE_MOTOR 15
-// #define LOWER_INTAKE_MOTOR 14
-
-// #define IMU_SENSOR_PORT 17
-// #define SERIALPORT 16
 
 // robot with base(new robot)
-#define LEFT_UPPER_BEVEL_MOTOR_1 16
+#define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
 #define LEFT_UPPER_BEVEL_MOTOR_2 17
-#define LEFT_LOWER_BEVEL_MOTOR_1 14
+#define LEFT_LOWER_BEVEL_MOTOR_1 14   //ROBOT FRONT
 #define LEFT_LOWER_BEVEL_MOTOR_2 15
-#define RIGHT_UPPER_BEVEL_MOTOR_1 9
+#define RIGHT_UPPER_BEVEL_MOTOR_1 9   //ROBOT BACK
 #define RIGHT_UPPER_BEVEL_MOTOR_2 10
-#define RIGHT_LOWER_BEVEL_MOTOR_1 4
+#define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
 #define RIGHT_LOWER_BEVEL_MOTOR_2 5
-
-// #define LEFT_UPPER_BEVEL_MOTOR_1 14
-// #define LEFT_UPPER_BEVEL_MOTOR_2 15
-// #define LEFT_LOWER_BEVEL_MOTOR_1 16
-// #define LEFT_LOWER_BEVEL_MOTOR_2 17
-// #define RIGHT_UPPER_BEVEL_MOTOR_1 4
-// #define RIGHT_UPPER_BEVEL_MOTOR_2 5
-// #define RIGHT_LOWER_BEVEL_MOTOR_1 9
-// #define RIGHT_LOWER_BEVEL_MOTOR_2 10
-
-
+#define IMU_PORT 13
 #define LEFT_ROTATION_SENSOR_PORT 18
 #define RIGHT_ROTATION_SENSOR_PORT 8
 
-#define IMU_PORT 13
 
-// robot without base
-// #define LEFT_UPPER_BEVEL_MOTOR_1 11
-// #define LEFT_UPPER_BEVEL_MOTOR_2 12
-// #define LEFT_LOWER_BEVEL_MOTOR_1 19
-// #define LEFT_LOWER_BEVEL_MOTOR_2 20
-// #define RIGHT_UPPER_BEVEL_MOTOR_1 2
-// #define RIGHT_UPPER_BEVEL_MOTOR_2 3
-// #define RIGHT_LOWER_BEVEL_MOTOR_1 8
-// #define RIGHT_LOWER_BEVEL_MOTOR_2 9
+// test base
+//#define LEFT_UPPER_BEVEL_MOTOR_1 20 //ROBOT BACK
+//#define LEFT_UPPER_BEVEL_MOTOR_2 19
+//#define LEFT_LOWER_BEVEL_MOTOR_1 11 //ROBOT FRONT
+//#define LEFT_LOWER_BEVEL_MOTOR_2 12 
+//#define RIGHT_UPPER_BEVEL_MOTOR_1 8 //ROBOT BACK
+//#define RIGHT_UPPER_BEVEL_MOTOR_2 9
+//#define RIGHT_LOWER_BEVEL_MOTOR_1 2 //ROBOT FRONT
+//#define RIGHT_LOWER_BEVEL_MOTOR_2 3
+//#define LEFT_ROTATION_SENSOR_PORT 13
+//#define RIGHT_ROTATION_SENSOR_PORT 1
+//#define IMU_PORT 17
 
-// #define LEFT_ROTATION_SENSOR_PORT 13
-// #define RIGHT_ROTATION_SENSOR_PORT 1
 
 #define POTENTIOMETER_SENSOR_PORT 'H'
 #define SOLENOID_SENSOR_PORT 'G'
@@ -115,8 +67,8 @@ pros::IMU imu(IMU_PORT);
 // pros::Motor liftR(RIGHT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
 
-pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, false);
-pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, false);
+pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, true);
+pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, true);
 // pros::Imu imu(IMU_SENSOR_PORT);
 
 // CONVEYOR AND ROLLER
@@ -159,7 +111,6 @@ vector3D target_r;
 vector3D temp;
 vector3D v_right;
 vector3D v_left;
-double theta; // angle between direction vector and robot right, radians
 
 const double angle_kP_left = 20.0;   //swerve wheel pivoting in driver control and auton
 const double angle_kI_left = 0.00;
@@ -180,14 +131,15 @@ const double velocity_kP = 0.002;   //swerve wheel rotation velocity for driver
 const double velocity_kI = 0.000;   //tune for translate
 const double velocity_kD = 160;
 
-const double azim_kP = 15.0; //azimuth, for correcting rotation
+const double azim_kP = 0.03; //azimuth, for correcting rotation
 const double azim_kI = 0.0;    //drunk
-const double azim_kD = 0.0;
+const double azim_kD = 10.0;
 
+const double ANGULAR_THRESH = 0.001;
 
-const double r_kF = 0.12;   //feedforward compensation for rotation //flick
+const double r_kF = 0.1;   //feedforward compensation for rotation //flick
+const double r_kF_STATIC = 0.7; //FF STATIC for rotation
 const double v_kF = 0.3;    //feedforward compensation for translation
-
 const double scale  = 25.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
 
