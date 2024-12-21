@@ -100,8 +100,13 @@ int targetPosition = -600;
 #define POTENTIOMETER_SENSOR_PORT 'H'
 #define SOLENOID_SENSOR_PORT 'G'
 
+#define SLAM_DUNK_SENSOR_PORT 'A'
+#define SLAM_DUNK_SOLENOID 'B'
+
 #define CONVEYOR_MOTOR 7
 #define ROLLER_MOTOR 6
+
+#define SLAM_DUNK_MOTOR 3
 
 #define ZERO_VECTOR INFINITY
 
@@ -127,13 +132,16 @@ pros::IMU imu(IMU_PORT);
 
 pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, false);
 pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, false);
+pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEAR_RED, false, pros::E_MOTOR_ENCODER_DEGREES);
 // pros::Imu imu(IMU_SENSOR_PORT);
 
 // CONVEYOR AND ROLLER
 pros::Motor conveyor(CONVEYOR_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor roller(ROLLER_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
-pros::Motor arm(ARM_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
+pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
+pros::ADIAnalogIn slam_dunk(SLAM_DUNK_SENSOR_PORT);
+
 
 // pros::ADIAnalogIn lifter(POTENTIOMETER_SENSOR_PORT);
 // pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
@@ -228,3 +236,11 @@ double global_distX = 0.0;
 double global_errorY = 0.0;
 double global_errorX = 0.0;
 
+// slam dunk
+bool slam_dunk_actuated = false;
+
+int slammingState = 0;
+double slam_target = 0;
+double slam_Kp = 0.4;
+double slam_Kd = 0.1;
+double slam_Ki = 0.0;

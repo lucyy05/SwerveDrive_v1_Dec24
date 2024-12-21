@@ -382,51 +382,41 @@ bool isMotorAtTarget(int port, int target) {
 
 // Arms code
 // Arms control function
-void moveArms() {
-    switch (armState) {
-    case 0: // Resting position
-        if (master.get_digital_new_press(DIGITAL_B)) {
-            pros::lcd::print(1, "Grab ring\n");
-            pros::c::motor_move_relative(ARM_MOTOR, targetPosition, 500); // Move to grab position
-            pros::c::delay(10);
-            
-            armState = 1; // Transition to the next state
-        }
-        // break;
-
-    case 1: // Arm moving to grab position
-        if (isMotorAtTarget(3, targetPosition)) {
-            pros::lcd::print(1, "Case 1\n");
+void slamDunk() {
+    double Derivative = 0.0;
+    double prevError = 0.0;
+    double Error = 0.0;
+    double Integral = 0.0;
+  while (true) {
+        if (slammingState == 0) { // left -- resting position
+            slam_target = 1900; //2980 for upin, 1900 for ipin
+        } else if (slammingState == 1) { // right -- holding position
+            slam_target = 1711; // 2785 for upin, 1711 for ipin
+        } else if (slammingState == 2) { // up -- ready to score
+            slam_target = 382; //1535 for upin, 382 for ipin
         }
 
-        if (master.get_digital_new_press(DIGITAL_A)) {
-            pros::lcd::print(1, "Case 2\n");
-            pros::c::motor_move_relative(ARM_MOTOR, -2000, 500); // Perform flipping motion
-            pros::delay(10);
+    Derivative = prevError - Error;
+    Error = fabs(slam_target - slam_dunk.get_value());
+    Integral += Error;
+    double motorPower =
+        slam_Kp * Error + slam_Kd * Derivative + slam_Ki * Integral;
 
-            armState = 2; // Move to scoring state
-        }
-        // break;
-
-    case 2: // Scoring position
-    
-        if (master.get_digital_new_press(DIGITAL_X)) {
-            pros::lcd::print(1, "To resting state\n");
-            pros::c::motor_move_relative(ARM_MOTOR, 2500, 500); // Move to original arm position before all movements
-            pros::c::delay(10);
-
-            armState = 0; // Move to resting state
-        }
-        // break;
+    if (fabs(Error) <= 5) {
+      slam_dunkkkk.move(0);
+      slam_dunkkkk.brake();
+    } else {
+      if (slam_target > slam_dunk.get_value() + 10) {
+        slam_dunkkkk.move(motorPower);
+        // slam_dunk_r.move(motorPower);
+      } else if (slam_target < slam_dunk.get_value() - 10) {
+        slam_dunkkkk.move(-motorPower);
+        // slam_dunk_r.move(-motorPower);
+      }
     }
-}
-
-// Start the task
-void moveArmsTask() {
-    while (true) {
-        moveArms();        // Continuously execute the moveArms function
-        pros::delay(10);   // Prevent task hogging
-    }
+    prevError = Error;
+    pros::Task::delay(15);
+  }
 }
 
 void pivotWheels(double l_target_angle, double r_target_angle, double allowed_error) //pivot the left and right wheels by a certain amount
@@ -659,7 +649,7 @@ void initialize(){
     right_rotation_sensor.set_position(0);
 
     pros::Task move_base(moveBase);
-    pros::Task move_arms(moveArmsTask);
+    pros::Task slam_dunk(slamDunk);
     //pros::Task serial_read(serialRead);
 
     master.clear();
@@ -700,6 +690,26 @@ void opcontrol(){
 		roller.move(0); 
     }
     
+    if(master.get_digital_new_press(DIGITAL_X)) slam_dunk_actuated = !slam_dunk_actuated;
+        if(slam_dunk_actuated) { 
+            slam_in_out.set_value(1);            
+        }
+        else {
+            slam_in_out.set_value(0);
+        }
+
+    if (master.get_digital_new_press(DIGITAL_UP)) {
+        if (slammingState == 0) {
+            slammingState = 1;  // Transition from state 0 to 1
+        } else if (slammingState == 1) {
+            slammingState = 2;  // Transition from state 1 to 2
+        }
+    }
+    // Reset to default state (0) when DOWN is pressed
+    if (master.get_digital_new_press(DIGITAL_DOWN)) {
+        slammingState = 0;
+    }
+
     pros::delay(5);
     }
 }
