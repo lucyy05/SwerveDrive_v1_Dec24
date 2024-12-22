@@ -78,8 +78,6 @@ void brake()
     pros::delay(1);
 }
 
-
-
 double wrapAngle(double angle)
 { // forces the angle to be within the -180 <
     // angle < 180 range
@@ -597,7 +595,7 @@ void base_PID_front_back(double base_kp, double base_ki, double base_kd,
     PID rotate_robot_PID(azim_kP, azim_kI, azim_kD);
     vector3D L2I_pos(WHEEL_BASE_RADIUS, 0.0, 0.0);
     vector3D current_left_vector; // direction unit vector for wheels
-    vector3D current_right_vector; 
+    vector3D current_right_vector;
 
     while (l_move || r_move)
     {
@@ -641,8 +639,8 @@ void base_PID_front_back(double base_kp, double base_ki, double base_kd,
         // vector3D l_current_angle = vector3D(cos(left_angle), sin(left_angle), 0);
         // vector3D r_current_angle = vector3D(cos(right_angle), sin(right_angle), 0);
 
-        l_error = angle(v_left, current_left_vector); 
-        r_error = angle(v_right, current_right_vector); 
+        l_error = angle(v_left, current_left_vector);
+        r_error = angle(v_right, current_right_vector);
 
         // calculate the PID output
         l_angle_pid = left_angle_PID.step(l_error);
@@ -776,13 +774,12 @@ void base_PID_front_back(double base_kp, double base_ki, double base_kd,
 }
 
 void base_PID_front_back_imu_x(double base_kp, double base_kd, double offset_kp, double offset_kd,
-                                 double targetangle, double targetDistance_Y,
-                                 double decelerationThreshold, double angle_offset_p, double angle_offset_kd)
+                               double targetangle, double targetDistance_Y,
+                               double decelerationThreshold, double angle_offset_p, double angle_offset_kd)
 {
     // Movement variables
     double power = 0;
     double errordistance = 0;
-
 
     double totalErrordistance = 0;
     double offset_error = 0;
@@ -812,20 +809,17 @@ void base_PID_front_back_imu_x(double base_kp, double base_kd, double offset_kp,
     while (move)
     {
 
-        imu_angle = (wrapAngle(imu.get_heading()- 90.0) *
+        imu_angle = (wrapAngle(imu.get_heading() - 90.0) *
                      TO_RADIANS); // note that the function getNormalizedSensorAngle
-                                 // already implements wrapAngle to bound the angle
-                                 // between -180 and 180 degrees
-    
+                                  // already implements wrapAngle to bound the angle
+                                  // between -180 and 180 degrees
 
         vector3D target_angle_vector =
             vector3D(cos(angleMaintain), sin(angleMaintain), 0);
 
         vector3D l_current_angle = vector3D(cos(imu_angle), sin(imu_angle), 0);
 
-
         heading_error = angle(l_current_angle, target_angle_vector);
-
 
         // calculate the PID output
         angle_pid = angle_PID.step(heading_error);
@@ -863,7 +857,7 @@ void base_PID_front_back_imu_x(double base_kp, double base_kd, double offset_kp,
             else
             {
                 power = base_kp * errordistance +
-                         base_kd * (errordistance - totalErrordistance);
+                        base_kd * (errordistance - totalErrordistance);
             }
             power = std::clamp(power, -540.0, 540.0);
         }
@@ -871,7 +865,6 @@ void base_PID_front_back_imu_x(double base_kp, double base_kd, double offset_kp,
         pros::lcd::print(
             5, "power: %.lf",
             power);
-
 
         // Move the motors
         if (targetDistance_Y >= 0)
@@ -896,7 +889,7 @@ void base_PID_front_back_imu_x(double base_kp, double base_kd, double offset_kp,
             ruB.move_velocity(power - angle_pid - offset_correction);
             rlA.move_velocity(power + angle_pid + offset_correction);
             rlB.move_velocity(power + angle_pid + offset_correction);
-            if (errordistance < 0 )
+            if (errordistance < 0)
             {
                 brake();
                 break;
@@ -924,7 +917,7 @@ void base_PID_front_back_imu_x(double base_kp, double base_kd, double offset_kp,
             ruB.move_velocity(power - angle_pid - offset_correction);
             rlA.move_velocity(power + angle_pid + offset_correction);
             rlB.move_velocity(power + angle_pid + offset_correction);
-            if (errordistance > 0 )
+            if (errordistance > 0)
             {
                 brake();
                 break;
@@ -934,12 +927,14 @@ void base_PID_front_back_imu_x(double base_kp, double base_kd, double offset_kp,
         if (timeout >= 100000)
             break;
 
-        if (fabs(power) < 2 )
+        if (fabs(power) < 2)
         {
             break;
         }
 
-        // pros::lcd::print(0, "ErrorL: %.lf", errorLeft);
+        pros::lcd::print(1, "Error: %.lf", errordistance);
+        pros::lcd::print(6, "angle_pid: %.lf", angle_pid);
+        pros::lcd::print(7, "offset_correction: %.lf", offset_correction);
         // pros::lcd::print(1, "ErrorR: %.lf", errorRight);
 
         // // Update previous errors for the next iteration
@@ -949,7 +944,7 @@ void base_PID_front_back_imu_x(double base_kp, double base_kd, double offset_kp,
         // Delay to reduce CPU load
         // timeout += 2;
     }
-    brake();
+    // brake();
 }
 
 void base_PID_left_right(double base_kp, double base_ki, double base_kd,
@@ -1496,10 +1491,10 @@ void autonomous()
 
 void autonomousb()
 {
-    set_wheel_angle_new(0, 0.1, 0, 0);
+    // set_wheel_angle_new(0, 0.1, 0, 0);
 
     // base_PID_front_back_flipped(1.5, 0,1.5, 0, 0, 700, 400, 18, 5000.0);
-    // base_PID_front_back(0.05,0,0,0,1200, 0, 0.5, 0.0);
+    base_PID_front_back(0.05, 0, 0, 0, 1200, 0, 0.5, 0.0);
 
     // mainnn
     // base_PID_front_back_flipped(1.5, 0, 1.5, 0, 0, 750, 370, 0.5, 0.0);
@@ -1518,8 +1513,8 @@ void autonomousb()
 
 void autonomousy()
 {
-    set_wheel_angle_new(0, 0.1, 0, 0);
-    base_PID_front_back_imu_x(0.1, 0, 0.2, 0,0, 750, 0, 0.5, 0.0);
+    // set_wheel_angle_new(0, 0.2, 0, 0.2);
+    base_PID_front_back_imu_x(0.1, 0, 0.2, 0, 0, 750, 0, 0.5, 0.0);
     // set_wheel_angle_new(90, 2.2, 0, 0.1);
     // turn_angle(-45, 1.5, 0.1);
 
