@@ -294,7 +294,8 @@ void moveBase(){
         imu_angular = vector3D(0.0,0.0, imu.get_gyro_rate().z * TO_RADIANS); // Radians per second
 
         // TODO: switch PID to go for target angle, switch actual to use current sensor angle 
-        target_v = normalizeJoystick(-leftX, leftY).scalar(MAX_SPEED); // target velocity 
+        target_v = normalizeJoystick(0, leftY).scalar(MAX_SPEED); // target velocity 
+        // lefX to remove left and right translations for the robots
         target_r = normalizeRotation(-rightX).scalar(MAX_ANGULAR*0.8); // target rotation 
 
         battery_voltage = pros::battery::get_voltage();
