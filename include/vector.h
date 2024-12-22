@@ -12,7 +12,7 @@ public:
         z = z_;
     }
 
-    
+
     vector3D(double x_, double y_){
         x = x_;
         y = y_;

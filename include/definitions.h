@@ -9,7 +9,7 @@
 #include "vector.h"
 #include "pros/imu.hpp"
 
-// robot with base(new robot)
+/* robot with base (UPIN) */
 #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
 #define LEFT_UPPER_BEVEL_MOTOR_2 17
 #define LEFT_LOWER_BEVEL_MOTOR_1 14   //ROBOT FRONT
@@ -22,7 +22,20 @@
 #define LEFT_ROTATION_SENSOR_PORT 18
 #define RIGHT_ROTATION_SENSOR_PORT 8
 
-// test base
+/* robot with base (IPIN) */
+// #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
+// #define LEFT_UPPER_BEVEL_MOTOR_2 17
+// #define LEFT_LOWER_BEVEL_MOTOR_1 14   //ROBOT FRONT
+// #define LEFT_LOWER_BEVEL_MOTOR_2 15
+// #define RIGHT_UPPER_BEVEL_MOTOR_1 9   //ROBOT BACK
+// #define RIGHT_UPPER_BEVEL_MOTOR_2 10
+// #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
+// #define RIGHT_LOWER_BEVEL_MOTOR_2 5
+// #define IMU_PORT 13
+// #define LEFT_ROTATION_SENSOR_PORT 18
+// #define RIGHT_ROTATION_SENSOR_PORT 8
+
+/* test base */
 //#define LEFT_UPPER_BEVEL_MOTOR_1 20 //ROBOT BACK
 //#define LEFT_UPPER_BEVEL_MOTOR_2 19
 //#define LEFT_LOWER_BEVEL_MOTOR_1 11 //ROBOT FRONT
@@ -39,8 +52,8 @@
 #define SLAM_DUNK_SOLENOID 'B'
 
 #define POTENTIOMETER_SENSOR_PORT 'H'
-#define SOLENOID_SENSOR_PORT 'G'
-#define mobilegoal_bottom 'D'
+#define SOLENOID_SENSOR_PORT 'D'
+#define mobilegoal_bottom 'G'
 
 #define CONVEYOR_MOTOR 7
 #define ROLLER_MOTOR 6
@@ -78,7 +91,6 @@ pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros:
 
 // pros::Motor liftL(LEFT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
 // pros::Motor liftR(RIGHT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
-
 
 pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, true);
 pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, true);
@@ -181,13 +193,14 @@ bool liftEnable = false;
 bool isLeftFlipped = false;
 bool isRightFlipped = false;
 
+//Slam dunk
 enum SlammingState {
     SLAM_START_STATE = 0,
     SLAM_MID_STATE = 1,
     SLAM_EXTENDED_STATE = 2
 };
-
 SlammingState slammingState = SLAM_START_STATE;
+
 bool slam_dunk_actuated = false;
 
 double slam_target = 0;
@@ -206,3 +219,11 @@ bool mobile_goal_actuated = false;
 bool mobile_goal_jaw = false;
 
 bool driver = false;
+
+//Optical flow
+const double ALPHA = 0.85;
+const double BETA = 0.38;
+const double THRESHOLD = 200.0;
+const double height_from_gnd = 20.0;    //Height in mm
+const double scaler = 7.2;              //Adjust for sensitivity for different surfaces
+const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * scaler);

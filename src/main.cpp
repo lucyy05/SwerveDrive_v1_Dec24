@@ -9,12 +9,23 @@ template <typename T> int sgn(T val){
     return (T(0) < val) - (val < T(0));
 }
 
+float lowPassFilter(float prevValue, float newValue) {
+    return ALPHA * newValue + BETA * prevValue;
+}
+
 void serialRead(void* params){
     vexGenericSerialEnable(SERIALPORT - 1, 0);
     vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
     pros::delay(10);
     pros::screen::set_pen(COLOR_BLUE);
-    double distX, distY = 0;
+    double distX = 0.0;
+    double distY = 0.0;
+    double deltaX = 0.0;
+    double deltaY = 0.0;
+    double prevFilteredDX = 0.0;
+    double filteredDeltaX = 0.0;
+    double prevFilteredDY = 0.0;
+    double filteredDeltaY = 0.0;
     while(true){
         uint8_t buffer[256];
         int bufLength = 256;
@@ -30,8 +41,7 @@ void serialRead(void* params){
                 }
                 if(thisDigit == 'C'){
                     recordOpticalX = false;
-                    dataStream >> distX;
-                    global_distX = distX;
+                    dataStream >> deltaX;
                     pros::lcd::print(1, "Optical Flow:");
                     pros::lcd::print(2, "distX: %.2lf", global_distX);
                     dataStream.str(std::string());
@@ -39,8 +49,7 @@ void serialRead(void* params){
                 }
                 if(thisDigit == 'D'){
                     recordOpticalY = false;
-                    dataStream >> distY;
-                    global_distY = distY;
+                    dataStream >> deltaY;
                     pros::lcd::print(3, "distY: %.2lf", global_distY);
                     dataStream.str(std::string());
                     std::stringstream dataStream("");
@@ -49,6 +58,14 @@ void serialRead(void* params){
                 if (recordOpticalY) dataStream << (char)buffer[i];
                 if (thisDigit == 'X') recordOpticalX = true;
                 if (thisDigit == 'Y') recordOpticalY = true;
+                double filteredDeltaX = lowPassFilter(prevFilteredDX, deltaX);
+                double filteredDeltaY = lowPassFilter(prevFilteredDY, deltaY);
+                prevFilteredDX = filteredDeltaX;
+                prevFilteredDY = filteredDeltaY;
+                if (abs(filteredDeltaX - deltaX) < THRESHOLD && abs(filteredDeltaY - deltaY) < THRESHOLD) {
+                    global_distX += scale_factor * filteredDeltaX;
+                    global_distY += scale_factor * filteredDeltaY;
+                }
             }
         }
         pros::Task::delay(2);
@@ -265,26 +282,23 @@ void moveBase(){
     double gyro_rate = 0.0;
     double a_err_d = 0.0;   //angular error as a double
 
-    while(true){ 
-        if(driver == true){
-            target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
-            target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*0.8); // target rotation 
-        }
-        else{
-            target_v = normalizeJoystick(0, 0).scalar(MAX_SPEED); // target velocity 
-            target_r = normalizeRotation(0).scalar(MAX_ANGULAR*0.7); // target rotation
-        }
+    std::vector<vector3D> waypoints = {
+        vector3D(1.0, -0.5, 0.0),  // Example waypoint 1
+        vector3D(2.0, -1.0, 0.0),  // Example waypoint 2
+        vector3D(3.0, 0.0, 0.0)    // Example waypoint 3
+    };
 
-        left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
-        right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   //Y axis positive is front
+    while(true){
+        target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
+        target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*0.8); // target rotation
+
+        //takes robot right as 0
+        //Y axis positive is front
+        left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;
+        right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;
 
         current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);  
         current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0); 
-
-        // pros::lcd::print(0,"lx %2.2f ly %2.2f",current_left_vector.x, current_left_vector.y);
-        // pros::lcd::print(1,"rx %2.2f ry %2.2f",current_right_vector.x, current_right_vector.y);
-
-        // pros::lcd::print(3,"tx %2.2f ty %2.2f",target_v.x, target_v.y);
 
         current_l_velocity = ((luA.get_actual_velocity()+luB.get_actual_velocity()+llA.get_actual_velocity()+llB.get_actual_velocity())/4.0); 
         current_r_velocity = ((ruA.get_actual_velocity()+ruB.get_actual_velocity()+rlA.get_actual_velocity()+rlB.get_actual_velocity())/4.0); 
@@ -304,7 +318,6 @@ void moveBase(){
         }
 
         imu_angular = vector3D(0.0,0.0, gyro_rate); // Radians per second, loaded as angle
-        //pros::lcd::print(2, "gyro_rate %3.8f", gyro_rate);
 
         battery_voltage = pros::battery::get_voltage();
          
@@ -324,56 +337,47 @@ void moveBase(){
 
         a_err_d = angular_error.getZ();
         rot_pid_double += rotate_robot_PID.step(a_err_d);
-        //pros::lcd::print(3, "imu_angular %3.8f", imu_angular.z);
-        //pros::lcd::print(6,"rot_v_d %3.8f", rot_vector_double);
         rot_FF = (target_r^L2I_pos).scalar(r_kF_STATIC);
         rot_vector_double = rot_pid_double + rot_FF.getY();
         rot_pid = vector3D(0.0, rot_vector_double, 0.0);
-
-        // pros::lcd::print(3, "target_r X %%.1lf", target_r.x); 
-        // pros::lcd::print(4, "target_r Y %.1lf", target_r.y); 
-        // pros::lcd::print(5, "target_r Z %.1lf", target_r.z); 
             
         v_left = target_v-rot_pid; //in order to rotate counterclockwise
         v_right = target_v+rot_pid; 
 
-        //pros::lcd::print(4, "angular_err %3.8f", a_err_d); 
-        //pros::lcd::print(5, "right_mag %3.8f", v_right.magnitude()); 
- 
         bool reverse_right = false; 
         bool reverse_left = false; 
-         
+
         // check if the angle is obtuse 
         if (v_left * current_left_vector < 0){   
             // reverse if angle is obtuse for shorter rotation 
             v_left = -v_left; 
             reverse_left = true; 
         } 
- 
+
         if (v_right * current_right_vector < 0){   
             // reverse if angle is obtuse for shorter rotation 
             v_right = -v_right; 
             reverse_right = true; 
         } 
- 
+
         v_right_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_right*current_right_vector);    //dot product should already
         v_left_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_left*current_left_vector);       //compensate angle drift?
- 
-        if(reverse_left){ 
+
+        if(reverse_left){
             v_left_velocity = -v_left_velocity; 
         }
- 
+
         if(reverse_right){ 
             v_right_velocity = -v_right_velocity; 
         } 
- 
+
         // calculate the error angle 
         l_error = angle(v_left, current_left_vector); 
         r_error = angle(v_right, current_right_vector); 
         if (std::isnan(l_error) || std::isnan(r_error)) { 
             l_error = 0.0; r_error = 0.0; 
         } 
- 
+
         //calculate the wheel error 
         current_l_tl_error = (v_left_velocity-current_l_velocity); 
         current_r_tl_error = (v_right_velocity-current_r_velocity); 
@@ -381,11 +385,11 @@ void moveBase(){
         // velocity pid: based on the rate of change of velocity, pid updates the power the wheels 
         l_velocity_pid += left_velocity_PID.step(current_l_tl_error); 
         r_velocity_pid += right_velocity_PID.step(current_r_tl_error); 
- 
+
         // angle pid: based on error, pid updates the power to the wheels 
         l_angle_pid = left_angle_PID.step(l_error); //power to force anticlockwise aiming
         r_angle_pid = right_angle_PID.step(r_error); 
- 
+
         // higher base_v: drifts and lower base_v: lags 
         lscale = (battery_voltage/MAX_VOLTAGE) * scale;// * ((1.0-base_v)*fabs((l_error))+base_v); 
         rscale = (battery_voltage/MAX_VOLTAGE) * scale;// * ((1.0-base_v)*fabs((r_error))+base_v); 
@@ -395,16 +399,8 @@ void moveBase(){
         ll = (int32_t)std::clamp(lscale * (l_velocity_pid - l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
         ru = (int32_t)std::clamp(rscale * (r_velocity_pid + r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
         rl = (int32_t)std::clamp(rscale * (r_velocity_pid - r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
-        
 
-        //clampVoltage(lu,ll,ru,rl);
         move_voltage_wheels(lu,ll,ru,rl);
-        //pros::lcd::print(2, "l_scale  %3.8f", lscale); 
-        
-        // pros::lcd::print(4,"le%3.8f",l_error);
-        // pros::lcd::print(5,"re%3.8f",r_error);
-        //pros::lcd::print(6,"lu%3.8f",lu);
-        //pros::lcd::print(7,"ll%3.8f",ll);
         pros::delay(2); 
     }
 }
@@ -983,9 +979,9 @@ void opcontrol(){
             mobilegoal_bot.set_value(0);
         }
         else{
-            mobilegoal_bot.set_value(1);
-            pros::Task::delay(110);
             solenoid.set_value(0);
+            pros::Task::delay(110);
+            mobilegoal_bot.set_value(1);
         }
 
         if(master.get_digital_new_press(DIGITAL_X)) slam_dunk_actuated = !slam_dunk_actuated;
