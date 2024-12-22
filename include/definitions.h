@@ -270,3 +270,7 @@ double turn_previous_error = 0;
 
 double mehmeh;
 double mehmeh2;
+
+const double ANGULAR_THRESH = 0.000;
+const double r_kF_STATIC = 0.7;
+double imu_angle;
