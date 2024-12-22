@@ -9,7 +9,6 @@ template <typename T> int sgn(T val){
     return (T(0) < val) - (val < T(0));
 }
 
-/*
 void serialRead(void* params){
     vexGenericSerialEnable(SERIALPORT - 1, 0);
     vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
@@ -32,16 +31,19 @@ void serialRead(void* params){
                 if(thisDigit == 'C'){
                     recordOpticalX = false;
                     dataStream >> distX;
+                    global_distX = distX;
                     pros::lcd::print(1, "Optical Flow:");
-                    pros::lcd::print(2, "distX: %.2lf", distX/100);
+                    pros::lcd::print(2, "distX: %.2lf", global_distX);
                     dataStream.str(std::string());
+                    std::stringstream dataStream("");
                 }
                 if(thisDigit == 'D'){
                     recordOpticalY = false;
                     dataStream >> distY;
-                    global_distY = distY/100;
-                    pros::lcd::print(3, "distY: %.2lf", distY/100);
+                    global_distY = distY;
+                    pros::lcd::print(3, "distY: %.2lf", global_distY);
                     dataStream.str(std::string());
+                    std::stringstream dataStream("");
                 }
                 if (recordOpticalX) dataStream << (char)buffer[i];
                 if (recordOpticalY) dataStream << (char)buffer[i];
@@ -49,9 +51,9 @@ void serialRead(void* params){
                 if (thisDigit == 'Y') recordOpticalY = true;
             }
         }
-        pros::Task::delay(25);
+        pros::Task::delay(2);
     }
-}*/
+}
 
 void brake(){ //brakes all base motors
     luA.brake();
@@ -264,19 +266,24 @@ void moveBase(){
     double a_err_d = 0.0;   //angular error as a double
 
     while(true){ 
-        target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
-        target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*0.6); // target rotation 
+        if(driver == true){
+            target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
+            target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*0.8); // target rotation 
+        }
+        else{
+            target_v = normalizeJoystick(0, 0).scalar(MAX_SPEED); // target velocity 
+            target_r = normalizeRotation(0).scalar(MAX_ANGULAR*0.7); // target rotation
+        }
 
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   //Y axis positive is front
-        
-        
+
         current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);  
         current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0); 
 
         // pros::lcd::print(0,"lx %2.2f ly %2.2f",current_left_vector.x, current_left_vector.y);
         // pros::lcd::print(1,"rx %2.2f ry %2.2f",current_right_vector.x, current_right_vector.y);
-        
+
         // pros::lcd::print(3,"tx %2.2f ty %2.2f",target_v.x, target_v.y);
 
         current_l_velocity = ((luA.get_actual_velocity()+luB.get_actual_velocity()+llA.get_actual_velocity()+llB.get_actual_velocity())/4.0); 
@@ -606,20 +613,38 @@ void slamDunk() {
     double Error = 0.0;
     double Integral = 0.0;
     while(true){
+        /*UPIN*/
+        // switch (slammingState){
+        //     case SLAM_START_STATE: //resting position
+        //         slam_target = 2980;
+        //         break;
+        //     case SLAM_MID_STATE: //midpoint - holding position
+        //         slam_target = 2835;
+        //         break;
+        //     case SLAM_EXTENDED_STATE: //extended all the way
+        //         slam_target = 1535;
+        //         break;
+        //     default:
+        //         slam_target = 2980;
+        //         break;
+        // }
+
+        /*IPIN*/
         switch (slammingState){
             case SLAM_START_STATE: //resting position
-                slam_target = 2980;
+                slam_target = 1900;
                 break;
             case SLAM_MID_STATE: //midpoint - holding position
-                slam_target = 2835;
+                slam_target = 1711;
                 break;
             case SLAM_EXTENDED_STATE: //extended all the way
-                slam_target = 1535;
+                slam_target = 382;
                 break;
             default:
-                slam_target = 2980;
+                slam_target = 382;
                 break;
         }
+
         Derivative = prevError - Error;
         Error = fabs(slam_target - slam_dunk.get_value());
         Integral += Error;
@@ -640,15 +665,9 @@ void slamDunk() {
     }
 }
 
-void moveBaseAutonomous(double targetX, double targetY) {
-    double currentX = 0.0; // Current x position (based on optical flow)
-    double currentY = 0.0; // Current y position (based on optical flow)
-    double translationalErrorX, translationalErrorY; // Positional errors
-    double translationalMagnitude; // Magnitude of translational vector
-    double rotationalError; // Heading error
-
+void moveBaseAutonomous(double distX, double distY){ 
     double v_right_velocity; // target velocity magnitude
-    double v_left_velocity; 
+    double v_left_velocity;
 
     double battery_voltage;
 
@@ -656,15 +675,12 @@ void moveBaseAutonomous(double targetX, double targetY) {
     double right_angle; 
     double left_target_angle; 
     double right_target_angle; 
+    //vector3D rotational_v_vector; // vector expression for angular velocity -- only has z component 
 
     vector3D current_left_vector; // direction unit vector for wheels
-    vector3D current_right_vector;
+    vector3D current_right_vector; 
 
-    // Target values for translational and rotational speeds
-    vector3D target_v(0, 0, 0);
-    vector3D target_r(0, 0, 0);
-
-    double l_error = 0.0; // how far the left and right angles wrt to their respective target angles 
+    double l_error = 0.0; // how far the left and right angles wrt to the their respective target angles 
     double r_error = 0.0; 
 
     double current_l_velocity = 0.0; // current left and right velocities of the indiv wheels 
@@ -675,31 +691,31 @@ void moveBaseAutonomous(double targetX, double targetY) {
 
     double l_angle_pid = 0.0; // power diff for angular velocity 
     double r_angle_pid = 0.0; 
- 
+
     double l_velocity_pid = 0.0; // power diff to reach velocity target 
     double r_velocity_pid = 0.0; 
- 
+
     double lscale = 0; // power scale to adjust the power to the wheels i.e. less power for the wheels if position of the wheels is wrong and vv 
     double rscale = 0; 
- 
+
     double current_angular = 0.0; // current angular velocity 
- 
-    vector3D current_tl_velocity(0,0,0); // current translational velocity
- 
+
+    vector3D current_tl_velocity(0,0,0); //current transaltional velocity
+
     vector3D prev_target_v(0,0,0);  
     vector3D prev_target_r(0,0,0); 
- 
+
     vector3D v_fterm(0,0,0); // fterm: added constants to make PID more responsive 
-    vector3D r_fterm(0,0,0); // based on rate of change of input from optical flow 
- 
+    vector3D r_fterm(0,0,0); // based on rate of change of input from joystick 
+
     double average_x_v = 0; 
     double average_y_v = 0; 
- 
+
     uint64_t micros_now = -1; 
-     
+
     uint64_t micros_prev = pros::micros(); 
     uint64_t dt = -1; 
- 
+
     //voltages
     int32_t lu = 0; // left upper 
     int32_t ll = 0; // left lower 
@@ -707,17 +723,11 @@ void moveBaseAutonomous(double targetX, double targetY) {
     int32_t rl = 0; // right lower 
 
     //PID instances
-    PID left_angle_PID(angle_kP_left, angle_kI_left, angle_kD_left); 
-    PID right_angle_PID(angle_kP_right, angle_kI_right, angle_kD_right); 
-    PID left_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
-    PID right_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
+    PID left_angle_PID(angle_kP_left, angle_kI_left, angle_kD_left);
+    PID right_angle_PID(angle_kP_right, angle_kI_right, angle_kD_right);
+    PID left_velocity_PID(velocity_kP, velocity_kI, velocity_kD);
+    PID right_velocity_PID(velocity_kP, velocity_kI, velocity_kD);
     PID rotate_robot_PID(azim_kP, azim_kI, azim_kD);
-
-    double currentAngularVelocity = 0.0;
-
-    PID translationalPIDX(translate_kP, translate_kI, translate_kD);
-    PID translationalPIDY(translate_kP, translate_kI, translate_kD);
-    PID rotationalPID(azim_kP, azim_kI, azim_kD);
 
     vector3D L2I_pos(WHEEL_BASE_RADIUS,0.0,0.0); 
     vector3D imu_angular;
@@ -728,50 +738,45 @@ void moveBaseAutonomous(double targetX, double targetY) {
     double rot_vector_double = 0.0;
     double rot_pid_double = 0.0;
     double gyro_rate = 0.0;
-    double a_err_d = 0.0;   // angular error as a double
+    double a_err_d = 0.0;   //angular error as a double
 
-    while(true){ 
-        // Replace joystick inputs with optical flow values (in mm)
-        currentX += global_distX; // Cumulative x reading
-        currentY += global_distY; // Cumulative y reading
-        // Calculate positional errors
-        translationalErrorX = targetX - fabs(currentX);
-        translationalErrorY = targetY - fabs(currentY);
+    double targetX = 0.0;
+    double targetY = 0.0;
 
-        // Calculate magnitude of the translational vector
-        translationalMagnitude = sqrt(pow(translationalErrorX, 2) + pow(translationalErrorY, 2));
+    double offsetX = 0.0;
+    double offsetY = 0.0;
 
-        // Normalize translational vector to unit vector
-        vector3D translationalVector = vector3D(translationalErrorX, translationalErrorY, 0.0);
+    if(global_distX < 0)
+        offsetX = global_distX;
+    else
+        offsetX = -global_distX;
 
-        // Calculate rotational error (if needed, based on robot orientation)
-        rotationalError = atan2(translationalErrorY, translationalErrorX) - (imu.get_heading() * TO_RADIANS); // Assuming `get_heading` gives radians
+    if(global_distY < 0)
+        offsetY = global_distY;
+    else
+        offsetY = -global_distY;
+    master.print(2,0, "%.2lf", global_distX);
+    pros::delay(100);
+    master.print(1,0, "%.2lf", offsetX);
+    pros::delay(100);
 
-        // Update PID controllers
-        double translationalPowerX = translationalPIDX.step(translationalErrorX);
-        double translationalPowerY = translationalPIDY.step(translationalErrorY);
-        double rotationalPower = rotationalPID.step(rotationalError);
+    while(true){
+        targetX = distX - global_distX - offsetX;
+        targetY = distY - global_distY - offsetY;
+        master.print(0,0, "%.1lf", targetX);
+        target_v = normalizeJoystick(int(targetX), int(targetY)).scalar(MAX_SPEED); // target velocity 
+        target_r = normalizeRotation(0).scalar(MAX_ANGULAR*0.6); // target rotation 
 
-        micros_prev = micros_now; 
-        micros_now = pros::micros(); 
-        dt = micros_now-micros_prev; 
-        v_fterm = (target_v - prev_target_v)*(v_kF/dt); // rate of change of optical flow input * constant v_kF 
-        target_v = target_v + v_fterm; // update the target_v
-
-        // Add feedforward if necessary
-        v_fterm = target_v * v_kF;
-        r_fterm = target_r * r_kF;
-        target_v = target_v + v_fterm;
-        target_r = target_r + r_fterm;
-
-        target_v = normalizeJoystick(global_distX, global_distY).scalar(MAX_SPEED);
-        target_r = vector3D(0, 0, 0); // No rotation unless explicitly needed
-
-        left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     // takes robot right as 0
-        right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   // Y-axis positive is front
+        left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
+        right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   //Y axis positive is front
 
         current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);  
         current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0); 
+
+        // pros::lcd::print(0,"lx %2.2f ly %2.2f",current_left_vector.x, current_left_vector.y);
+        // pros::lcd::print(1,"rx %2.2f ry %2.2f",current_right_vector.x, current_right_vector.y);
+
+        // pros::lcd::print(3,"tx %2.2f ty %2.2f",target_v.x, target_v.y);
 
         current_l_velocity = ((luA.get_actual_velocity()+luB.get_actual_velocity()+llA.get_actual_velocity()+llB.get_actual_velocity())/4.0); 
         current_r_velocity = ((ruA.get_actual_velocity()+ruB.get_actual_velocity()+rlA.get_actual_velocity()+rlB.get_actual_velocity())/4.0); 
@@ -791,14 +796,17 @@ void moveBaseAutonomous(double targetX, double targetY) {
         }
 
         imu_angular = vector3D(0.0,0.0, gyro_rate); // Radians per second, loaded as angle
+        //pros::lcd::print(2, "gyro_rate %3.8f", gyro_rate);
 
         battery_voltage = pros::battery::get_voltage();
 
-        micros_prev = micros_now; 
-        micros_now = pros::micros(); 
-        dt = micros_now-micros_prev; 
-        v_fterm = (target_v - prev_target_v)*(v_kF/dt); // rate of change of optical flow input * constant v_kF 
-        target_v = target_v + v_fterm; // update the target_v
+        micros_prev = micros_now;
+        micros_now = pros::micros();
+        dt = micros_now-micros_prev;
+        v_fterm = (target_v - prev_target_v)*(v_kF/dt); // rate of change of joystick input * constant v_kF
+        r_fterm = (target_r - prev_target_r)*(r_kF/dt); // rate of change of joystick input * constant r_kF
+        target_v = target_v + v_fterm; // update the target_v and target_r
+        target_r = target_r + r_fterm;
 
         angular_error = target_r - imu_angular;
         if(fabs(angular_error.z) < ANGULAR_THRESH){
@@ -808,12 +816,21 @@ void moveBaseAutonomous(double targetX, double targetY) {
 
         a_err_d = angular_error.getZ();
         rot_pid_double += rotate_robot_PID.step(a_err_d);
+        //pros::lcd::print(3, "imu_angular %3.8f", imu_angular.z);
+        //pros::lcd::print(6,"rot_v_d %3.8f", rot_vector_double);
         rot_FF = (target_r^L2I_pos).scalar(r_kF_STATIC);
         rot_vector_double = rot_pid_double + rot_FF.getY();
         rot_pid = vector3D(0.0, rot_vector_double, 0.0);
 
-        v_left = target_v-rot_pid; // in order to rotate counterclockwise
+        // pros::lcd::print(3, "target_r X %%.1lf", target_r.x); 
+        // pros::lcd::print(4, "target_r Y %.1lf", target_r.y); 
+        // pros::lcd::print(5, "target_r Z %.1lf", target_r.z); 
+    
+        v_left = target_v-rot_pid; //in order to rotate counterclockwise
         v_right = target_v+rot_pid; 
+
+        //pros::lcd::print(4, "angular_err %3.8f", a_err_d); 
+        //pros::lcd::print(5, "right_mag %3.8f", v_right.magnitude()); 
 
         bool reverse_right = false; 
         bool reverse_left = false; 
@@ -829,10 +846,10 @@ void moveBaseAutonomous(double targetX, double targetY) {
             // reverse if angle is obtuse for shorter rotation 
             v_right = -v_right; 
             reverse_right = true; 
-        }
+        } 
 
-        v_right_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_right*current_right_vector);    
-        v_left_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_left*current_left_vector);       
+        v_right_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_right*current_right_vector);    //dot product should already
+        v_left_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_left*current_left_vector);       //compensate angle drift?
 
         if(reverse_left){ 
             v_left_velocity = -v_left_velocity; 
@@ -842,38 +859,49 @@ void moveBaseAutonomous(double targetX, double targetY) {
             v_right_velocity = -v_right_velocity; 
         } 
 
+        // calculate the error angle 
         l_error = angle(v_left, current_left_vector); 
         r_error = angle(v_right, current_right_vector); 
         if (std::isnan(l_error) || std::isnan(r_error)) { 
             l_error = 0.0; r_error = 0.0; 
         } 
 
+        //calculate the wheel error 
         current_l_tl_error = (v_left_velocity-current_l_velocity); 
         current_r_tl_error = (v_right_velocity-current_r_velocity); 
 
+        // velocity pid: based on the rate of change of velocity, pid updates the power the wheels 
         l_velocity_pid += left_velocity_PID.step(current_l_tl_error); 
-        r_velocity_pid += right_velocity_PID.step(current_r_tl_error);
-
-        l_angle_pid = left_angle_PID.step(l_error); 
+        r_velocity_pid += right_velocity_PID.step(current_r_tl_error); 
+ 
+        // angle pid: based on error, pid updates the power to the wheels 
+        l_angle_pid = left_angle_PID.step(l_error); //power to force anticlockwise aiming
         r_angle_pid = right_angle_PID.step(r_error); 
+ 
+        // higher base_v: drifts and lower base_v: lags 
+        lscale = (battery_voltage/MAX_VOLTAGE) * scale;// * ((1.0-base_v)*fabs((l_error))+base_v); 
+        rscale = (battery_voltage/MAX_VOLTAGE) * scale;// * ((1.0-base_v)*fabs((r_error))+base_v); 
 
-        battery_voltage = pros::battery::get_voltage();
+        lu = (int32_t)std::clamp(lscale * (l_velocity_pid + l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); //this side seems less powerful on the robot 
+        ll = (int32_t)std::clamp(lscale * (l_velocity_pid - l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
+        ru = (int32_t)std::clamp(rscale * (r_velocity_pid + r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
+        rl = (int32_t)std::clamp(rscale * (r_velocity_pid - r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
+        
 
-        lscale = (battery_voltage / MAX_VOLTAGE) * scale; 
-        rscale = (battery_voltage / MAX_VOLTAGE) * scale; 
-
-        int32_t lu = (int32_t)std::clamp(lscale * (l_velocity_pid + l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
-        int32_t ll = (int32_t)std::clamp(lscale * (l_velocity_pid - l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
-        int32_t ru = (int32_t)std::clamp(rscale * (r_velocity_pid + r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
-        int32_t rl = (int32_t)std::clamp(rscale * (r_velocity_pid - r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
-
-        move_voltage_wheels(lu, ll, ru, rl); 
-        pros::delay(2);
+        //clampVoltage(lu,ll,ru,rl);
+        move_voltage_wheels(lu,ll,ru,rl);
+        //pros::lcd::print(2, "l_scale  %3.8f", lscale); 
+        
+        // pros::lcd::print(4,"le%3.8f",l_error);
+        // pros::lcd::print(5,"re%3.8f",r_error);
+        //pros::lcd::print(6,"lu%3.8f",lu);
+        //pros::lcd::print(7,"ll%3.8f",ll);
+        pros::delay(3); 
     }
 }
 
 void autonomous(){
-    moveBaseAutonomous(50, 0);
+    moveBaseAutonomous(50, 10);
 }
 
 void initialize(){
@@ -885,7 +913,7 @@ void initialize(){
     //pros::delay(100);
     //master.print(0,0,"IMU calibrated  ");
     pros::delay(100);
-    master.rumble(".. -- .");
+    master.rumble(" .- .");
 
     luA.set_brake_mode(MOTOR_BRAKE_HOLD); // once target position reached it locks it instead of cont moving
     luB.set_brake_mode(MOTOR_BRAKE_HOLD);
@@ -908,7 +936,7 @@ void initialize(){
 
     pros::Task move_base(moveBase);
     pros::Task slam_dunk(slamDunk);
-    //pros::Task serial_read(serialRead);
+    pros::Task serial_read(serialRead);
 }
 
 void opcontrol(){
@@ -917,6 +945,8 @@ void opcontrol(){
         leftY = master.get_analog(ANALOG_LEFT_Y);
         rightX = master.get_analog(ANALOG_RIGHT_X);
         if(master.get_digital_new_press(DIGITAL_B)) autonomous();
+
+        if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
 
         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { 
             //pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");

@@ -1,4 +1,3 @@
-
 #include <cstdint>
 #include "pros/motors.hpp"
 #include "pros/adi.hpp"
@@ -10,7 +9,6 @@
 #include "vector.h"
 #include "pros/imu.hpp"
 
-
 // robot with base(new robot)
 #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
 #define LEFT_UPPER_BEVEL_MOTOR_2 17
@@ -20,11 +18,9 @@
 #define RIGHT_UPPER_BEVEL_MOTOR_2 10
 #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
 #define RIGHT_LOWER_BEVEL_MOTOR_2 5
-//#define IMU_PORT 13
 #define IMU_PORT 2
 #define LEFT_ROTATION_SENSOR_PORT 18
 #define RIGHT_ROTATION_SENSOR_PORT 8
-
 
 // test base
 //#define LEFT_UPPER_BEVEL_MOTOR_1 20 //ROBOT BACK
@@ -52,6 +48,8 @@
 #define SLAM_DUNK_MOTOR 3
 
 #define COLOR_SENSOR 1
+
+#define SERIALPORT 20
 
 #define ZERO_VECTOR INFINITY
 
@@ -154,7 +152,7 @@ const double translate_kD = 0.01;
 
 const double ANGULAR_THRESH = 0.000; // Threshold under which to ignore angular error
 
-const double r_kF = 0.0;   //feedforward compensation for rotation //flick
+const double r_kF = 0.2;   //feedforward compensation for rotation //flick
 const double r_kF_STATIC = 0.7; //FF STATIC for rotation
 const double v_kF = 0.3;    //feedforward compensation for translation
 const double scale  = 25.0;
@@ -206,3 +204,5 @@ double global_errorX = 0.0;
 //Mobile goal grabber
 bool mobile_goal_actuated = false;
 bool mobile_goal_jaw = false;
+
+bool driver = false;
