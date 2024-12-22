@@ -773,124 +773,358 @@ void base_PID_front_back(double base_kp, double base_ki, double base_kd,
     brake();
 }
 
-void base_PID_front_back_imu_x(double base_kp, double base_kd, double offset_kp, double offset_kd,
+// void base_PID_front_back_imu_x(double base_kp, double base_kd, double offset_kp, double offset_kd,
+//                                double targetangle, double targetDistance_Y,
+//                                double decelerationThreshold, double angle_offset_p, double angle_offset_kd)
+// {
+//     // Movement variables
+//     double power = 0;
+//     double errordistance = 0;
+
+//     double totalErrordistance = 0;
+//     double offset_error = 0;
+//     double prev_offset_error = 0;
+//     double offset_correction = 0;
+
+// double angleMaintain =
+//     (targetangle - 90.0) *
+//     TO_RADIANS; // note that the function getNormalizedSensorAngle already
+//                 // implements wrapAngle to bound the angle between -180 and
+//                 // 180 degrees
+
+//     // power output for angle component of pid
+//     double angle_pid = 0.0;
+
+//     bool move = true;
+//     int timeout = 0;
+
+//     PID angle_PID(angle_offset_p, angle_kI, angle_offset_kd);
+
+//     double aim_target = targetDistance_Y - global_distY;
+//     original_x = global_distX;
+//     double heading_error;
+//     double prev_errordistance;
+
+//     while (move)
+//     {
+//         pros::lcd::print(
+//             1, "moving"
+//             );
+
+//         imu_angle = (wrapAngle(imu.get_heading() - 90.0) *
+//                      TO_RADIANS); // note that the function getNormalizedSensorAngle
+//                                   // already implements wrapAngle to bound the angle
+//                                   // between -180 and 180 degrees
+
+// vector3D imu_target_angle_vector =
+//     vector3D(cos(angleMaintain), sin(angleMaintain), 0);
+
+// vector3D current_angle = vector3D(cos(imu_angle), sin(imu_angle), 0);
+
+//         heading_error = angle(l_current_angle, target_angle_vector);
+
+//         // calculate the PID output
+//         angle_pid = angle_PID.step(heading_error);
+
+//         double targetDistance = aim_target - global_distY;
+//         pros::lcd::print(
+//             4, "current_distance: %.lf",
+//             targetDistance);
+
+//         errordistance = targetDistance;
+//         float errordistance_derivative = errordistance - prev_errordistance;
+//         prev_errordistance = errordistance;
+
+//         offset_error = global_distX - original_x;
+//         float offset_derivative = offset_error - prev_offset_error;
+//         prev_offset_error = offset_error;
+//         offset_correction = (offset_kp * offset_error) + (offset_kd * offset_derivative);
+
+//         // PID for left motors
+//         if (fabs(errordistance) <= base_error)
+//         {
+//             power = 0.0;
+//             move = false;
+//         }
+//         else
+//         {
+//             // Gradually reduce power as you approach the target
+//             if (fabs(errordistance) < decelerationThreshold)
+//             {
+//                 power *= 0.5; // Reduce power to half when close to target
+//             }
+//             else
+//             {
+//                 power = base_kp * errordistance +
+//                         base_kd * errordistance_derivative;
+//             }
+//             power = std::clamp(power, -540.0, 540.0);
+//         }
+
+//         pros::lcd::print(
+//             5, "power: %.lf",
+//             power);
+
+//         // Move the motors
+//         if (targetDistance_Y >= 0)
+//         {
+//             pros::lcd::print(
+//                 0, "targetDistance_Y: %.lf",
+//                 targetDistance_Y);
+//             // luA.move_velocity(-power - angle_pid - offset_correction);
+//             // luB.move_velocity(-power - angle_pid - offset_correction);
+//             // llA.move_velocity(-power + angle_pid + offset_correction);
+//             // llB.move_velocity(-power + angle_pid + offset_correction);
+//             // ruA.move_velocity(-power - angle_pid - offset_correction);
+//             // ruB.move_velocity(-power - angle_pid - offset_correction);
+//             // rlA.move_velocity(-power + angle_pid + offset_correction);
+//             // rlB.move_velocity(-power + angle_pid + offset_correction);
+
+//             luA.move_velocity(power + angle_pid - offset_correction);
+//             luB.move_velocity(power + angle_pid - offset_correction);
+//             llA.move_velocity(power - angle_pid + offset_correction);
+//             llB.move_velocity(power - angle_pid + offset_correction);
+//             ruA.move_velocity(power + angle_pid - offset_correction);
+//             ruB.move_velocity(power + angle_pid - offset_correction);
+//             rlA.move_velocity(power - angle_pid + offset_correction);
+//             rlB.move_velocity(power - angle_pid + offset_correction);
+//             if (errordistance < 0)
+//             {
+//                 brake();
+//                 break;
+//             }
+//         }
+//         else
+//         {
+//             pros::lcd::print(
+//                 0, "targetDistance_Y: %.lf",
+//                 targetDistance_Y);
+//             // luA.move_velocity(-power - angle_pid - offset_correction);
+//             // luB.move_velocity(-power - angle_pid - offset_correction);
+//             // llA.move_velocity(-power + angle_pid + offset_correction);
+//             // llB.move_velocity(-power + angle_pid + offset_correction);
+//             // ruA.move_velocity(-power - angle_pid - offset_correction);
+//             // ruB.move_velocity(-power - angle_pid - offset_correction);
+//             // rlA.move_velocity(-power + angle_pid + offset_correction);
+//             // rlB.move_velocity(-power + angle_pid + offset_correction);
+
+//             luA.move_velocity(power + angle_pid - offset_correction);
+//             luB.move_velocity(power + angle_pid - offset_correction);
+//             llA.move_velocity(power - angle_pid + offset_correction);
+//             llB.move_velocity(power - angle_pid + offset_correction);
+//             ruA.move_velocity(power + angle_pid - offset_correction);
+//             ruB.move_velocity(power + angle_pid - offset_correction);
+//             rlA.move_velocity(power - angle_pid + offset_correction);
+//             rlB.move_velocity(power - angle_pid + offset_correction);
+//             if (errordistance > 0)
+//             {
+//                 brake();
+//                 break;
+//             }
+//         }
+
+//         if (timeout >= 100000)
+//             break;
+
+//         if (fabs(power) < 2)
+//         {
+//             break;
+//         }
+
+//         pros::lcd::print(1, "Error: %.lf", errordistance);
+//         pros::lcd::print(6, "angle_pid: %.lf", angle_pid);
+//         pros::lcd::print(7, "offset_correction: %.lf", offset_correction);
+//         pros::delay(2);
+//         // pros::lcd::print(1, "ErrorR: %.lf", errorRight);
+
+//         // // Update previous errors for the next iteration
+//         // prevErrorLeft = errorLeft;
+//         // prevErrorRight = errorRight;
+
+//         // Delay to reduce CPU load
+//         // timeout += 2;
+//     }
+//     // brake();
+// }
+
+void base_PID_front_back_imu_x(double base_kp, double base_ki, double base_kd,
                                double targetangle, double targetDistance_Y,
                                double decelerationThreshold, double angle_offset_p, double angle_offset_kd)
 {
     // Movement variables
-    double power = 0;
-    double errordistance = 0;
+    double powerL = 0;
+    double powerR = 0;
+    double errorLeft = 0;
+    double errorRight = 0;
+    double prevErrorLeft = 0;
+    double prevErrorRight = 0;
+    double totalErrorLeft = 0;
+    double totalErrorRight = 0;
 
-    double totalErrordistance = 0;
     double offset_error = 0;
     double prev_offset_error = 0;
     double offset_correction = 0;
+
+    double l_angleMaintain =
+        (targetangle - 90.0) *
+        TO_RADIANS; // note that the function getNormalizedSensorAngle already
+                    // implements wrapAngle to bound the angle between -180 and
+                    // 180 degrees
+    double r_angleMaintain =
+        (targetangle - 90.0) *
+        TO_RADIANS; // note that the function getNormalizedSensorAngle already
+                    // implements wrapAngle to bound the angle between -180 and
+                    // 180 degrees
 
     double angleMaintain =
         (targetangle - 90.0) *
         TO_RADIANS; // note that the function getNormalizedSensorAngle already
                     // implements wrapAngle to bound the angle between -180 and
                     // 180 degrees
-
-
-    // power output for angle component of pid
     double angle_pid = 0.0;
+    double left_angle, right_angle;
+    double l_error = 0.0;
+    double r_error = 0.0;
+    // power output for angle component of pid
+    double l_angle_pid = 0.0;
+    double r_angle_pid = 0.0;
+    // 1. Perform turning first
 
-    bool move = true;
+    bool l_move = true;
+    bool r_move = true;
     int timeout = 0;
+
+    PID left_angle_PID(angle_kP, angle_kI, angle_kD);
+    PID right_angle_PID(angle_kP, angle_kI, angle_kD);
 
     PID angle_PID(angle_offset_p, angle_kI, angle_offset_kd);
 
     double aim_target = targetDistance_Y - global_distY;
     original_x = global_distX;
+
+    vector3D current_left_vector; // direction unit vector for wheels
+    vector3D current_right_vector;
     double heading_error;
-    double prev_errordistance;
+    double prev_errorLeft;
+    double prev_errorRight;
+    double initialHeading;
 
-    while (move)
+    while (l_move || r_move)
     {
-        pros::lcd::print(
-            1, "moving"
-            );
 
-        imu_angle = (wrapAngle(imu.get_heading() - 90.0) *
-                     TO_RADIANS); // note that the function getNormalizedSensorAngle
-                                  // already implements wrapAngle to bound the angle
-                                  // between -180 and 180 degrees
+        left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor) - 90.0) * TO_RADIANS;   // takes robot right as 0
+        right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor) - 90.0) * TO_RADIANS; // Y axis positive is front
+        imu_angle = (wrapAngle(imu.get_heading()) - 90.0)   * TO_RADIANS;
+        current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);
+        current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0);
 
-        vector3D target_angle_vector =
+        vector3D imu_target_angle_vector =
             vector3D(cos(angleMaintain), sin(angleMaintain), 0);
+        vector3D l_target_angle = vector3D(cos(l_angleMaintain), sin(l_angleMaintain), 0);
+        vector3D r_target_angle = vector3D(cos(r_angleMaintain), sin(r_angleMaintain), 0);
 
-        vector3D l_current_angle = vector3D(cos(imu_angle), sin(imu_angle), 0);
+        vector3D current_angle = vector3D(cos(imu_angle), sin(imu_angle), 0);
+        vector3D l_current_angle = vector3D(cos(left_angle), sin(left_angle), 0);
+        vector3D r_current_angle = vector3D(cos(right_angle), sin(right_angle), 0);
 
-        heading_error = angle(l_current_angle, target_angle_vector);
+        l_error = angle(l_current_angle, l_target_angle);
+        r_error = angle(r_current_angle, r_target_angle);
+        heading_error = angle(current_angle, imu_target_angle_vector);
 
         // calculate the PID output
+        l_angle_pid = left_angle_PID.step(l_error);
+        r_angle_pid = right_angle_PID.step(r_error);
         angle_pid = angle_PID.step(heading_error);
-        
         double targetDistance = aim_target - global_distY;
         pros::lcd::print(
             4, "current_distance: %.lf",
             targetDistance);
 
-        errordistance = targetDistance;
-        float errordistance_derivative = errordistance - prev_errordistance;
-        prev_errordistance = errordistance;
+        errorLeft = targetDistance;
+        errorRight = targetDistance;
+        float errorLeft_derivative = errorLeft - prevErrorLeft;
+        float errorRight_derivative = errorLeft - prevErrorRight;
+        prevErrorLeft = errorLeft;
+        prevErrorRight = errorRight;
+        totalErrorLeft += errorLeft;
+        totalErrorRight += errorRight;
 
-
-        offset_error = global_distX - original_x;
-        float offset_derivative = offset_error - prev_offset_error;
-        prev_offset_error = offset_error;
-        offset_correction = (offset_kp * offset_error) + (offset_kd * offset_derivative);
+        // offset_error = global_distX - original_x;
+        // float offset_derivative = offset_error - prev_offset_error;
+        // prev_offset_error = offset_error;
+        // offset_correction = (offset_kp * offset_error) + (offset_kd * offset_derivative);
 
         // PID for left motors
-        if (fabs(errordistance) <= base_error)
+        if (fabs(errorLeft) <= base_error)
         {
-            power = 0.0;
-            move = false;
+            powerL = 0.0;
+            l_move = false;
         }
         else
         {
             // Gradually reduce power as you approach the target
-            if (fabs(errordistance) < decelerationThreshold)
+            if (fabs(errorLeft) < decelerationThreshold)
             {
-                power *= 0.5; // Reduce power to half when close to target
+                powerL *= 0.5; // Reduce power to half when close to target
             }
             else
             {
-                power = base_kp * errordistance +
-                        base_kd * errordistance_derivative;
+                powerL = base_kp * errorLeft + base_ki * totalErrorLeft +
+                         base_kd * errorLeft_derivative;
             }
-            power = std::clamp(power, -540.0, 540.0);
+            powerL = std::clamp(powerL, -540.0, 540.0);
         }
 
+        // PID for right motors
+        if (fabs(errorRight) <= base_error)
+        {
+            powerR = 0.0;
+            r_move = false;
+        }
+        else
+        {
+            // Gradually reduce power as you approach the target
+            if (fabs(errorRight) < decelerationThreshold)
+            {
+                powerR *= 0.5; // Reduce power to half when close to target
+            }
+            else
+            {
+                powerR = base_kp * errorRight + base_ki * totalErrorRight +
+                         base_kd * errorRight_derivative;
+            }
+            powerR = std::clamp(powerR, -540.0, 540.0);
+        }
         pros::lcd::print(
-            5, "power: %.lf",
-            power);
-
+            5, "powerL: %.lf",
+            powerL);
+        pros::lcd::print(
+            6, "powerR: %.lf",
+            powerR);
         // Move the motors
         if (targetDistance_Y >= 0)
         {
             pros::lcd::print(
                 0, "targetDistance_Y: %.lf",
                 targetDistance_Y);
-            // luA.move_velocity(-power - angle_pid - offset_correction);
-            // luB.move_velocity(-power - angle_pid - offset_correction);
-            // llA.move_velocity(-power + angle_pid + offset_correction);
-            // llB.move_velocity(-power + angle_pid + offset_correction);
-            // ruA.move_velocity(-power - angle_pid - offset_correction);
-            // ruB.move_velocity(-power - angle_pid - offset_correction);
-            // rlA.move_velocity(-power + angle_pid + offset_correction);
-            // rlB.move_velocity(-power + angle_pid + offset_correction);
+            // luA.move_velocity(powerL - l_angle_pid + angle_pid);
+            // luB.move_velocity(powerL - l_angle_pid + angle_pid);
+            // llA.move_velocity(powerL + l_angle_pid + angle_pid);
+            // llB.move_velocity(powerL + l_angle_pid + angle_pid);
+            // ruA.move_velocity(powerR - r_angle_pid - angle_pid);
+            // ruB.move_velocity(powerR - r_angle_pid - angle_pid);
+            // rlA.move_velocity(powerR + r_angle_pid - angle_pid);
+            // rlB.move_velocity(powerR + r_angle_pid - angle_pid);
 
-            luA.move_velocity(power + angle_pid - offset_correction);
-            luB.move_velocity(power + angle_pid - offset_correction);
-            llA.move_velocity(power - angle_pid + offset_correction);
-            llB.move_velocity(power - angle_pid + offset_correction);
-            ruA.move_velocity(power + angle_pid - offset_correction);
-            ruB.move_velocity(power + angle_pid - offset_correction);
-            rlA.move_velocity(power - angle_pid + offset_correction);
-            rlB.move_velocity(power - angle_pid + offset_correction);
-            if (errordistance < 0)
+            luA.move_velocity(powerL - l_angle_pid - angle_pid);
+            luB.move_velocity(powerL - l_angle_pid - angle_pid);
+            llA.move_velocity(powerL + l_angle_pid - angle_pid);
+            llB.move_velocity(powerL + l_angle_pid - angle_pid);
+            ruA.move_velocity(powerR - r_angle_pid + angle_pid);
+            ruB.move_velocity(powerR - r_angle_pid + angle_pid);
+            rlA.move_velocity(powerR + r_angle_pid + angle_pid);
+            rlB.move_velocity(powerR + r_angle_pid + angle_pid);
+            if (errorRight < 0 && errorLeft < 0)
             {
                 brake();
                 break;
@@ -901,24 +1135,24 @@ void base_PID_front_back_imu_x(double base_kp, double base_kd, double offset_kp,
             pros::lcd::print(
                 0, "targetDistance_Y: %.lf",
                 targetDistance_Y);
-            // luA.move_velocity(-power - angle_pid - offset_correction);
-            // luB.move_velocity(-power - angle_pid - offset_correction);
-            // llA.move_velocity(-power + angle_pid + offset_correction);
-            // llB.move_velocity(-power + angle_pid + offset_correction);
-            // ruA.move_velocity(-power - angle_pid - offset_correction);
-            // ruB.move_velocity(-power - angle_pid - offset_correction);
-            // rlA.move_velocity(-power + angle_pid + offset_correction);
-            // rlB.move_velocity(-power + angle_pid + offset_correction);
+            // luA.move_velocity(powerL - l_angle_pid + angle_pid);
+            // luB.move_velocity(powerL - l_angle_pid + angle_pid);
+            // llA.move_velocity(powerL + l_angle_pid + angle_pid);
+            // llB.move_velocity(powerL + l_angle_pid + angle_pid);
+            // ruA.move_velocity(powerR - r_angle_pid - angle_pid);
+            // ruB.move_velocity(powerR - r_angle_pid - angle_pid);
+            // rlA.move_velocity(powerR + r_angle_pid - angle_pid);
+            // rlB.move_velocity(powerR + r_angle_pid - angle_pid);
 
-            luA.move_velocity(power + angle_pid - offset_correction);
-            luB.move_velocity(power + angle_pid - offset_correction);
-            llA.move_velocity(power - angle_pid + offset_correction);
-            llB.move_velocity(power - angle_pid + offset_correction);
-            ruA.move_velocity(power + angle_pid - offset_correction);
-            ruB.move_velocity(power + angle_pid - offset_correction);
-            rlA.move_velocity(power - angle_pid + offset_correction);
-            rlB.move_velocity(power - angle_pid + offset_correction);
-            if (errordistance > 0)
+            luA.move_velocity(powerL - l_angle_pid - angle_pid);
+            luB.move_velocity(powerL - l_angle_pid - angle_pid);
+            llA.move_velocity(powerL + l_angle_pid - angle_pid);
+            llB.move_velocity(powerL + l_angle_pid - angle_pid);
+            ruA.move_velocity(powerR - r_angle_pid + angle_pid);
+            ruB.move_velocity(powerR - r_angle_pid + angle_pid);
+            rlA.move_velocity(powerR + r_angle_pid + angle_pid);
+            rlB.move_velocity(powerR + r_angle_pid + angle_pid);
+            if (errorRight > 0 && errorLeft > 0)
             {
                 brake();
                 break;
@@ -928,25 +1162,20 @@ void base_PID_front_back_imu_x(double base_kp, double base_kd, double offset_kp,
         if (timeout >= 100000)
             break;
 
-        if (fabs(power) < 2)
+        if (fabs(powerR) < 2 || fabs(powerL) < 2)
         {
             break;
         }
 
-        pros::lcd::print(1, "Error: %.lf", errordistance);
-        pros::lcd::print(6, "angle_pid: %.lf", angle_pid);
-        pros::lcd::print(7, "offset_correction: %.lf", offset_correction);
-        pros::delay(2); 
+        // pros::lcd::print(0, "ErrorL: %.lf", errorLeft);
         // pros::lcd::print(1, "ErrorR: %.lf", errorRight);
 
-        // // Update previous errors for the next iteration
-        // prevErrorLeft = errorLeft;
-        // prevErrorRight = errorRight;
+        // Update previous errors for the next iteration
 
-        // Delay to reduce CPU load
-        // timeout += 2;
+        pros::delay(2); // Delay to reduce CPU load
+        timeout += 2;
     }
-    // brake();
+    brake();
 }
 
 void base_PID_left_right(double base_kp, double base_ki, double base_kd,
@@ -1517,9 +1746,11 @@ void autonomousb()
 void autonomousy()
 {
     // set_wheel_angle_new(0, 0.2, 0, 0.2);
-// base_PID_front_back(0.05, 0, 0, 0, 10, 0, 0.5, 0.0);
-    base_PID_front_back_imu_x(0.05, 0, 0.2, 0, 0, 750, 0, 1.0, 0.0);
-    
+    // base_PID_front_back(0.05, 0, 0, 0, 10, 0, 0.5, 0.0);
+    base_PID_front_back_imu_x(1.5, 0, 0, 0, 300, 0, 0.3, 0.1);
+    base_PID_front_back_imu_x(0.5, 0, 0, 0, 700, 0, 0.3, 0.1);
+
+
     // set_wheel_angle_new(90, 2.2, 0, 0.1);
     // turn_angle(-45, 1.5, 0.1);
 
@@ -1551,7 +1782,7 @@ void opcontrol()
             autonomousb();
         }
         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
-        
+
         {
             pros::lcd::print(0, "yyyyyyyyyyyyyy");
             autonomousy();
