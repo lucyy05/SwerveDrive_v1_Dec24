@@ -265,7 +265,7 @@ void moveBase(){
 
     while(true){ 
         target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
-        target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*0.8); // target rotation 
+        target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*0.6); // target rotation 
 
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   //Y axis positive is front
@@ -605,13 +605,13 @@ void slamDunk() {
     double prevError = 0.0;
     double Error = 0.0;
     double Integral = 0.0;
-    while (true) {
-        switch (slammingState) {
+    while(true){
+        switch (slammingState){
             case SLAM_START_STATE: //resting position
                 slam_target = 2980;
                 break;
             case SLAM_MID_STATE: //midpoint - holding position
-                slam_target = 2785;
+                slam_target = 2835;
                 break;
             case SLAM_EXTENDED_STATE: //extended all the way
                 slam_target = 1535;
@@ -631,10 +631,8 @@ void slamDunk() {
         } else {
             if (slam_target > slam_dunk.get_value() + 10) {
                 slam_dunkkkk.move(motorPower);
-                // slam_dunk_r.move(motorPower);
             } else if (slam_target < slam_dunk.get_value() - 10) {
                 slam_dunkkkk.move(-motorPower);
-                // slam_dunk_r.move(-motorPower);
             }
         }
         prevError = Error;
@@ -881,13 +879,13 @@ void autonomous(){
 void initialize(){
     pros::lcd::initialize();
     master.clear();
-    pros::delay(50);
-    master.print(0,0,"IMU resetting...");
+    //pros::delay(50);
+    //master.print(0,0,"IMU resetting...");
     while(!imu.reset(true));  //uncomment for actual
+    //pros::delay(100);
+    //master.print(0,0,"IMU calibrated  ");
     pros::delay(100);
-    master.print(0,0,"IMU calibrated  ");
-    pros::delay(100);
-    master.rumble(",, -- ,");
+    master.rumble(".. -- .");
 
     luA.set_brake_mode(MOTOR_BRAKE_HOLD); // once target position reached it locks it instead of cont moving
     luB.set_brake_mode(MOTOR_BRAKE_HOLD);
@@ -927,11 +925,11 @@ void opcontrol(){
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
             //pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
             conveyor.move(-110);
-            }
+        }
         else { 
             //pros::lcd::print(0, "CONVEYOR STOPPED\n");
             conveyor.move(0);
-            } 
+        }
 
         // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
         // when L1 is pressed, rollers move forward with NEGATIVE velocity??
@@ -948,6 +946,18 @@ void opcontrol(){
             roller.move(0); 
         }
 
+        if(master.get_digital_new_press(DIGITAL_A)) mobile_goal_actuated = !mobile_goal_actuated;
+
+        if(mobile_goal_actuated) {
+            solenoid.set_value(1);
+            mobilegoal_bot.set_value(0);
+        }
+        else{
+            mobilegoal_bot.set_value(1);
+            pros::Task::delay(110);
+            solenoid.set_value(0);
+        }
+
         if(master.get_digital_new_press(DIGITAL_X)) slam_dunk_actuated = !slam_dunk_actuated;
 
         if(slam_dunk_actuated) { 
@@ -957,16 +967,13 @@ void opcontrol(){
             slam_in_out.set_value(0);
         }
 
-        if (master.get_digital_new_press(DIGITAL_UP)) {
-            if (slammingState == SLAM_START_STATE) {
-                slammingState = SLAM_MID_STATE;
-            } else if (slammingState == SLAM_MID_STATE) {
-                slammingState = SLAM_EXTENDED_STATE;
-            }
+        if(master.get_digital_new_press(DIGITAL_UP)){
+            slammingState = SLAM_EXTENDED_STATE;
         }
-
-        // Reset to default(start) state when DOWN is pressed
-        if (master.get_digital_new_press(DIGITAL_DOWN)) {
+        else if(master.get_digital_new_press(DIGITAL_RIGHT)){
+            slammingState = SLAM_MID_STATE;
+        }
+        else if (master.get_digital_new_press(DIGITAL_DOWN)) {
             slammingState = SLAM_START_STATE;
         }
         pros::delay(2);

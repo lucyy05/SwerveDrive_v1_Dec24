@@ -39,15 +39,12 @@
 //#define RIGHT_ROTATION_SENSOR_PORT 1
 //#define IMU_PORT 17
 
-
-#define POTENTIOMETER_SENSOR_PORT 'H'
-#define SOLENOID_SENSOR_PORT 'G'
-
 #define SLAM_DUNK_SENSOR_PORT 'A'
 #define SLAM_DUNK_SOLENOID 'B'
 
 #define POTENTIOMETER_SENSOR_PORT 'H'
 #define SOLENOID_SENSOR_PORT 'G'
+#define mobilegoal_bottom 'D'
 
 #define CONVEYOR_MOTOR 7
 #define ROLLER_MOTOR 6
@@ -74,7 +71,9 @@ pros::Optical colorSensor(COLOR_SENSOR);
 
 pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
 pros::ADIAnalogIn slam_dunk(SLAM_DUNK_SENSOR_PORT);
-pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEAR_RED, false, pros::E_MOTOR_ENCODER_DEGREES);
+pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
+pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
+pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
 // pros::Motor intakeLower(UPPER_INTAKE_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
 // pros::Motor intakeUpper(LOWER_INTAKE_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
@@ -139,7 +138,7 @@ const double distance_kP = 0.4; //swerve wheel rotation distance for auton
 const double distance_kI = 0.0;
 const double distance_kD = 500.0;
 
-const double MAX_VOLTAGE = 12800;
+const double MAX_VOLTAGE = 12000;
 
 const double velocity_kP = 0.002;   //swerve wheel rotation velocity for driver
 const double velocity_kI = 0.000;   //tune for translate
@@ -194,8 +193,8 @@ SlammingState slammingState = SLAM_START_STATE;
 bool slam_dunk_actuated = false;
 
 double slam_target = 0;
-double slam_Kp = 0.4;
-double slam_Kd = 0.1;
+double slam_Kp = 0.31;
+double slam_Kd = 0.2;
 double slam_Ki = 0.0;
 
 //Serial
@@ -203,3 +202,7 @@ double global_distY = 0.0;
 double global_distX = 0.0;
 double global_errorY = 0.0;
 double global_errorX = 0.0;
+
+//Mobile goal grabber
+bool mobile_goal_actuated = false;
+bool mobile_goal_jaw = false;
