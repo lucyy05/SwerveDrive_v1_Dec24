@@ -99,7 +99,8 @@
 #define ROLLER_MOTOR 6
 
 #define SERIALPORT 20
-#define IMU_SENSOR_PORT 2
+// #define IMU_SENSOR_PORT 2
+#define IMU_SENSOR_PORT 13
 #define SLAM_DUNK_MOTOR 3
 
 #define ZERO_VECTOR INFINITY

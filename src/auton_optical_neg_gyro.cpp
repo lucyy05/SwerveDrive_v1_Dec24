@@ -1037,7 +1037,7 @@ void base_PID_front_back_imu_x(double base_kp, double base_ki, double base_kd,
         angle_pid = angle_PID.step(heading_error);
         double targetDistance = aim_target - global_distY;
         pros::lcd::print(
-            4, "current_distance: %.lf",
+            6, "current_distance: %.lf",
             targetDistance);
 
         errorLeft = targetDistance;
@@ -1098,32 +1098,32 @@ void base_PID_front_back_imu_x(double base_kp, double base_ki, double base_kd,
         pros::lcd::print(
             5, "powerL: %.lf",
             powerL);
-        pros::lcd::print(
-            6, "powerR: %.lf",
-            powerR);
+        // pros::lcd::print(
+        //     6, "powerR: %.lf",
+        //     powerR);
         // Move the motors
         if (targetDistance_Y >= 0)
         {
             pros::lcd::print(
                 0, "targetDistance_Y: %.lf",
                 targetDistance_Y);
-            // luA.move_velocity(powerL - l_angle_pid + angle_pid);
-            // luB.move_velocity(powerL - l_angle_pid + angle_pid);
-            // llA.move_velocity(powerL + l_angle_pid + angle_pid);
-            // llB.move_velocity(powerL + l_angle_pid + angle_pid);
-            // ruA.move_velocity(powerR - r_angle_pid - angle_pid);
-            // ruB.move_velocity(powerR - r_angle_pid - angle_pid);
-            // rlA.move_velocity(powerR + r_angle_pid - angle_pid);
-            // rlB.move_velocity(powerR + r_angle_pid - angle_pid);
+            luA.move_velocity(powerL - l_angle_pid + angle_pid);
+            luB.move_velocity(powerL - l_angle_pid + angle_pid);
+            llA.move_velocity(powerL + l_angle_pid + angle_pid);
+            llB.move_velocity(powerL + l_angle_pid + angle_pid);
+            ruA.move_velocity(powerR - r_angle_pid - angle_pid);
+            ruB.move_velocity(powerR - r_angle_pid - angle_pid);
+            rlA.move_velocity(powerR + r_angle_pid - angle_pid);
+            rlB.move_velocity(powerR + r_angle_pid - angle_pid);
 
-            luA.move_velocity(powerL - l_angle_pid - angle_pid);
-            luB.move_velocity(powerL - l_angle_pid - angle_pid);
-            llA.move_velocity(powerL + l_angle_pid - angle_pid);
-            llB.move_velocity(powerL + l_angle_pid - angle_pid);
-            ruA.move_velocity(powerR - r_angle_pid + angle_pid);
-            ruB.move_velocity(powerR - r_angle_pid + angle_pid);
-            rlA.move_velocity(powerR + r_angle_pid + angle_pid);
-            rlB.move_velocity(powerR + r_angle_pid + angle_pid);
+            // luA.move_velocity(powerL - l_angle_pid - angle_pid);
+            // luB.move_velocity(powerL - l_angle_pid - angle_pid);
+            // llA.move_velocity(powerL + l_angle_pid - angle_pid);
+            // llB.move_velocity(powerL + l_angle_pid - angle_pid);
+            // ruA.move_velocity(powerR - r_angle_pid + angle_pid);
+            // ruB.move_velocity(powerR - r_angle_pid + angle_pid);
+            // rlA.move_velocity(powerR + r_angle_pid + angle_pid);
+            // rlB.move_velocity(powerR + r_angle_pid + angle_pid);
             if (errorRight < 0 && errorLeft < 0)
             {
                 brake();
@@ -1135,23 +1135,23 @@ void base_PID_front_back_imu_x(double base_kp, double base_ki, double base_kd,
             pros::lcd::print(
                 0, "targetDistance_Y: %.lf",
                 targetDistance_Y);
-            // luA.move_velocity(powerL - l_angle_pid + angle_pid);
-            // luB.move_velocity(powerL - l_angle_pid + angle_pid);
-            // llA.move_velocity(powerL + l_angle_pid + angle_pid);
-            // llB.move_velocity(powerL + l_angle_pid + angle_pid);
-            // ruA.move_velocity(powerR - r_angle_pid - angle_pid);
-            // ruB.move_velocity(powerR - r_angle_pid - angle_pid);
-            // rlA.move_velocity(powerR + r_angle_pid - angle_pid);
-            // rlB.move_velocity(powerR + r_angle_pid - angle_pid);
+            luA.move_velocity(powerL - l_angle_pid + angle_pid);
+            luB.move_velocity(powerL - l_angle_pid + angle_pid);
+            llA.move_velocity(powerL + l_angle_pid + angle_pid);
+            llB.move_velocity(powerL + l_angle_pid + angle_pid);
+            ruA.move_velocity(powerR - r_angle_pid - angle_pid);
+            ruB.move_velocity(powerR - r_angle_pid - angle_pid);
+            rlA.move_velocity(powerR + r_angle_pid - angle_pid);
+            rlB.move_velocity(powerR + r_angle_pid - angle_pid);
 
-            luA.move_velocity(powerL - l_angle_pid - angle_pid);
-            luB.move_velocity(powerL - l_angle_pid - angle_pid);
-            llA.move_velocity(powerL + l_angle_pid - angle_pid);
-            llB.move_velocity(powerL + l_angle_pid - angle_pid);
-            ruA.move_velocity(powerR - r_angle_pid + angle_pid);
-            ruB.move_velocity(powerR - r_angle_pid + angle_pid);
-            rlA.move_velocity(powerR + r_angle_pid + angle_pid);
-            rlB.move_velocity(powerR + r_angle_pid + angle_pid);
+            // luA.move_velocity(powerL - l_angle_pid - angle_pid);
+            // luB.move_velocity(powerL - l_angle_pid - angle_pid);
+            // llA.move_velocity(powerL + l_angle_pid - angle_pid);
+            // llB.move_velocity(powerL + l_angle_pid - angle_pid);
+            // ruA.move_velocity(powerR - r_angle_pid + angle_pid);
+            // ruB.move_velocity(powerR - r_angle_pid + angle_pid);
+            // rlA.move_velocity(powerR + r_angle_pid + angle_pid);
+            // rlB.move_velocity(powerR + r_angle_pid + angle_pid);
             if (errorRight > 0 && errorLeft > 0)
             {
                 brake();
@@ -1168,7 +1168,7 @@ void base_PID_front_back_imu_x(double base_kp, double base_ki, double base_kd,
         }
 
         // pros::lcd::print(0, "ErrorL: %.lf", errorLeft);
-        // pros::lcd::print(1, "ErrorR: %.lf", errorRight);
+        pros::lcd::print(1, "ErrorR: %.lf", errorRight);
 
         // Update previous errors for the next iteration
 
@@ -1747,8 +1747,10 @@ void autonomousy()
 {
     // set_wheel_angle_new(0, 0.2, 0, 0.2);
     // base_PID_front_back(0.05, 0, 0, 0, 10, 0, 0.5, 0.0);
-    base_PID_front_back_imu_x(1.5, 0, 0, 0, 300, 0, 0.3, 0.1);
-    base_PID_front_back_imu_x(0.5, 0, 0, 0, 700, 0, 0.3, 0.1);
+    base_PID_front_back_imu_x(2.5, 0, 0, 0, 350, 0, 0.3, 0.1);
+    // set_wheel_angle_new(0, 0.2, 0, 0.2);
+    base_PID_front_back_imu_x(1.5, 0, 0, 0, 850, 0, 0.4, 0.2);
+    // base_PID_front_back_imu_x(1.5, 0, 0, 0, 1000, 0, 0.4, 0.2);
 
 
     // set_wheel_angle_new(90, 2.2, 0, 0.1);
