@@ -272,6 +272,7 @@ void moveBase(){
     PID right_angle_PID(angle_kP_right, angle_kI_right, angle_kD_right); 
     PID left_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
     PID right_velocity_PID(velocity_kP, velocity_kI, velocity_kD);
+    PID rotate_robot_PID(azim_kP, azim_kI, azim_kD);
      
     vector3D L2I_pos(WHEEL_BASE_RADIUS,0.0,0.0); 
     vector3D imu_angular;
@@ -294,6 +295,9 @@ void moveBase(){
         target_v = normalizeJoystick(0, leftY).scalar(MAX_SPEED); // target velocity 
         // leftX 0 to remove left and right translation joystick inputs
         target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*0.8); // target rotation
+
+        pros::lcd::print(0, "leftY: %d, rightX: %d", leftY, rightX); // check kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk
+
 
         //takes robot right as 0
         //Y axis positive is front
@@ -936,16 +940,25 @@ void initialize(){
     left_rotation_sensor.set_position(0);
     right_rotation_sensor.set_position(0);
 
-    pros::Task move_base(moveBase);
-    pros::Task slam_dunk(slamDunk);
     pros::Task serial_read(serialRead);
+
 }
 
 void opcontrol(){
+    
+    pros::Task move_base(moveBase);
+    pros::Task slam_dunk(slamDunk);
+
     while(true){
         leftX = master.get_analog(ANALOG_LEFT_X);
         leftY = master.get_analog(ANALOG_LEFT_Y);
         rightX = master.get_analog(ANALOG_RIGHT_X);
+
+        // Clamp small joystick values to zero (manual deadband)
+        if(abs(leftY) < 5) leftY = 0;
+        if(abs(rightX) < 5) rightX = 0;
+
+        
         if(master.get_digital_new_press(DIGITAL_B)) autonomous();
 
         if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;

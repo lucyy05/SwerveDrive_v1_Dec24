@@ -100,9 +100,6 @@ pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, true);
 pros::Motor conveyor(CONVEYOR_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor roller(ROLLER_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
-pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
-pros::ADIAnalogIn slam_dunk(SLAM_DUNK_SENSOR_PORT);
-
 
 // pros::ADIAnalogIn lifter(POTENTIOMETER_SENSOR_PORT);
 // pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
