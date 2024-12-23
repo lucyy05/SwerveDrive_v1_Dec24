@@ -291,7 +291,8 @@ void moveBase(){
     };
 
     while(true){
-        target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
+        target_v = normalizeJoystick(0, leftY).scalar(MAX_SPEED); // target velocity 
+        // leftX 0 to remove left and right translation joystick inputs
         target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*0.8); // target rotation
 
         //takes robot right as 0
@@ -663,6 +664,7 @@ void slamDunk() {
     }
 }
 
+/*
 void moveBaseAutonomous(double distX, double distY){ 
     double v_right_velocity; // target velocity magnitude
     double v_left_velocity;
@@ -901,6 +903,8 @@ void moveBaseAutonomous(double distX, double distY){
 void autonomous(){
     moveBaseAutonomous(50, 10);
 }
+
+*/
 
 void initialize(){
     pros::lcd::initialize();
