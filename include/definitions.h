@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 #include "pros/motors.hpp"
 #include "pros/adi.hpp"
@@ -93,12 +95,6 @@ pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
 
 // pros::Motor liftL(LEFT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
 // pros::Motor liftR(RIGHT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
-
-pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
-pros::ADIAnalogIn slam_dunk(SLAM_DUNK_SENSOR_PORT);
-pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
-pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
-pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
 
 pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, true);
@@ -206,7 +202,6 @@ const double auton_distance_kD = 0.0;
 //AutonDirections autonDirection;
 /* Autonomous constants END */
 
-const double MAX_VOLTAGE = 12000;
 
 const double azim_kP = 0.05; //azimuth, for correcting rotation
 const double azim_kI = 0.0;    //drunk
@@ -242,20 +237,6 @@ bool liftEnable = false;
 bool isLeftFlipped = false;
 bool isRightFlipped = false;
 
-//Slam dunk
-enum SlammingState {
-    SLAM_START_STATE = 0,
-    SLAM_MID_STATE = 1,
-    SLAM_EXTENDED_STATE = 2
-};
-SlammingState slammingState = SLAM_START_STATE;
-
-bool slam_dunk_actuated = false;
-
-double slam_target = 0;
-double slam_Kp = 0.31;
-double slam_Kd = 0.2;
-double slam_Ki = 0.0;
 
 //Slam dunk
 int defaultSlamValue = 0;
