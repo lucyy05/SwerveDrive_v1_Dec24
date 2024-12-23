@@ -1,0 +1,32 @@
+/*SLAM DUNK*/
+/*UPIN*/
+        // switch (slammingState){
+        //     case SLAM_START_STATE: //resting position
+        //         slam_target = 2980;
+        //         break;
+        //     case SLAM_MID_STATE: //midpoint - holding position
+        //         slam_target = 2835;
+        //         break;
+        //     case SLAM_EXTENDED_STATE: //extended all the way
+        //         slam_target = 1535;
+        //         break;
+        //     default:
+        //         slam_target = 2980;
+        //         break;
+        // }
+
+        /*IPIN*/
+        // switch (slammingState){
+        //     case SLAM_START_STATE: //resting position
+        //         slam_target = 1900;
+        //         break;
+        //     case SLAM_MID_STATE: //midpoint - holding position
+        //         slam_target = 1711;
+        //         break;
+        //     case SLAM_EXTENDED_STATE: //extended all the way
+        //         slam_target = 382;
+        //         break;
+        //     default:
+        //         slam_target = 382;
+        //         break;
+        // }
