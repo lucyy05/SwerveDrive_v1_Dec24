@@ -309,9 +309,9 @@
       }
     },
     "upload_options": {
-      "slot": 6,
-      "icon": "planet",
-      "after": "none"
+      "slot": 7,
+      "icon": "alien",
+      "after": "screen"
     },
     "use_early_access": true
   }
