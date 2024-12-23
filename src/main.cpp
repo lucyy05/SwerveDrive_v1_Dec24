@@ -275,14 +275,8 @@ void moveBase(){
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   //Y axis positive is front
         
-        
         current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);  
         current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0); 
-
-        // pros::lcd::print(0,"lx %2.2f ly %2.2f",current_left_vector.x, current_left_vector.y);
-        // pros::lcd::print(1,"rx %2.2f ry %2.2f",current_right_vector.x, current_right_vector.y);
-        
-        // pros::lcd::print(3,"tx %2.2f ty %2.2f",target_v.x, target_v.y);
  
         current_l_velocity = ((luA.get_actual_velocity()+luB.get_actual_velocity()+llA.get_actual_velocity()+llB.get_actual_velocity())/4.0); 
         current_r_velocity = ((ruA.get_actual_velocity()+ruB.get_actual_velocity()+rlA.get_actual_velocity()+rlB.get_actual_velocity())/4.0); 
@@ -301,9 +295,7 @@ void moveBase(){
             gyro_rate = -1.0 * imu.get_gyro_rate().z * TO_RADIANS;
         }
 
-        
-        imu_angular = vector3D(0.0,0.0, gyro_rate); // Radians per second, loaded as angle
-        //pros::lcd::print(2, "gyro_rate %3.8f", gyro_rate);
+        imu_angular = vector3D(0.0,0.0, gyro_rate); // Radians per second, loaded as vector
 
         battery_voltage = pros::battery::get_voltage();
         if(battery_voltage>MAX_VOLTAGE){
@@ -319,22 +311,8 @@ void moveBase(){
         target_r = target_r + r_fterm; 
         angular_error = target_r - imu_angular;
         
-        // if(rightY<-90){
-        //     if(toggle_flag){
-        //         toggle_flag = false;
-        //         rot_pid_ena = !rot_pid_ena;
-        //         if(rot_pid_ena){
-        //             master.clear_line(0);
-        //             ANGULAR_THRESH = 0.0;
-        //         }else{
-        //             master.print(0,0,"a thr 0.01");
-        //             ANGULAR_THRESH = 0.01;
-        //         }
-        //     }
-        // }else{
-        //     toggle_flag = true;
-        // }
-        if(fabs(angular_error.z) < ANGULAR_THRESH || rightY>90){//right stick up or slow rotation
+    
+        if(fabs(angular_error.z) < ANGULAR_THRESH || abs(rightY)>90){//right stick up or slow rotation
             angular_error.load(0.0, 0.0, 0.0);
             rot_pid_double = 0.0;
         }
@@ -342,21 +320,13 @@ void moveBase(){
         
         a_err_d = angular_error.getZ();
         rot_pid_double += rotate_robot_PID.step(a_err_d);
-        //pros::lcd::print(3, "imu_angular %3.8f", imu_angular.z); 
-        //pros::lcd::print(6,"rot_v_d %3.8f", rot_vector_double);
+
         rot_FF = (target_r^L2I_pos).scalar(r_kF_STATIC);
         rot_vector_double = rot_pid_double + rot_FF.getY();
         rot_pid = vector3D(0.0, rot_vector_double, 0.0);
-
-        // pros::lcd::print(3, "target_r X %%.1lf", target_r.x); 
-        // pros::lcd::print(4, "target_r Y %.1lf", target_r.y); 
-        // pros::lcd::print(5, "target_r Z %.1lf", target_r.z); 
             
         v_left = target_v-rot_pid; //in order to rotate counterclockwise
         v_right = target_v + rot_pid; 
-
-        //pros::lcd::print(4, "angular_err %3.8f", a_err_d); 
-        //pros::lcd::print(5, "right_mag %3.8f", v_right.magnitude()); 
  
         bool reverse_right = false; 
         bool reverse_left = false; 
@@ -420,19 +390,13 @@ void moveBase(){
         // ru = (int32_t)std::clamp(rscale * (r_velocity_pid + r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
         // rl = (int32_t)std::clamp(rscale * (r_velocity_pid - r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
         
-        lu = (int32_t)lscale * (l_velocity_pid + l_angle_pid); //this side seems less powerful on the robot 
+        lu = (int32_t)lscale * (l_velocity_pid + l_angle_pid); 
         ll = (int32_t)lscale * (l_velocity_pid - l_angle_pid); 
         ru = (int32_t)rscale * (r_velocity_pid + r_angle_pid); 
         rl = (int32_t)rscale * (r_velocity_pid - r_angle_pid); 
-
         clampVoltage();
-        move_voltage_wheels(lu,ll,ru,rl);
-        //pros::lcd::print(2, "l_scale  %3.8f", lscale); 
         
-        // pros::lcd::print(4,"le%3.8f",l_error);
-        // pros::lcd::print(5,"re%3.8f",r_error);
-        //pros::lcd::print(6,"lu%3.8f",lu);
-        //pros::lcd::print(7,"ll%3.8f",ll);
+        move_voltage_wheels(lu,ll,ru,rl);
         pros::delay(2); 
     }
 }
@@ -476,7 +440,6 @@ void initialize(){
 
     pros::Task move_base(moveBase);
     //pros::Task serial_read(serialRead);
-
     master.clear();
 }
 

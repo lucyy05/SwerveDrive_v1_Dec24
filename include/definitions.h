@@ -153,7 +153,7 @@ const double ANGULAR_THRESH = 0.0; // Threshold under which to ignore angular er
 
 const double r_kF = 0.0;   //feedforward compensation for rotation //flick
 const double r_kF_STATIC = 0.7; //FF STATIC for rotation
-const double v_kF = 0.3;    //feedforward compensation for translation
+const double v_kF = 0.4;    //feedforward compensation for translation
 const double scale  = 25.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
 
