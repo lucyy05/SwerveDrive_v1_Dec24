@@ -1,6 +1,9 @@
-
 #include "definitions.h"
 #include "api.h"
+
+bool ignore_colour = false;
+bool is_we_blue_alliance = true;            // are we blue and should therefore score blue
+bool is_ring_ours = false;                  // is the ring the same colour as ours (updates after intake, storage and like 500ms)
 
 /* CONVEYOR FUNCTION USAGE
  - run calibrate_conveyor() at ideally once first (ideally, run until the conveyor is slightly higher than the center of the hook)
@@ -19,12 +22,10 @@
 
 CONVEYOR TODO:
  - [/] implement conveyor "proprioception"
- - [ ] implement conveyor auto-store from intake
- - [ ] implement conveyor colour detection
- - [ ] figure out how to put the conveyor functions in another file for organisation 
+ - [/] implement conveyor auto-store from intake
+ - [/] implement conveyor colour detection
+ - [/] figure out how to put the conveyor functions in another file for organisation 
 */
-
-// RING NO GO FAST
 
 // #====# conveyor util functions
 
@@ -54,7 +55,7 @@ void conveyor_go_home_by_sensor(int voltage){
 
 // #====# sensor-less based movements #====#
 
-double conveyor_loop_period = 913;        // TODO: identify and set as constant, or keep as variable and have it constantly updated
+double conveyor_loop_period = 883.2;        // TODO: identify and set as constant, or keep as variable and have it constantly updated
 double _calibrate_at_voltage(int voltage){
 	conveyor_go_home_by_sensor(voltage);
 	double ori_pos = conveyor.get_position();   // identify overshoot, if any
@@ -135,15 +136,24 @@ void conveyor_go_to(int input_conveyor_step){
             break;
         case 1:
             conveyor_step = 1;
-            conveyor_go_to_absolute(0.45, 40);       // store       (waiting to score)
+            conveyor_go_to_absolute(0.35, 40);       // store       (waiting to score)
             // check colour
             //conveyor_optical.
             break;
         case 2:
         {
             conveyor_step = 2;
-            detected_ring_before = false;
-            bool should_continue = !conveyor_go_to_absolute(0.90, 110);     // Score     (score, now rehome)
+            detected_ring_before = false;                                   // score if ours*
+            bool should_continue = false;
+            if (is_ring_ours||ignore_colour)
+                should_continue = !conveyor_go_to_absolute(0.90, 110);     // Score     (score, now rehome)
+            else 
+                should_continue = !conveyor_go_to_absolute(0.67, 127);
+                
+                conveyor.move(-70);
+                pros::delay(100);
+                conveyor.brake();
+            is_ring_ours = false;
             pros::delay(500);           // TODO: make async
             if (should_continue) step_conveyor();
             break;
@@ -174,4 +184,24 @@ void calibrate_conveyor(){
     }
     pros::lcd::print(0, "C_S: %f, C_SL: %f", conveyor_loop_periods_sense, conveyor_loop_period_senseless);
     pros::delay(5);
+}
+
+void check_for_ring(){
+    if (!detected_ring_before && detect_ring()){
+        // advance conveyor to "store"
+        conveyor_go_to(1);
+        detected_ring_before = true;
+        detected_ring_time = 100;       // this can be reformatted into a task
+    }
+}
+
+bool same_colour(){
+    pros::c::optical_rgb_s_t detected_colour = conveyor_optical.get_rgb();
+    //red ring: 360, 167, 135  /  blue ring: 120, 178, 256
+    double r = detected_colour.red, g = detected_colour.green, b = detected_colour.blue;
+    bool is_valid = fabs(b-r) > 50;        // needs quite a big difference in color to count
+    pros::lcd::print(7, "c: %.1f/%.1f/%.1f: %s", r, g, b, !is_valid ? "not sure" : ((b > r) ? "blue" : "red"));
+    if(!is_valid) return false;
+    return ((b > r) == is_we_blue_alliance);        // check if its blue and compare if we are blue
+
 }

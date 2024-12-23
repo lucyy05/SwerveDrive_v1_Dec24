@@ -1,5 +1,6 @@
 #include "main.h"
 
+// be sure to check if 'is_we_blue_alliance' is set correctly in conveyor.cpp
 
 void disabled(){}
 void competition_initialize(){}
@@ -649,6 +650,7 @@ void opcontrol(){
             // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
             // conveyor.move(110); 
             step_conveyor();
+
             } 
         else if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
             // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
@@ -664,37 +666,30 @@ void opcontrol(){
 	// L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
 	// when L1 is pressed, rollers move forward with NEGATIVE velocity??
     if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) { 
-		//pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
 		roller.move(110); 
         } 
     else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
-		//pros::lcd::print(0, "L1: ROLLER forward, -ve velocity??\n");
-		pros::lcd::print(0, "L1: ROLLER forward, -ve velocity??\n");
         // detect ring and move conveyor later
 		roller.move(-110);
-        if(!detected_ring_before && detect_ring() ){
-            // advance conveyor to "store"
-            conveyor_go_to(1);
-            detected_ring_before = true;
-            detected_ring_time = 100;
-        }
+        check_for_ring();
         } 
     else {
-		roller.move(0); 
-        if(conveyor_step == 1 && detected_ring_time >= 1){
-            detected_ring_time--;       // wait for conveyor to get to position
-        }else if(conveyor_step == 1){
-            // conveyor at "store", now check colour (ONLY IN AUTON)
+		roller.move(0);
+        
+        // basically wait for a bit, along with check_for_ring(), this can be in task
+        if (conveyor_step == 1 && detected_ring_time >= 1){
+            detected_ring_time--; // wait for conveyor to get to position
             conveyor_optical.set_led_pwm(100);
-            pros::c::optical_rgb_s_t detected_colour = conveyor_optical.get_rgb();
-            double r = detected_colour.red, g = detected_colour.green, b = detected_colour.blue;
-            //if(r > b)
-            pros::lcd::print(7, "c: %.1f/%.1f/%.1f: %s", r, g, b, r > b ? "red" : "blue");
-        }else{
+        }
+        else if (conveyor_step == 1){
+            // conveyor at "store", now check colour (ONLY IN AUTON)
+            is_ring_ours = same_colour();
+        }
+        else{
             conveyor_optical.set_led_pwm(0);
         }
     }
-
+    pros::lcd::print(0, "ring: %s", is_ring_ours ? "same" : "not same");
     pros::delay(5);
     }
 }
