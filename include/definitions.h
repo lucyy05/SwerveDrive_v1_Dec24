@@ -299,7 +299,6 @@ bool liftEnable = false;
 bool isLeftFlipped = false;
 bool isRightFlipped = false;
 
-
 //Slam dunk
 // int defaultSlamValue = 0;
 // Slam dunk constants -- IPIN
