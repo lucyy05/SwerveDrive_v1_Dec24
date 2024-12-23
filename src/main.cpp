@@ -163,10 +163,10 @@ vector3D normalizeJoystick(int x_in, int y_in){ //convert translation joystick i
         scaleLength = 127.0 / sin(angle * TO_RADIANS);
     else
         scaleLength = 127.0 / cos(angle * TO_RADIANS);
-    
+
     scaleLength = fabs(scaleLength) - DEADBAND; //force scaleLength to be positive and subtract deadband
     magnitude = (length - DEADBAND) / scaleLength; //find magnitude of translation vector and scale it down (note that magnitude will always be positive)
-    
+
     //assign values to the xyz attributes of the vector3D named "out"
     out.load(magnitude * cos(angle * TO_RADIANS), magnitude * sin(angle * TO_RADIANS), 0.0);
     return out;
@@ -309,7 +309,7 @@ void moveBase(){
         prev_target_v = target_v; // prev target velocity 
         prev_target_r = target_r; // prev target rotation 
 
-        if(imu.is_calibrating() ){
+        if(imu.is_calibrating()){
             gyro_rate = current_angular;    // ignore gyro while calibrating, use encoder values
         }else{
             gyro_rate = -1.0 * imu.get_gyro_rate().z * TO_RADIANS;
@@ -318,7 +318,7 @@ void moveBase(){
         imu_angular = vector3D(0.0,0.0, gyro_rate); // Radians per second, loaded as angle
 
         battery_voltage = pros::battery::get_voltage();
-         
+
         micros_prev = micros_now; 
         micros_now = pros::micros(); 
         dt = micros_now-micros_prev; 
@@ -606,16 +606,18 @@ void slamDunk(){
     double prevError = 0.0;
     double Error = 0.0;
     double Integral = 0.0;
+    defaultSlamValue = slam_dunk.get_value();
+    //master.print(3,0,"%d", defaultSlamValue);
     while(true){
         switch (slammingState){
             case SLAM_START_STATE: //resting position
                 slam_target = defaultSlamValue;
                 break;
             case SLAM_MID_STATE: //midpoint - holding position
-                slam_target = defaultSlamValue - 151;
+                slam_target = defaultSlamValue - 145;
                 break;
             case SLAM_EXTENDED_STATE: //extended all the way
-                slam_target = defaultSlamValue - 1455;
+                slam_target = defaultSlamValue - 1555;
                 break;
             default:
                 slam_target = defaultSlamValue;
@@ -936,7 +938,7 @@ void initialize(){
     left_rotation_sensor.set_position(0);
     right_rotation_sensor.set_position(0);
 
-    defaultSlamValue = slam_dunk.get_value();
+    //defaultSlamValue = slam_dunk.get_value();
 
     pros::Task move_base(moveBase);
     pros::Task slam_dunk(slamDunk);

@@ -143,7 +143,6 @@ const double angle_kP_right = 20.0;   //swerve wheel pivoting in driver control 
 const double angle_kI_right = 0.00;
 const double angle_kD_right = 5000.0;
 
-
 const double distance_kP = 0.4; //swerve wheel rotation distance for auton
 const double distance_kI = 0.0;
 const double distance_kD = 500.0;
@@ -167,11 +166,10 @@ const double ANGULAR_THRESH = 0.000; // Threshold under which to ignore angular 
 const double r_kF = 0.2;   //feedforward compensation for rotation //flick
 const double r_kF_STATIC = 0.7; //FF STATIC for rotation
 const double v_kF = 0.3;    //feedforward compensation for translation
-const double scale  = 25.0;
+const double scale = 25.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
 
 const double ticks_per_mm = 2.5; //convert mm to ticks
-
 
 double target_angle = 0.0;
 double target_angleL = 0.0;
@@ -201,6 +199,7 @@ enum SlammingState {
     SLAM_MID_STATE = 1,
     SLAM_EXTENDED_STATE = 2
 };
+
 SlammingState slammingState = SLAM_START_STATE;
 
 bool slam_dunk_actuated = false;
