@@ -1,4 +1,4 @@
-
+#pragma once
 #include <cstdint>
 #include "pros/motors.hpp"
 #include "pros/adi.hpp"
@@ -177,3 +177,5 @@ double global_distX = 0.0;
 double global_errorY = 0.0;
 double global_errorX = 0.0;
 
+//CONVEYOR
+int detected_ring_time = 0;
