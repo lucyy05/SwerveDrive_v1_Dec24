@@ -99,8 +99,8 @@
 #define ROLLER_MOTOR 6
 
 #define SERIALPORT 20
-// #define IMU_SENSOR_PORT 2
-#define IMU_SENSOR_PORT 13
+#define IMU_SENSOR_PORT 2
+// #define IMU_SENSOR_PORT 13
 #define SLAM_DUNK_MOTOR 3
 
 #define ZERO_VECTOR INFINITY
@@ -275,3 +275,10 @@ double mehmeh2;
 const double ANGULAR_THRESH = 0.000;
 const double r_kF_STATIC = 0.7;
 double imu_angle;
+
+const double ALPHA = 0.85;
+const double BETA = 0.38;
+const double THRESHOLD = 250.0;
+const double height_from_gnd = 20.0;    //Height in mm
+const double scaler = 7.2;              //Adjust for sensitivity for different surfaces
+const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * scaler);
