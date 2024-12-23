@@ -99,8 +99,8 @@
 #define ROLLER_MOTOR 6
 
 #define SERIALPORT 20
-#define IMU_SENSOR_PORT 2
-// #define IMU_SENSOR_PORT 13
+// #define IMU_SENSOR_PORT 2
+#define IMU_SENSOR_PORT 13
 #define SLAM_DUNK_MOTOR 3
 
 #define ZERO_VECTOR INFINITY
@@ -205,7 +205,7 @@ const double angle_kD_right = 1200.0; // was 2000
 const double distance_kP = 0.4; //swerve wheel rotation distance for auton
 const double distance_kI = 0.0;
 const double distance_kD = 500.0;
-const double MAX_VOLTAGE = 12800;
+const double MAX_VOLTAGE = 12000;
 
 const double velocity_kP = 0.004;   //swerve wheel rotation velocity for driver
 const double velocity_kI = 0.000;
@@ -282,3 +282,8 @@ const double THRESHOLD = 250.0;
 const double height_from_gnd = 20.0;    //Height in mm
 const double scaler = 7.2;              //Adjust for sensitivity for different surfaces
 const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * scaler);
+
+int32_t lu;
+    int32_t ll;
+    int32_t ru;
+    int32_t rl;
