@@ -823,8 +823,8 @@ void opcontrol(){
 
         if(master.get_digital_new_press(DIGITAL_X)) slam_dunk_actuated = !slam_dunk_actuated;
 
-        if(slam_dunk_actuated) { 
-            slam_in_out.set_value(1);            
+        if(slam_dunk_actuated) {
+            slam_in_out.set_value(1);
         }
         else {
             slam_in_out.set_value(0);

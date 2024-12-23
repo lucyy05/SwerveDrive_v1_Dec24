@@ -243,21 +243,6 @@ bool isLeftFlipped = false;
 bool isRightFlipped = false;
 
 //Slam dunk
-enum SlammingState {
-    SLAM_START_STATE = 0,
-    SLAM_MID_STATE = 1,
-    SLAM_EXTENDED_STATE = 2
-};
-SlammingState slammingState = SLAM_START_STATE;
-
-bool slam_dunk_actuated = false;
-
-double slam_target = 0;
-double slam_Kp = 0.31;
-double slam_Kd = 0.2;
-double slam_Ki = 0.0;
-
-//Slam dunk
 int defaultSlamValue = 0;
 
 enum SlammingState {
@@ -270,7 +255,7 @@ SlammingState slammingState = SLAM_START_STATE;
 
 bool slam_dunk_actuated = false;
 
-double slam_target = 0;
+double slam_target = 0.0;
 double slam_Kp = 0.31;
 double slam_Kd = 0.2;
 double slam_Ki = 0.0;
