@@ -654,6 +654,7 @@ void slamDunk(){
 }
 
 void moveBaseAutonomous(double targetX, double targetY){
+    bool reverse = false;
     double v_right_velocity; // target velocity magnitude
     double v_left_velocity;
 
@@ -739,14 +740,19 @@ void moveBaseAutonomous(double targetX, double targetY){
 
     double target_v_x;
     double target_v_y;
-   
+
+    if(targetX < 0.0 || targetY < 0.0)
+        reverse = true;
+    else
+        reverse = false;
+
     while(true){
         if(fabs(targetX) > 0.0)
-            errorX = targetX - fabs((fabs(global_distX) - offsetX));
+            errorX = fabs(fabs(targetX) - fabs((fabs(global_distX) - offsetX)));
         else if(fabs(targetX) <= 0.0)
             errorX = 0.0;
         if(fabs(targetY) > 0.0)
-            errorY = targetY - fabs((fabs(global_distY) - offsetY));
+            errorY = fabs(fabs(targetY) - fabs((fabs(global_distY) - offsetY)));
         else if(fabs(targetY) <= 0.0)
             errorY = 0.0;
 
@@ -755,16 +761,20 @@ void moveBaseAutonomous(double targetX, double targetY){
         //     break;
         // }
 
-        if(fabs(errorY) <= 5.0 || errorY <= 0.0 || errorY > targetY){
+        if((fabs(errorX) <= 5.0 || fabs(errorX) > fabs(targetX)) && (fabs(errorY) <= 5.0 || fabs(errorY) > fabs(targetY))){
             brake();
             break;
         }
+
         target_v_x = delta_X_PID.step(errorX);
         target_v_y = delta_Y_PID.step(errorY);
         // target_v_x = errorX;
         // target_v_y = errorY;
         //target_v = vector3D(target_v_x, target_v_y, 0.0);
-        target_v = normalizeJoystick(target_v_x, target_v_y).scalar(MAX_SPEED*0.8); // target velocity 
+        if(reverse == false)
+            target_v = normalizeJoystick(target_v_x, target_v_y).scalar(MAX_SPEED*0.8); // target velocity 
+        else
+            target_v = normalizeJoystick(-target_v_x, -target_v_y).scalar(MAX_SPEED*0.8); // target velocity 
         target_r = normalizeRotation(0.0).scalar(MAX_ANGULAR*0.8); // target rotation
         pros::lcd::print(1,"error_y: %.1lf", errorY);
         //pros::lcd::print(0,"target_v_x: %.1lf", target_v_x);
@@ -899,6 +909,8 @@ void moveBaseAutonomous(double targetX, double targetY){
 
 void autonomous(){
     moveBaseAutonomous(0.0, 250.0);
+    pros::delay(50);
+    moveBaseAutonomous(0.0, -250.0);
 }
 
 void initialize(){
