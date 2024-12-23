@@ -262,18 +262,22 @@ const double auton_distance_kP = 0.05; //swerve wheel rotation distance
 const double auton_distance_kI = 0.0;
 const double auton_distance_kD = 0.0;
 
-// enum AutonDirections {
-//     NORTH = 0,
-//     SOUTH = 1,
-//     EAST = 2,
-//     WEST = 3,
-//     NORTHEAST = 4,
-//     NORTHWEST = 5,
-//     SOUTHEAST = 6,
-//     SOUTHWEST = 7
-// };
+const double auton_heading_kP = 0.09;
+const double auton_heading_kI = 0.00;
+const double auton_heading_kD = 0.00;
 
-//AutonDirections autonDirection;
+enum AutonDirections {
+    NORTH = 0,
+    SOUTH = 1,
+    EAST = 2,
+    WEST = 3,
+    NORTHEAST = 4,
+    NORTHWEST = 5,
+    SOUTHEAST = 6,
+    SOUTHWEST = 7
+};
+
+AutonDirections autonDirection;
 /* Autonomous constants END */
 
 
