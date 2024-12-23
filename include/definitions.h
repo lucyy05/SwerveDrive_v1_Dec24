@@ -64,6 +64,8 @@
 
 #define SERIALPORT 20
 
+#define SLAM_DUNK_MOTOR 3
+
 #define ZERO_VECTOR INFINITY
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
@@ -92,6 +94,13 @@ pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
 // pros::Motor liftL(LEFT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
 // pros::Motor liftR(RIGHT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
+pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
+pros::ADIAnalogIn slam_dunk(SLAM_DUNK_SENSOR_PORT);
+pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
+pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
+pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
+
+
 pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, true);
 pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, true);
 // pros::Imu imu(IMU_SENSOR_PORT);
@@ -109,7 +118,7 @@ extern "C" void vexGenericSerialBaudrate(  uint32_t index, uint32_t rate );
 extern "C" int32_t vexGenericSerialTransmit( uint32_t index, uint8_t *buffer, int32_t length );
 
 /* Controllers */
-int leftX = 0, leftY = 0, rightX = 0;
+int leftX = 0, leftY = 0, rightX = 0, rightY=0;
 
 
 /* Parameters START */
@@ -122,13 +131,11 @@ const double WHEEL_BASE_RADIUS = 161.50;    // mm
 const double MAX_SPEED = (2.0*M_PI*WHEEL_RADIUS*MAX_RPM)/60.0;  //mm per second
 const double SPEED_TO_RPM = 60.0/(2.0*M_PI*WHEEL_RADIUS);
 const double MAX_ANGULAR = MAX_SPEED/WHEEL_BASE_RADIUS; // rad/s
-const double ACCEL = 8000.0;    // mm/s2
-const double ANGULAR_ACCEL = 1.0;   // rad/s2
-const double SCALING_FACTOR = MAX_RPM / 127.0;
+const double MAX_ANGULAR_SCALE = 0.8;
 const double TO_DEGREES = (180.0 / M_PI);
 const double TO_RADIANS = (M_PI / 180.0);
-const double THETA_MAX = 15.0;
-/* Parameters END */
+const double MAX_VOLTAGE = 12800;
+
 
 //moving (moveBase)
 vector3D target_v;
@@ -136,6 +143,13 @@ vector3D target_r;
 vector3D temp;
 vector3D v_right;
 vector3D v_left;
+
+
+//voltages
+int32_t lu; // left upper 
+int32_t ll; // left lower 
+int32_t ru; // right upper 
+int32_t rl; // right lower 
 
 /* Driver constants START */
 // Swerve wheel pivoting
@@ -198,7 +212,7 @@ const double azim_kP = 0.05; //azimuth, for correcting rotation
 const double azim_kI = 0.0;    //drunk
 const double azim_kD = 10.0;
 
-const double ANGULAR_THRESH = 0.000; // Threshold under which to ignore angular error
+const double ANGULAR_THRESH = 0.0; // Threshold under which to ignore angular error
 
 const double r_kF = 0.2;   //feedforward compensation for rotation //flick
 const double r_kF_STATIC = 0.7; //FF STATIC for rotation
@@ -227,6 +241,21 @@ bool liftEnable = false;
 
 bool isLeftFlipped = false;
 bool isRightFlipped = false;
+
+//Slam dunk
+enum SlammingState {
+    SLAM_START_STATE = 0,
+    SLAM_MID_STATE = 1,
+    SLAM_EXTENDED_STATE = 2
+};
+SlammingState slammingState = SLAM_START_STATE;
+
+bool slam_dunk_actuated = false;
+
+double slam_target = 0;
+double slam_Kp = 0.31;
+double slam_Kd = 0.2;
+double slam_Ki = 0.0;
 
 //Slam dunk
 int defaultSlamValue = 0;
@@ -259,3 +288,11 @@ bool mobile_goal_actuated = false;
 bool mobile_goal_jaw = false;
 
 bool driver = false;
+
+//Optical flow
+const double ALPHA = 0.85;
+const double BETA = 0.38;
+const double THRESHOLD = 200.0;
+const double height_from_gnd = 20.0;    //Height in mm
+const double scaler = 7.2;              //Adjust for sensitivity for different surfaces
+const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * scaler);
