@@ -806,26 +806,38 @@ void base_PID_front_back_imu_x_offset(double base_kp, double base_kd, double off
     double heading_error;
     double prev_errordistance;
 
+    double l_angleMaintain =
+        (targetangle - 90.0) *
+        TO_RADIANS;
+
+    double r_angleMaintain =
+        (targetangle - 90.0) *
+        TO_RADIANS;
+
     double l_angleMaintain_left =
-        (5 - 90.0) *
+        (10 - 90.0) *
         TO_RADIANS;
     double r_angleMaintain_left =
-        (5 - 90.0) *
+        (10 - 90.0) *
         TO_RADIANS;
 
     double l_angleMaintain_right =
-        (-5 - 90.0) *
+        (-10 - 90.0) *
         TO_RADIANS;
     double r_angleMaintain_right =
-        (-5 - 90.0) *
+        (-10 - 90.0) *
         TO_RADIANS;
 
     double left_angle, right_angle;
+    double l_error = 0.0;
+    double r_error = 0.0;
     double l_error_l = 0.0;
     double r_error_l = 0.0;
     double l_error_r = 0.0;
     double r_error_r = 0.0;
     // power output for angle component of pid
+    double l_angle_pid = 0.0;
+    double r_angle_pid = 0.0;
     double l_angle_pid_l = 0.0;
     double r_angle_pid_l = 0.0;
     double l_angle_pid_r = 0.0;
@@ -833,7 +845,7 @@ void base_PID_front_back_imu_x_offset(double base_kp, double base_kd, double off
 
     PID left_angle_PID(angle_kP, angle_kI, angle_kD);
     PID right_angle_PID(angle_kP, angle_kI, angle_kD);
-    vector3D current_left_vector; // direction unit vector for wheels
+    vector3D current_left_vector; 
     vector3D current_right_vector;
     PID offset(offset_kp, 0, offset_kd);
     PID distance(base_kp, 0, base_kd);
@@ -848,6 +860,8 @@ void base_PID_front_back_imu_x_offset(double base_kp, double base_kd, double off
         imu_angle = (wrapAngle(imu.get_heading()) - 90.0) * TO_RADIANS;
         current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);
         current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0);
+        vector3D l_target_angle = vector3D(cos(l_angleMaintain), sin(l_angleMaintain), 0);
+        vector3D r_target_angle = vector3D(cos(r_angleMaintain), sin(r_angleMaintain), 0);
 
         vector3D l_target_angle_l = vector3D(cos(l_angleMaintain_left), sin(l_angleMaintain_left), 0);
         vector3D r_target_angle_l = vector3D(cos(r_angleMaintain_left), sin(r_angleMaintain_left), 0);
@@ -862,7 +876,8 @@ void base_PID_front_back_imu_x_offset(double base_kp, double base_kd, double off
 
         vector3D l_current_angle = vector3D(cos(left_angle), sin(left_angle), 0);
         vector3D r_current_angle = vector3D(cos(right_angle), sin(right_angle), 0);
-
+        l_error = angle(l_current_angle, l_target_angle);
+        r_error = angle(r_current_angle, r_target_angle);
         l_error_l = angle(l_current_angle, l_target_angle_l);
         r_error_l = angle(r_current_angle, r_target_angle_l);
         l_error_r = angle(l_current_angle, l_target_angle_r);
@@ -873,7 +888,8 @@ void base_PID_front_back_imu_x_offset(double base_kp, double base_kd, double off
         vector3D current_angle = vector3D(cos(imu_angle), sin(imu_angle), 0);
 
         heading_error = angle(current_angle, imu_target_angle_vector);
-
+        l_angle_pid = left_angle_PID.step(l_error);
+        r_angle_pid = right_angle_PID.step(r_error);
         l_angle_pid_l = left_angle_PID.step(l_error_l);
         r_angle_pid_l = right_angle_PID.step(r_error_l);
         l_angle_pid_r = left_angle_PID.step(l_error_r);
@@ -890,9 +906,9 @@ void base_PID_front_back_imu_x_offset(double base_kp, double base_kd, double off
         prev_errordistance = errordistance;
 
         offset_error = global_distX - original_x;
-        float offset_derivative = offset_error - prev_offset_error;
-        prev_offset_error = offset_error;
-        offset_correction = (offset_kp * offset_error) + (offset_kd * offset_derivative);
+        // float offset_derivative = offset_error - prev_offset_error;
+        // prev_offset_error = offset_error;
+        // offset_correction = (offset_kp * offset_error) + (offset_kd * offset_derivative);
 
         // PID for left motors
         if (fabs(errordistance) <= base_error)
@@ -923,27 +939,76 @@ void base_PID_front_back_imu_x_offset(double base_kp, double base_kd, double off
         // Move the motors
         if (targetDistance_Y >= 0.0)
         {
-            if (wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)) > 5.0)
+            pros::lcd::print(6, "if");
+            if (offset_error > 30.0)
             {
-                luA.move_voltage(power + angle_pid - offset_correction - l_angle_pid_l);
-                luB.move_voltage(power + angle_pid - offset_correction - l_angle_pid_l);
-                llA.move_voltage(power - angle_pid + offset_correction + l_angle_pid_l);
-                llB.move_voltage(power - angle_pid + offset_correction + l_angle_pid_l);
-                ruA.move_voltage(power + angle_pid - offset_correction - r_angle_pid_l);
-                ruB.move_voltage(power + angle_pid - offset_correction - r_angle_pid_l);
-                rlA.move_voltage(power - angle_pid + offset_correction + r_angle_pid_l);
-                rlB.move_voltage(power - angle_pid + offset_correction + r_angle_pid_l);
+
+                luA.move_voltage(power - angle_pid -  l_angle_pid_l);
+                luB.move_voltage(power - angle_pid -  l_angle_pid_l);
+                llA.move_voltage(power + angle_pid +  l_angle_pid_l);
+                llB.move_voltage(power + angle_pid +  l_angle_pid_l);
+                ruA.move_voltage(power - angle_pid -  r_angle_pid_l);
+                ruB.move_voltage(power - angle_pid -  r_angle_pid_l);
+                rlA.move_voltage(power + angle_pid +  r_angle_pid_l);
+                rlB.move_voltage(power + angle_pid +  r_angle_pid_l);
+
+
+                // luA.move_voltage(power + angle_pid -  l_angle_pid_r);
+                // luB.move_voltage(power + angle_pid -  l_angle_pid_r);
+                // llA.move_voltage(power - angle_pid +  l_angle_pid_r);
+                // llB.move_voltage(power - angle_pid +  l_angle_pid_r);
+                // ruA.move_voltage(power + angle_pid -  r_angle_pid_r);
+                // ruB.move_voltage(power + angle_pid -  r_angle_pid_r);
+                // rlA.move_voltage(power - angle_pid +  r_angle_pid_r);
+                // rlB.move_voltage(power - angle_pid +  r_angle_pid_r);
+                // luA.move_voltage(power + angle_pid -  l_angle_pid_l);
+                // luB.move_voltage(power + angle_pid -  l_angle_pid_l);
+                // llA.move_voltage(power - angle_pid +  l_angle_pid_l);
+                // llB.move_voltage(power - angle_pid +  l_angle_pid_l);
+                // ruA.move_voltage(power + angle_pid -  r_angle_pid_l);
+                // ruB.move_voltage(power + angle_pid -  r_angle_pid_l);
+                // rlA.move_voltage(power - angle_pid + r_angle_pid_l);
+                // rlB.move_voltage(power - angle_pid +  r_angle_pid_l);
+
+                // luA.move_voltage(power - angle_pid - offset_correction + l_angle_pid_l);
+                // luB.move_voltage(power - angle_pid - offset_correction + l_angle_pid_l);
+                // llA.move_voltage(power + angle_pid + offset_correction - l_angle_pid_l);
+                // llB.move_voltage(power - angle_pid + offset_correction - l_angle_pid_l);
+                // ruA.move_voltage(power + angle_pid - offset_correction + r_angle_pid_l);
+                // ruB.move_voltage(power + angle_pid - offset_correction + r_angle_pid_l);
+                // rlA.move_voltage(power - angle_pid + offset_correction - r_angle_pid_l);
+                // rlB.move_voltage(power - angle_pid + offset_correction - r_angle_pid_l);
             }
-            else if (wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)) < -5.0)
+            else if (offset_error< -30.0)
             {
-                luA.move_voltage(power + angle_pid - offset_correction - l_angle_pid_r);
-                luB.move_voltage(power + angle_pid - offset_correction - l_angle_pid_r);
-                llA.move_voltage(power - angle_pid + offset_correction + l_angle_pid_r);
-                llB.move_voltage(power - angle_pid + offset_correction + l_angle_pid_r);
-                ruA.move_voltage(power + angle_pid - offset_correction - r_angle_pid_r);
-                ruB.move_voltage(power + angle_pid - offset_correction - r_angle_pid_r);
-                rlA.move_voltage(power - angle_pid + offset_correction + r_angle_pid_r);
-                rlB.move_voltage(power - angle_pid + offset_correction + r_angle_pid_r);
+
+                                luA.move_voltage(power - angle_pid -  l_angle_pid_r);
+                luB.move_voltage(power - angle_pid -  l_angle_pid_r);
+                llA.move_voltage(power + angle_pid +  l_angle_pid_r);
+                llB.move_voltage(power + angle_pid +  l_angle_pid_r);
+                ruA.move_voltage(power - angle_pid -  r_angle_pid_r);
+                ruB.move_voltage(power - angle_pid -  r_angle_pid_r);
+                rlA.move_voltage(power + angle_pid +  r_angle_pid_r);
+                rlB.move_voltage(power + angle_pid +  r_angle_pid_r);
+                
+                //                 luA.move_voltage(power + angle_pid -  l_angle_pid_l);
+                // luB.move_voltage(power + angle_pid -  l_angle_pid_l);
+                // llA.move_voltage(power - angle_pid +  l_angle_pid_l);
+                // llB.move_voltage(power - angle_pid +  l_angle_pid_l);
+                // ruA.move_voltage(power + angle_pid -  r_angle_pid_l);
+                // ruB.move_voltage(power + angle_pid -  r_angle_pid_l);
+                // rlA.move_voltage(power - angle_pid + r_angle_pid_l);
+                // rlB.move_voltage(power - angle_pid +  r_angle_pid_l);
+                
+
+                // luA.move_voltage(power - angle_pid  + l_angle_pid_l);
+                // luB.move_voltage(power - angle_pid  + l_angle_pid_l);
+                // llA.move_voltage(power + angle_pid  - l_angle_pid_l);
+                // llB.move_voltage(power - angle_pid  - l_angle_pid_l);
+                // ruA.move_voltage(power + angle_pid  + r_angle_pid_l);
+                // ruB.move_voltage(power + angle_pid  + r_angle_pid_l);
+                // rlA.move_voltage(power - angle_pid  - r_angle_pid_l);
+                // rlB.move_voltage(power - angle_pid  - r_angle_pid_l);
             }
             else
             {
@@ -956,14 +1021,24 @@ void base_PID_front_back_imu_x_offset(double base_kp, double base_kd, double off
                 // rlA.move_velocity(-power + angle_pid + offset_correction);
                 // rlB.move_velocity(-power + angle_pid + offset_correction);
 
-                luA.move_voltage(power + angle_pid - offset_correction);
-                luB.move_voltage(power + angle_pid - offset_correction);
-                llA.move_voltage(power - angle_pid + offset_correction);
-                llB.move_voltage(power - angle_pid + offset_correction);
-                ruA.move_voltage(power + angle_pid - offset_correction);
-                ruB.move_voltage(power + angle_pid - offset_correction);
-                rlA.move_voltage(power - angle_pid + offset_correction);
-                rlB.move_voltage(power - angle_pid + offset_correction);
+                // luA.move_voltage(power + angle_pid - offset_correction);
+                // luB.move_voltage(power + angle_pid - offset_correction);
+                // llA.move_voltage(power - angle_pid + offset_correction);
+                // llB.move_voltage(power - angle_pid + offset_correction);
+                // ruA.move_voltage(power + angle_pid - offset_correction);
+                // ruB.move_voltage(power + angle_pid - offset_correction);
+                // rlA.move_voltage(power - angle_pid + offset_correction);
+                // rlB.move_voltage(power - angle_pid + offset_correction);
+
+                
+                luA.move_voltage(power + angle_pid - l_angle_pid);
+                luB.move_voltage(power + angle_pid - l_angle_pid);
+                llA.move_voltage(power - angle_pid + l_angle_pid);
+                llB.move_voltage(power - angle_pid + l_angle_pid);
+                ruA.move_voltage(power + angle_pid - r_angle_pid);
+                ruB.move_voltage(power + angle_pid - r_angle_pid);
+                rlA.move_voltage(power - angle_pid + r_angle_pid);
+                rlB.move_voltage(power - angle_pid + r_angle_pid);
             }
             if (errordistance < 0.0)
             {
@@ -973,27 +1048,47 @@ void base_PID_front_back_imu_x_offset(double base_kp, double base_kd, double off
         }
         else
         {
-            if (wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)) > 5.0)
+                    pros::lcd::print(6, "else");
+            if (offset_error > 30.0)
             {
-                luA.move_voltage(power + angle_pid - offset_correction - l_angle_pid_l);
-                luB.move_voltage(power + angle_pid - offset_correction - l_angle_pid_l);
-                llA.move_voltage(power - angle_pid + offset_correction + l_angle_pid_l);
-                llB.move_voltage(power - angle_pid + offset_correction + l_angle_pid_l);
-                ruA.move_voltage(power + angle_pid - offset_correction - r_angle_pid_l);
-                ruB.move_voltage(power + angle_pid - offset_correction - r_angle_pid_l);
-                rlA.move_voltage(power - angle_pid + offset_correction + r_angle_pid_l);
-                rlB.move_voltage(power - angle_pid + offset_correction + r_angle_pid_l);
+// luA.move_voltage(power + angle_pid -  l_angle_pid_r);
+//                 luB.move_voltage(power + angle_pid -  l_angle_pid_r);
+//                 llA.move_voltage(power - angle_pid +  l_angle_pid_r);
+//                 llB.move_voltage(power - angle_pid +  l_angle_pid_r);
+//                 ruA.move_voltage(power + angle_pid -  r_angle_pid_r);
+//                 ruB.move_voltage(power + angle_pid -  r_angle_pid_r);
+//                 rlA.move_voltage(power - angle_pid +  r_angle_pid_r);
+//                 rlB.move_voltage(power - angle_pid +  r_angle_pid_r);
+luA.move_voltage(power + angle_pid -  l_angle_pid_l);
+                luB.move_voltage(power + angle_pid -  l_angle_pid_l);
+                llA.move_voltage(power - angle_pid +  l_angle_pid_l);
+                llB.move_voltage(power - angle_pid +  l_angle_pid_l);
+                ruA.move_voltage(power + angle_pid -  r_angle_pid_l);
+                ruB.move_voltage(power + angle_pid -  r_angle_pid_l);
+                rlA.move_voltage(power - angle_pid + r_angle_pid_l);
+                rlB.move_voltage(power - angle_pid +  r_angle_pid_l);
             }
-            else if (wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)) < -5.0)
+            else if (offset_error< -30.0)
             {
-                luA.move_voltage(power + angle_pid - offset_correction - l_angle_pid_r);
-                luB.move_voltage(power + angle_pid - offset_correction - l_angle_pid_r);
-                llA.move_voltage(power - angle_pid + offset_correction + l_angle_pid_r);
-                llB.move_voltage(power - angle_pid + offset_correction + l_angle_pid_r);
-                ruA.move_voltage(power + angle_pid - offset_correction - r_angle_pid_r);
-                ruB.move_voltage(power + angle_pid - offset_correction - r_angle_pid_r);
-                rlA.move_voltage(power - angle_pid + offset_correction + r_angle_pid_r);
-                rlB.move_voltage(power - angle_pid + offset_correction + r_angle_pid_r);
+                // luA.move_voltage(power + angle_pid -  l_angle_pid_l);
+                // luB.move_voltage(power + angle_pid -  l_angle_pid_l);
+                // llA.move_voltage(power - angle_pid +  l_angle_pid_l);
+                // llB.move_voltage(power - angle_pid +  l_angle_pid_l);
+                // ruA.move_voltage(power + angle_pid -  r_angle_pid_l);
+                // ruB.move_voltage(power + angle_pid -  r_angle_pid_l);
+                // rlA.move_voltage(power - angle_pid + r_angle_pid_l);
+                // rlB.move_voltage(power - angle_pid +  r_angle_pid_l);
+
+                luA.move_voltage(power + angle_pid -  l_angle_pid_r);
+                luB.move_voltage(power + angle_pid -  l_angle_pid_r);
+                llA.move_voltage(power - angle_pid +  l_angle_pid_r);
+                llB.move_voltage(power - angle_pid +  l_angle_pid_r);
+                ruA.move_voltage(power + angle_pid -  r_angle_pid_r);
+                ruB.move_voltage(power + angle_pid -  r_angle_pid_r);
+                rlA.move_voltage(power - angle_pid +  r_angle_pid_r);
+                rlB.move_voltage(power - angle_pid +  r_angle_pid_r);
+
+                
             }
             else
             {
@@ -1006,14 +1101,23 @@ void base_PID_front_back_imu_x_offset(double base_kp, double base_kd, double off
                 // rlA.move_velocity(-power + angle_pid + offset_correction);
                 // rlB.move_velocity(-power + angle_pid + offset_correction);
 
-                luA.move_voltage(power + angle_pid - offset_correction);
-                luB.move_voltage(power + angle_pid - offset_correction);
-                llA.move_voltage(power - angle_pid + offset_correction);
-                llB.move_voltage(power - angle_pid + offset_correction);
-                ruA.move_voltage(power + angle_pid - offset_correction);
-                ruB.move_voltage(power + angle_pid - offset_correction);
-                rlA.move_voltage(power - angle_pid + offset_correction);
-                rlB.move_voltage(power - angle_pid + offset_correction);
+                // luA.move_voltage(power + angle_pid - offset_correction);
+                // luB.move_voltage(power + angle_pid - offset_correction);
+                // llA.move_voltage(power - angle_pid + offset_correction);
+                // llB.move_voltage(power - angle_pid + offset_correction);
+                // ruA.move_voltage(power + angle_pid - offset_correction);
+                // ruB.move_voltage(power + angle_pid - offset_correction);
+                // rlA.move_voltage(power - angle_pid + offset_correction);
+                // rlB.move_voltage(power - angle_pid + offset_correction);
+
+                luA.move_voltage(power + angle_pid - l_angle_pid);
+                luB.move_voltage(power + angle_pid - l_angle_pid);
+                llA.move_voltage(power - angle_pid + l_angle_pid);
+                llB.move_voltage(power - angle_pid + l_angle_pid);
+                ruA.move_voltage(power + angle_pid - r_angle_pid);
+                ruB.move_voltage(power + angle_pid - r_angle_pid);
+                rlA.move_voltage(power - angle_pid + r_angle_pid);
+                rlB.move_voltage(power - angle_pid + r_angle_pid);
             }
             if (errordistance > 0)
             {
@@ -1031,8 +1135,8 @@ void base_PID_front_back_imu_x_offset(double base_kp, double base_kd, double off
         }
 
         pros::lcd::print(1, "Error: %.lf", errordistance);
-        pros::lcd::print(6, "angle_pid: %.lf", angle_pid);
-        pros::lcd::print(7, "offset_correction: %.lf", offset_correction);
+        // pros::lcd::print(6, "angle_pid: %.lf", angle_pid);
+        // pros::lcd::print(7, "offset_correction: %.lf", offset_correction);
         pros::delay(2);
         // pros::lcd::print(1, "ErrorR: %.lf", errorRight);
 
@@ -1160,17 +1264,17 @@ void base_PID_front_back_imu_x(double base_kp, double base_ki, double base_kd,
                 targetDistance_Y);
             // clampVoltage(lu, ll, ru, rl);
             lu = std::clamp(scale * (power - l_angle_pid + angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
-                        // lu = scale * (power - l_angle_pid + angle_pid);
-            ll =std::clamp(scale * (power + l_angle_pid + angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
+            // lu = scale * (power - l_angle_pid + angle_pid);
+            ll = std::clamp(scale * (power + l_angle_pid + angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
             ru = std::clamp(scale * (power - r_angle_pid - angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
             rl = std::clamp(scale * (power + r_angle_pid - angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
             pros::lcd::print(
-                    4, "lu: %.lf",
-                    lu);
+                4, "lu: %.lf",
+                lu);
 
-                pros::lcd::print(
-                    5, "lu: %.d",
-                    ll);
+            pros::lcd::print(
+                5, "lu: %.d",
+                ll);
             //   pros::lcd::print(
             //             6, "lu: %.lf",
             //             ru);
@@ -1178,17 +1282,17 @@ void base_PID_front_back_imu_x(double base_kp, double base_ki, double base_kd,
             //             7, "lu: %.lf",
             //             rl);
 
-                    luA.move_voltage(lu);
-                    luB.move_voltage(lu);
+            luA.move_voltage(lu);
+            luB.move_voltage(lu);
 
-                    llA.move_voltage(ll);
-                    llB.move_voltage(ll);
+            llA.move_voltage(ll);
+            llB.move_voltage(ll);
 
-                    ruA.move_voltage(ru);
-                    ruB.move_voltage(ru);
+            ruA.move_voltage(ru);
+            ruB.move_voltage(ru);
 
-                    rlA.move_voltage(rl);
-                    rlB.move_voltage(rl);
+            rlA.move_voltage(rl);
+            rlB.move_voltage(rl);
 
             // luA.move_velocity(power - l_angle_pid + angle_pid);
             // luB.move_velocity(power - l_angle_pid + angle_pid);
@@ -1222,24 +1326,24 @@ void base_PID_front_back_imu_x(double base_kp, double base_ki, double base_kd,
             pros::lcd::print(
                 5, "lu: %.lf",
                 ll);
-              pros::lcd::print(
-                        6, "lu: %.lf",
-                        ru);
-              pros::lcd::print(
-                        7, "lu: %.lf",
-                        rl);
+            pros::lcd::print(
+                6, "lu: %.lf",
+                ru);
+            pros::lcd::print(
+                7, "lu: %.lf",
+                rl);
 
-                    luA.move_voltage(lu);
-                    luB.move_voltage(lu);
+            luA.move_voltage(lu);
+            luB.move_voltage(lu);
 
-                    llA.move_voltage(ll);
-                    llB.move_voltage(ll);
+            llA.move_voltage(ll);
+            llB.move_voltage(ll);
 
-                    ruA.move_voltage(ru);
-                    ruB.move_voltage(ru);
+            ruA.move_voltage(ru);
+            ruB.move_voltage(ru);
 
-                    rlA.move_voltage(rl);
-                    rlB.move_voltage(rl);
+            rlA.move_voltage(rl);
+            rlB.move_voltage(rl);
 
             // luA.move_velocity(power - l_angle_pid + angle_pid);
             // luB.move_velocity(power - l_angle_pid + angle_pid);
@@ -1799,7 +1903,7 @@ void initialize()
 void autonomous()
 {
 
-    base_PID_front_back_imu_x_offset(0.5, 0, 0.5, 0, 0, 700, 0, 0.3, 0.1);
+    base_PID_front_back_imu_x_offset(0.01, 0, 1.0, 0, 0, 700, 0, 0.3, 0.1);
     // set_wheel_angle_new(0, 0.2, 0, 0.2);
 
     // base_PID_front_back_imu_x(1.5, 0, 0, 0, 830, 0, 0.5, 0.2);
