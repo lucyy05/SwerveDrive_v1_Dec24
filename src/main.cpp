@@ -746,6 +746,9 @@ void moveBaseAutonomous(double targetX, double targetY){
     else
         reverse = false;
 
+    // if(targetX == 0.0 && targetY > 0.0)
+    //     autonDirection = NORTH;
+
     while(true){
         if(fabs(targetX) > 0.0)
             errorX = fabs(fabs(targetX) - fabs((fabs(global_distX) - offsetX)));
