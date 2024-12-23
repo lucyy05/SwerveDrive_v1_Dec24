@@ -9,8 +9,18 @@ template <typename T> int sgn(T val){
     return (T(0) < val) - (val < T(0));
 }
 
-float lowPassFilter(float prevValue, float newValue) {
-    return ALPHA * newValue + BETA * prevValue;
+void setBrakeModes(){
+    luA.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    luB.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    llA.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    llB.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    ruA.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    ruB.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    rlA.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    rlB.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    slam_dunkkkk.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    conveyor.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+    roller.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 }
 
 void serialRead(void* params){
@@ -20,12 +30,6 @@ void serialRead(void* params){
     pros::screen::set_pen(COLOR_BLUE);
     double distX = 0.0;
     double distY = 0.0;
-    double deltaX = 0.0;
-    double deltaY = 0.0;
-    double prevFilteredDX = 0.0;
-    double filteredDeltaX = 0.0;
-    double prevFilteredDY = 0.0;
-    double filteredDeltaY = 0.0;
     while(true){
         uint8_t buffer[256];
         int bufLength = 256;
@@ -41,7 +45,8 @@ void serialRead(void* params){
                 }
                 if(thisDigit == 'C'){
                     recordOpticalX = false;
-                    dataStream >> deltaX;
+                    dataStream >> distX;
+                    global_distX = distX*-1.0;
                     pros::lcd::print(1, "Optical Flow:");
                     pros::lcd::print(2, "distX: %.2lf", global_distX);
                     dataStream.str(std::string());
@@ -49,7 +54,8 @@ void serialRead(void* params){
                 }
                 if(thisDigit == 'D'){
                     recordOpticalY = false;
-                    dataStream >> deltaY;
+                    dataStream >> distY;
+                    global_distY = distY*-1.0;
                     pros::lcd::print(3, "distY: %.2lf", global_distY);
                     dataStream.str(std::string());
                     std::stringstream dataStream("");
@@ -58,14 +64,6 @@ void serialRead(void* params){
                 if (recordOpticalY) dataStream << (char)buffer[i];
                 if (thisDigit == 'X') recordOpticalX = true;
                 if (thisDigit == 'Y') recordOpticalY = true;
-                double filteredDeltaX = lowPassFilter(prevFilteredDX, deltaX);
-                double filteredDeltaY = lowPassFilter(prevFilteredDY, deltaY);
-                prevFilteredDX = filteredDeltaX;
-                prevFilteredDY = filteredDeltaY;
-                if (abs(filteredDeltaX - deltaX) < THRESHOLD && abs(filteredDeltaY - deltaY) < THRESHOLD) {
-                    global_distX += scale_factor * filteredDeltaX;
-                    global_distY += scale_factor * filteredDeltaY;
-                }
             }
         }
         pros::Task::delay(2);
@@ -603,41 +601,24 @@ bool isMotorAtTarget(int port, int target) {
 
 // Arms code
 // Arms control function
-void slamDunk() {
+void slamDunk(){
     double Derivative = 0.0;
     double prevError = 0.0;
     double Error = 0.0;
     double Integral = 0.0;
     while(true){
-        /*UPIN*/
-        // switch (slammingState){
-        //     case SLAM_START_STATE: //resting position
-        //         slam_target = 2980;
-        //         break;
-        //     case SLAM_MID_STATE: //midpoint - holding position
-        //         slam_target = 2835;
-        //         break;
-        //     case SLAM_EXTENDED_STATE: //extended all the way
-        //         slam_target = 1535;
-        //         break;
-        //     default:
-        //         slam_target = 2980;
-        //         break;
-        // }
-
-        /*IPIN*/
         switch (slammingState){
             case SLAM_START_STATE: //resting position
-                slam_target = 1900;
+                slam_target = defaultSlamValue;
                 break;
             case SLAM_MID_STATE: //midpoint - holding position
-                slam_target = 1711;
+                slam_target = defaultSlamValue - 151;
                 break;
             case SLAM_EXTENDED_STATE: //extended all the way
-                slam_target = 382;
+                slam_target = defaultSlamValue - 1455;
                 break;
             default:
-                slam_target = 382;
+                slam_target = defaultSlamValue;
                 break;
         }
 
@@ -646,13 +627,13 @@ void slamDunk() {
         Integral += Error;
         double motorPower = slam_Kp * Error + slam_Kd * Derivative + slam_Ki * Integral;
 
-        if (fabs(Error) <= 5) {
+        if (fabs(Error) <= 5.0) {
             slam_dunkkkk.move(0);
             slam_dunkkkk.brake();
         } else {
-            if (slam_target > slam_dunk.get_value() + 10) {
+            if (slam_target > slam_dunk.get_value() + 10.0) {
                 slam_dunkkkk.move(motorPower);
-            } else if (slam_target < slam_dunk.get_value() - 10) {
+            } else if (slam_target < slam_dunk.get_value() - 10.0) {
                 slam_dunkkkk.move(-motorPower);
             }
         }
@@ -742,26 +723,60 @@ void moveBaseAutonomous(double distX, double distY){
     double offsetX = 0.0;
     double offsetY = 0.0;
 
-    if(global_distX < 0)
-        offsetX = global_distX;
-    else
-        offsetX = -global_distX;
+    std::vector<vector3D> waypoints = {
+        vector3D(10.0, -5.0, 0.0),  // Example waypoint 1
+        vector3D(12.0, -6.0, 0.0),  // Example waypoint 2
+        vector3D(13.0, -8.0, 0.0)    // Example waypoint 3
+    };
 
-    if(global_distY < 0)
-        offsetY = global_distY;
-    else
-        offsetY = -global_distY;
-    master.print(2,0, "%.2lf", global_distX);
-    pros::delay(100);
-    master.print(1,0, "%.2lf", offsetX);
-    pros::delay(100);
+    double currentX = 0.0;
+    double currentY = 0.0;
+    double PrevcurrentX = 0.0;
+    double PrevcurrentY = 0.0;
 
     while(true){
-        targetX = distX - global_distX - offsetX;
-        targetY = distY - global_distY - offsetY;
-        master.print(0,0, "%.1lf", targetX);
-        target_v = normalizeJoystick(int(targetX), int(targetY)).scalar(MAX_SPEED); // target velocity 
-        target_r = normalizeRotation(0).scalar(MAX_ANGULAR*0.6); // target rotation 
+        static int current_waypoint_index = 0; // Index of the current waypoint
+        vector3D current_position(0.0, 0.0, 0.0); // Estimated position from optical flow sensor
+        vector3D position_error; // Error vector to target waypoint
+
+        // Get position error
+        position_error = waypoints[current_waypoint_index] - current_position;
+
+        // Check if close enough to waypoint (e.g., within 0.1 meters)
+        if (position_error.magnitude() < 0.1) {
+            current_waypoint_index++;
+            if (current_waypoint_index >= waypoints.size()) {
+                // Reached final waypoint
+                target_v = vector3D(0.0, 0.0, 0.0); // Stop movement
+                target_r = vector3D(0.0, 0.0, 0.0); // Stop rotation
+            } else {
+                position_error = waypoints[current_waypoint_index] - current_position;
+            }
+        }
+
+        // Calculate target velocity direction and magnitude
+        if (current_waypoint_index < waypoints.size()) {
+            vector3D direction = position_error.scalar(1.0 / position_error.magnitude()); // Normalize
+            target_v = direction.scalar(MAX_SPEED); // Scale to maximum speed
+        }
+
+        // Use a PID controller for orientation if needed
+        // Example: Maintain a heading of 0 radians
+        double target_heading = 0.0; 
+        double current_heading = imu.get_heading() * TO_RADIANS;
+        double heading_error = target_heading - current_heading;
+        currentX = global_distX;
+        currentY = global_distY;
+        // Update current position using optical flow sensor
+        double dx = currentX - PrevcurrentX; // Change in x from optical flow
+        double dy = currentY - PrevcurrentY; // Change in y from optical flow
+        current_position.x += dx;
+        current_position.y += dy;
+        PrevcurrentX = global_distX;
+        PrevcurrentY = global_distY;
+
+        // target_v = normalizeJoystick(int(targetX), int(targetY)).scalar(MAX_SPEED); // target velocity 
+        // target_r = normalizeRotation(0).scalar(MAX_ANGULAR*0.6); // target rotation 
 
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   //Y axis positive is front
@@ -902,25 +917,16 @@ void autonomous(){
 
 void initialize(){
     pros::lcd::initialize();
-    master.clear();
     //pros::delay(50);
     //master.print(0,0,"IMU resetting...");
     while(!imu.reset(true));  //uncomment for actual
     //pros::delay(100);
     //master.print(0,0,"IMU calibrated  ");
     pros::delay(100);
-    master.rumble(" .- .");
+    master.rumble(" . . .");
 
-    luA.set_brake_mode(MOTOR_BRAKE_HOLD); // once target position reached it locks it instead of cont moving
-    luB.set_brake_mode(MOTOR_BRAKE_HOLD);
-    llA.set_brake_mode(MOTOR_BRAKE_HOLD);
-    llB.set_brake_mode(MOTOR_BRAKE_HOLD);
-    ruA.set_brake_mode(MOTOR_BRAKE_HOLD);
-    ruB.set_brake_mode(MOTOR_BRAKE_HOLD);
-    rlA.set_brake_mode(MOTOR_BRAKE_HOLD);
-    rlB.set_brake_mode(MOTOR_BRAKE_HOLD);
-    conveyor.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE); 
-    roller.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE); 
+    setBrakeModes();
+
     //while(!left_rotation_sensor.reset());
     //while(!right_rotation_sensor.reset());
 
@@ -929,6 +935,8 @@ void initialize(){
 
     left_rotation_sensor.set_position(0);
     right_rotation_sensor.set_position(0);
+
+    defaultSlamValue = slam_dunk.get_value();
 
     pros::Task move_base(moveBase);
     pros::Task slam_dunk(slamDunk);
@@ -940,14 +948,14 @@ void opcontrol(){
         leftX = master.get_analog(ANALOG_LEFT_X);
         leftY = master.get_analog(ANALOG_LEFT_Y);
         rightX = master.get_analog(ANALOG_RIGHT_X);
-        if(master.get_digital_new_press(DIGITAL_B)) autonomous();
+        //if(master.get_digital_new_press(DIGITAL_B)) autonomous();
 
-        if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
+        //if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
 
         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { 
             //pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
             conveyor.move(110); 
-            } 
+        } 
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
             //pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
             conveyor.move(-110);
@@ -962,11 +970,11 @@ void opcontrol(){
         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) { 
             //pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
             roller.move(110); 
-            } 
+        } 
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
             //pros::lcd::print(0, "L1: ROLLER forward, -ve velocity??\n");
             roller.move(-110);
-            } 
+        }
         else {
             //pros::lcd::print(0, "ROLLER STOPPED\n");
             roller.move(0); 

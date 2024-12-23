@@ -5,9 +5,9 @@
 #include <cmath>
 #include <sstream>
 #include <vector>
-//#include "api.h"
 #include "vector.h"
 #include "pros/imu.hpp"
+//#include "api.h"
 
 /* robot with base (UPIN) */
 #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
@@ -55,12 +55,12 @@
 #define SOLENOID_SENSOR_PORT 'D'
 #define mobilegoal_bottom 'G'
 
-#define CONVEYOR_MOTOR 7
-#define ROLLER_MOTOR 6
+#define COLOR_SENSOR 1
 
 #define SLAM_DUNK_MOTOR 3
 
-#define COLOR_SENSOR 1
+#define CONVEYOR_MOTOR 7
+#define ROLLER_MOTOR 6
 
 #define SERIALPORT 20
 
@@ -80,11 +80,11 @@ pros::Motor rlB(RIGHT_LOWER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros
 pros::IMU imu(IMU_PORT);
 pros::Optical colorSensor(COLOR_SENSOR);
 
+pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
 pros::ADIAnalogIn slam_dunk(SLAM_DUNK_SENSOR_PORT);
 pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
 pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
-pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
 // pros::Motor intakeLower(UPPER_INTAKE_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
 // pros::Motor intakeUpper(LOWER_INTAKE_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
@@ -194,6 +194,8 @@ bool isLeftFlipped = false;
 bool isRightFlipped = false;
 
 //Slam dunk
+int defaultSlamValue = 0;
+
 enum SlammingState {
     SLAM_START_STATE = 0,
     SLAM_MID_STATE = 1,
@@ -219,11 +221,3 @@ bool mobile_goal_actuated = false;
 bool mobile_goal_jaw = false;
 
 bool driver = false;
-
-//Optical flow
-const double ALPHA = 0.85;
-const double BETA = 0.38;
-const double THRESHOLD = 200.0;
-const double height_from_gnd = 20.0;    //Height in mm
-const double scaler = 7.2;              //Adjust for sensitivity for different surfaces
-const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * scaler);
