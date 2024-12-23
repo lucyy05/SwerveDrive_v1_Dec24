@@ -480,7 +480,7 @@ void slamDunk(){
     }
 }
 
-void moveBaseAutonomous(double targetX, double targetY){
+void moveBaseAutonomous(double targetX, double targetY, double target_heading){
     bool reverse = false;
     double v_right_velocity; // target velocity magnitude
     double v_left_velocity;
@@ -547,6 +547,7 @@ void moveBaseAutonomous(double targetX, double targetY){
 
     PID delta_X_PID(auton_distance_kP, auton_distance_kI, auton_distance_kD);
     PID delta_Y_PID(auton_distance_kP, auton_distance_kI, auton_distance_kD);
+    PID delta_Heading_PID(auton_heading_kP, auton_heading_kI, auton_heading_kD);
 
     vector3D L2I_pos(WHEEL_BASE_RADIUS,0.0,0.0); 
     vector3D imu_angular;
@@ -564,17 +565,52 @@ void moveBaseAutonomous(double targetX, double targetY){
 
     double errorX = 0.0;
     double errorY = 0.0;
+    double headingError = 0.0;
 
     double target_v_x;
     double target_v_y;
+    double target_r_heading;
 
     if(targetX < 0.0 || targetY < 0.0)
         reverse = true;
     else
         reverse = false;
 
-    // if(targetX == 0.0 && targetY > 0.0)
-    //     autonDirection = NORTH;
+    if(targetX == 0.0){
+        if(targetY > 0.0){
+            autonDirection = NORTH;
+        }
+        else if(targetY < 0.0){
+            autonDirection = SOUTH;
+        }
+    }
+    else if(targetY == 0.0){
+        if(targetX > 0.0){
+            autonDirection = EAST;
+        }
+        else if(targetX < 0.0){
+            autonDirection = WEST;
+        }
+    }
+
+    if(targetX > 0.0){
+        if(targetY > 0.0){
+            autonDirection = NORTHEAST;
+        }
+        else if(targetY < 0.0){
+            autonDirection = SOUTHEAST
+        }
+    }
+    if(targetX < 0.0){
+        if(targetY > 0.0){
+            autonDirection = NORTHWEST;
+        }
+        else if(targetY < 0.0){
+            autonDirection = SOUTHWEST;
+        }
+    }
+
+    imu.tare_rotation();
 
     while(true){
         if(fabs(targetX) > 0.0)
@@ -586,6 +622,7 @@ void moveBaseAutonomous(double targetX, double targetY){
         else if(fabs(targetY) <= 0.0)
             errorY = 0.0;
 
+        headingError = fabs(target_heading) - fabs(imu.get_rotation());
         // if(fabs(errorX) <= 2.0){
         //     brake();
         //     break;
@@ -595,18 +632,26 @@ void moveBaseAutonomous(double targetX, double targetY){
             brake();
             break;
         }
+        if(fabs(headingError) <= 2.0) headingError = 0.0;
 
         target_v_x = delta_X_PID.step(errorX);
         target_v_y = delta_Y_PID.step(errorY);
+        target_r_heading = delta_Heading_PID.step(headingError);
+        target_v = normalizeJoystick(sgn(targetX)*target_v_x, sgn(targetY)*target_v_y).scalar(MAX_SPEED*0.8); // target velocity
+        if(target_heading == 0.0)
+            target_r = normalizeRotation(0.0).scalar(MAX_ANGULAR*0.8); // target rotation
+        else
+            target_r = normalizeRotation(sgn(headingError)*target_r_heading).scalar(MAX_ANGULAR*0.8); // target rotation
+        pros::lcd::print(1,"error_y: %.1lf", errorY);
+
         // target_v_x = errorX;
         // target_v_y = errorY;
         //target_v = vector3D(target_v_x, target_v_y, 0.0);
-        if(reverse == false)
-            target_v = normalizeJoystick(target_v_x, target_v_y).scalar(MAX_SPEED*0.8); // target velocity 
-        else
-            target_v = normalizeJoystick(-target_v_x, -target_v_y).scalar(MAX_SPEED*0.8); // target velocity 
-        target_r = normalizeRotation(0.0).scalar(MAX_ANGULAR*0.8); // target rotation
-        pros::lcd::print(1,"error_y: %.1lf", errorY);
+        // if(reverse == false)
+        //     target_v = normalizeJoystick(target_v_x, target_v_y).scalar(MAX_SPEED*0.8); // target velocity 
+        // else
+        //     target_v = normalizeJoystick(-target_v_x, -target_v_y).scalar(MAX_SPEED*0.8); // target velocity 
+
         //pros::lcd::print(0,"target_v_x: %.1lf", target_v_x);
         //pros::lcd::print(1,"target_v_y: %.1lf", target_v_y);
 
@@ -648,9 +693,13 @@ void moveBaseAutonomous(double targetX, double targetY){
         v_fterm = (target_v - prev_target_v)*(v_kF/dt); // rate of change of joystick input * constant v_kF 
         r_fterm = (target_r - prev_target_r)*(r_kF/dt); // rate of change of joystick input * constant r_kF 
         target_v = target_v + v_fterm; // update the target_v and target_r 
-        target_r = target_r + r_fterm; 
-            
-        angular_error = target_r - imu_angular;
+        target_r = target_r + r_fterm;
+
+        if(target_heading > 0.0)
+            angular_error = target_r;
+        else
+            angular_error = target_r - imu_angular;
+
         if(fabs(angular_error.z) < ANGULAR_THRESH){
             angular_error.load(0.0,0.0,0.0);
             rot_pid_double = 0.0;
@@ -738,9 +787,9 @@ void moveBaseAutonomous(double targetX, double targetY){
 }
 
 void autonomous(){
-    moveBaseAutonomous(0.0, 250.0);
+    moveBaseAutonomous(0.0, 250.0, 0.0);
     pros::delay(50);
-    moveBaseAutonomous(0.0, -250.0);
+    moveBaseAutonomous(0.0, 0.0, 90.0);
 }
 
 void initialize(){
