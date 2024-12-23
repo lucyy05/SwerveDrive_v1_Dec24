@@ -637,6 +637,10 @@ void bound_conveyor_position(double binding_value){
 	}
 }
 
+// detects if a ring has been taken by intake, should only when conveyor is at resting position
+bool detect_ring(){
+    return conveyor_optical.get_proximity() > 100;   //  might need to change
+}
 
 // #====# sensor based movements #====#
 
@@ -711,6 +715,7 @@ bool conveyor_go_to_absolute(double percentage_position, int voltage){
     return conveyor_timed_out;
 }
 
+void conveyor_go_to(int conveyor_step);  // prototype
 /* conveyor_step variable - state machine's state / position
  0 - resting (right below the intersection of intake and conveyor)
  1 - store (middle of conveyor, possible to store another ring at intersection)
@@ -720,25 +725,33 @@ int conveyor_step = 0;
 void step_conveyor(){
     conveyor_step = (conveyor_step+1) % 4;
     pros::lcd::print(1, "stp: %d/3, pos: %f", conveyor_step, conveyor.get_position());
+    conveyor_go_to(conveyor_step);
+}
+
+void conveyor_go_to(int conveyor_step){
     switch(conveyor_step){
         case 0:
+            conveyor_step = 0;
             conveyor_go_to_absolute(0.55, 40);       // go to rest     (allowed to receive)
             break;
         case 1:
+            conveyor_step = 1;
             conveyor_go_to_absolute(0.25, 40);       // store       (waiting to score)
             // check colour
             //conveyor_optical.
             break;
         case 2:
         {
+            conveyor_step = 2;
             bool should_continue = !conveyor_go_to_absolute(0.90, 110);     // Score     (score, now rehome)
-            pros::delay(500);
+            pros::delay(500);           // TODO: make async
             if (should_continue) step_conveyor();
-        }
             break;
+        }
         case 3:
+            conveyor_step = 3;
             conveyor_go_home_by_sensor(40);     // rehome   (rehomed, now wait to receive)
-            pros::delay(500);
+            pros::delay(500);           // TODO: make async
             step_conveyor();
             break;
     }
@@ -763,6 +776,8 @@ void calibrate_conveyor(){
     pros::delay(5);
 }
 
+bool detected_ring_before = false;
+int detected_ring_time = 0;
 void opcontrol(){
     while(true){
         leftX = master.get_analog(ANALOG_LEFT_X);
@@ -795,14 +810,29 @@ void opcontrol(){
         } 
     else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
 		pros::lcd::print(0, "L1: ROLLER forward, -ve velocity??\n");
-		roller.move(-110);
         // detect ring and move conveyor later
+		roller.move(-110);
+        if(!detected_ring_before && detect_ring() ){
+            // advance conveyor to "store"
+            conveyor_go_to(1);
+            detected_ring_before = true;
+            detected_ring_time = 100;
+        }
         } 
     else {
 		//pros::lcd::print(0, "ROLLER STOPPED\n");
 		roller.move(0); 
+        if(conveyor_step == 1 && detected_ring_time >= 1){
+            detected_ring_time--;       // wait for conveyor to get to position
+        }else if(conveyor_step == 1){
+            // conveyor at "store", now check colour (ONLY IN AUTON)
+            pros::c::optical_rgb_s_t detected_colour = conveyor_optical.get_rgb();
+            double r = detected_colour.red, g = detected_colour.green, b = detected_colour.blue;
+            //if(r > b)
+            pros::lcd::print(7, "c: %.1f/%.1f/%.1f: %s", r, g, b, r > b ? "red" : "blue");
+        }
     }
-    
+
     pros::delay(5);
     }
 }
