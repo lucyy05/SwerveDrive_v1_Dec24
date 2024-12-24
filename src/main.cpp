@@ -1,5 +1,8 @@
 #include "main.h"
+// #include "pros.h"
+#include <iostream>
 
+// be sure to check if 'is_we_blue_alliance' is set correctly in conveyor.cpp
 
 void disabled(){}
 void competition_initialize(){}
@@ -59,7 +62,7 @@ void serialRead(void* params){
                     global_distX = dist_X*-10.0;
                     optical_v_x = fabs((fabs(global_distX) - fabs(prevDist_x))) / 0.002;
                     //pros::lcd::print(1, "Optical Flow:");
-                    pros::lcd::print(0, "distX: %.2lf, distY: %.2lf", global_distX, global_distY);
+                    //pros::lcd::print(0, "distX: %.2lf, distY: %.2lf", global_distX, global_distY);
                     dataStream.str(std::string());
                     std::stringstream dataStream("    ");
                     prevDist_x = dist_X*-10.0;
@@ -111,10 +114,10 @@ void tareBaseMotorEncoderPositions() //tares all base motor encoder positions
     pros::delay(1);
 }
 
-void clampVoltage() 
+void clampVoltage(int32_t VOLTAGE) 
 {
     //if any of lu, ll, ru or rl are too big, we need to scale them, and we must scale them all by the same amount so we dont throw off the proportions
-    if(abs(lu) > MAX_VOLTAGE || abs(ll) > MAX_VOLTAGE || abs(ru) > MAX_VOLTAGE || abs(rl) > MAX_VOLTAGE)
+    if(abs(lu) > VOLTAGE || abs(ll) > VOLTAGE || abs(ru) > VOLTAGE || abs(rl) > VOLTAGE)
     {
         //figure out which of lu, ll, ru or rl has the largest magnitude
         int32_t max = abs(lu);
@@ -124,7 +127,7 @@ void clampVoltage()
             max = abs(ru);
         if(max < abs(rl))
             max = abs(rl);
-        double VoltageScalingFactor = ((double) max) / MAX_VOLTAGE; //this will definitely be positive, hence it wont change the sign of lu, ll, ru or rl.
+        double VoltageScalingFactor = ((double) max) / VOLTAGE; //this will definitely be positive, hence it wont change the sign of lu, ll, ru or rl.
         lu = (int32_t)((double)lu / VoltageScalingFactor);
         ll = (int32_t)((double)ll / VoltageScalingFactor);
         ru = (int32_t)((double)ru / VoltageScalingFactor);
@@ -170,7 +173,7 @@ vector3D normalizeJoystick(int x_in, int y_in){ //convert translation joystick i
     vector3D out;
     if(length < DEADBAND){ //if the joystick is too close to the origin, dont bother moving (this is to correct for stick drift, where the joystick doesnt default to the 0,0 position due to physical damage)
         out.load(0.0, 0.0, 0.0); //assign zero values to the xyz attributes of the vector3D named "out"
-        return out;
+        return -out;
     }
     //forcing the joystick output to be a circle not the square bounding box of the joystick
     //for any radial line of the circle, we find its length from the deadband radius to the radius of the circle of the joystick, then map the speed from 0 to 1 of that length
@@ -220,6 +223,7 @@ double max(double a, double b) { //returns the larger of two doubles
 double min(double a, double b) { //returns the smaller of two doubles
     return (a < b)? a : b;
 }
+
 
 // Driver code
 void moveBase(){ 
@@ -283,7 +287,7 @@ void moveBase(){
     PID left_angle_PID(angle_kP_left, angle_kI_left, angle_kD_left); 
     PID right_angle_PID(angle_kP_right, angle_kI_right, angle_kD_right); 
     PID left_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
-    PID right_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
+    PID right_velocity_PID(velocity_kP, velocity_kI, velocity_kD);
     PID rotate_robot_PID(azim_kP, azim_kI, azim_kD);
 
     vector3D L2I_pos(WHEEL_BASE_RADIUS,0.0,0.0); 
@@ -408,8 +412,8 @@ void moveBase(){
         } 
 
         //calculate the wheel error 
-        current_l_tl_error = (v_left_velocity-current_l_velocity); 
-        current_r_tl_error = (v_right_velocity-current_r_velocity); 
+        current_l_tl_error = (v_left_velocity - current_l_velocity); 
+        current_r_tl_error = (v_right_velocity - current_r_velocity); 
 
         // velocity pid: based on the rate of change of velocity, pid updates the power the wheels 
         l_velocity_pid += left_velocity_PID.step(current_l_tl_error); 
@@ -432,12 +436,13 @@ void moveBase(){
         ll = (int32_t)lscale * (l_velocity_pid - l_angle_pid); 
         ru = (int32_t)rscale * (r_velocity_pid + r_angle_pid); 
         rl = (int32_t)rscale * (r_velocity_pid - r_angle_pid); 
-        clampVoltage();
+        clampVoltage(battery_voltage);
         
+        std::cout << lu << " : " << ll << " : " << ru << " : " << rl << std::endl; 
         move_voltage_wheels(lu,ll,ru,rl);
-        pros::delay(2);
-        }
+        pros::delay(2); 
     }
+}
 
 // Helper function to check if the motor is at the target
 bool isMotorAtTarget(int port, int target) {
@@ -452,6 +457,7 @@ void slamDunk(){
     double prevError = 0.0;
     double Error = 0.0;
     double Integral = 0.0;
+    
     defaultSlamValue = slam_dunk.get_value();
     //master.print(3,0,"%d", defaultSlamValue);
     while(true){
@@ -569,6 +575,8 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
     double rot_vector_double = 0.0;
     double rot_pid_double = 0.0;
     double gyro_rate = 0.0;
+    double imu1_rate = 0.0;
+    double imu2_rate = 0.0;
     double a_err_d = 0.0;   //angular error as a double
 
     double offsetX = fabs(global_distX);
@@ -650,10 +658,12 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         // target_v_x = errorX;
         // target_v_y = errorY;
         //target_v = vector3D(target_v_x, target_v_y, 0.0);
-        target_v = normalizeJoystick(check_sign(targetX)*target_v_x, check_sign(targetX)*target_v_y).scalar(MAX_SPEED*0.7); // target velocity
-        //target_v = normalizeJoystick(-target_v_x, -target_v_y).scalar(MAX_SPEED*0.8); // target velocity
-        target_r = normalizeRotation(check_sign(target_heading)*target_r_heading).scalar(MAX_ANGULAR*0.4); // target rotation
-        //pros::lcd::print(1,"error_y: %.1lf", errorY);
+        if(reverse == false)
+            target_v = normalizeJoystick(target_v_x, target_v_y).scalar(MAX_SPEED*0.8); // target velocity 
+        else
+            target_v = normalizeJoystick(-target_v_x, -target_v_y).scalar(MAX_SPEED*0.8); // target velocity 
+        target_r = normalizeRotation(0.0).scalar(MAX_ANGULAR*0.8); // target rotation
+        pros::lcd::print(1,"error_y: %.1lf", errorY);
         //pros::lcd::print(0,"target_v_x: %.1lf", target_v_x);
         //pros::lcd::print(1,"target_v_y: %.1lf", target_v_y);
 
@@ -778,8 +788,8 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         //pros::lcd::print(4,"l_velocity_pid: %.1lf", l_velocity_pid);
         //pros::lcd::print(5,"r_velocity_pid: %.1lf", r_velocity_pid);
 
-        pros::lcd::print(6, "lu:%.1d,ll:%.1d", lu, ll);
-        pros::lcd::print(7, "ru:%.1d,rl:%.1d", ru, rl);
+        //pros::lcd::print(6, "lu:%.1d,ll:%.1d", lu, ll);
+        //pros::lcd::print(7, "ru:%.1d,rl:%.1d", ru, rl);
 
         move_voltage_wheels(lu,ll,ru,rl);
         pros::delay(5);
@@ -845,7 +855,9 @@ void initialize(){
 
     pros::Task slam_dunk(slamDunk);
     pros::Task serial_read(serialRead);
+
 }
+
 
 void opcontrol(){
     pros::Task move_base(moveBase);
@@ -862,15 +874,46 @@ void opcontrol(){
         if(master.get_digital_new_press(DIGITAL_X)) slam_dunk_actuated = !slam_dunk_actuated;
         if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
 
-        if(mobile_goal_actuated) {
-            solenoid.set_value(1);
-            pros::Task::delay(110);
-            mobilegoal_bot.set_value(0);
+        if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { 
+            //pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
+            conveyor.move(110); 
+        } 
+        else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
+            //pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
+            conveyor.move(-110);
         }
-        else{
-            solenoid.set_value(0);
-            pros::Task::delay(110);
-            mobilegoal_bot.set_value(1);
+        else { 
+            //pros::lcd::print(0, "CONVEYOR STOPPED\n");
+            conveyor.move(0);
+        }
+
+        // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
+        // when L1 is pressed, rollers move forward with NEGATIVE velocity??
+        if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) { 
+            //pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
+            roller.move(110); 
+        } 
+        else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
+            //pros::lcd::print(0, "L1: ROLLER forward, -ve velocity??\n");
+            roller.move(-110);
+        }
+        else {
+            //pros::lcd::print(0, "ROLLER STOPPED\n");
+            roller.move(0); 
+        }
+
+        if(master.get_digital_new_press(DIGITAL_A)) mobile_goal_actuated = !mobile_goal_actuated;
+
+        if(mobile_goal_actuated) { 
+            //intake 
+            solenoid.set_value(1); 
+            pros::Task::delay(100); 
+            mobilegoal_bot.set_value(0); 
+        } 
+        else{ 
+            solenoid.set_value(0); 
+            pros::Task::delay(100); 
+            mobilegoal_bot.set_value(1); 
         }
 
         if(slam_dunk_actuated) slam_in_out.set_value(1);
