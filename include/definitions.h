@@ -199,13 +199,17 @@ const double auton_r_velocity_kP = 0.05;   //swerve wheel rotation velocity for 
 const double auton_r_velocity_kI = 0.000;     //tune for translate
 const double auton_r_velocity_kD = 0.02;
 
-const double auton_distance_kP = 0.05; //swerve wheel rotation distance
-const double auton_distance_kI = 0.0;
-const double auton_distance_kD = 0.0;
+double auton_distance_kP = 0.05; //swerve wheel rotation distance
+double auton_distance_kI = 0.0;
+double auton_distance_kD = 0.0;
 
-double auton_heading_kP;
-double auton_heading_kI;
-double auton_heading_kD;
+double auton_heading_kP = 0.0;
+double auton_heading_kI = 0.0;
+double auton_heading_kD = 0.0;
+
+double auton_target_x = 0.0;
+double auton_target_y = 0.0;
+double auton_target_heading = 0.0;
 
 // enum AutonDirections {
 //     NORTH = 0,

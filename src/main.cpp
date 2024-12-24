@@ -510,7 +510,7 @@ void slamDunk(){
     }
 }
 
-void moveBaseAutonomous(double targetX, double targetY, double target_heading){
+void moveBaseAutonomous(){
     double v_right_velocity; // target velocity magnitude
     double v_left_velocity;
 
@@ -601,35 +601,42 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
     double target_v_y;
     double target_r_heading;
 
-    while(imu.tare_rotation() == PROS_ERR);
+    bool tareHeading = true;
 
     while(true){
-        if(fabs(targetX) > 0.0)
-            errorX = fabs(fabs(targetX) - fabs((fabs(global_distX) - offsetX)));
-        if(fabs(targetX) <= 0.0 || fabs(errorX) <= 3.0)
+        if(fabs(auton_target_x) > 0.0)
+            errorX = fabs(fabs(auton_target_x) - fabs((fabs(global_distX) - offsetX)));
+        if(fabs(auton_target_x) <= 0.0 || fabs(errorX) <= 3.0)
             errorX = 0.0;
 
-        if(fabs(targetY) > 0.0)
-            errorY = fabs(fabs(targetY) - fabs((fabs(global_distY) - offsetY)));
-        if(fabs(targetY) <= 0.0 || fabs(errorY) <= 3.0)
+        if(fabs(auton_target_y) > 0.0)
+            errorY = fabs(fabs(auton_target_y) - fabs((fabs(global_distY) - offsetY)));
+        if(fabs(auton_target_y) <= 0.0 || fabs(errorY) <= 3.0)
             errorY = 0.0;
 
-        if(fabs(target_heading) > 0.0)
-            errorheading = fabs(target_heading) - fabs(imu.get_rotation());
-        if(fabs(target_heading) <= 0.0 || fabs(errorheading) <= 2.0)
+        if(fabs(auton_target_heading) > 0.0)
+            if(tareHeading == true) while(imu.tare_rotation() == PROS_ERR);
+            errorheading = fabs(auton_target_heading) - fabs(imu.get_rotation());
+        if(fabs(auton_target_heading) <= 0.0 || fabs(errorheading) <= 2.0)
             errorheading = 0.0;
 
-        if(errorX == 0.0 && errorY == 0.0 && errorheading == 0.0){
+        if(fabs(errorX) <= 3.0 && fabs(errorY) == 3.0 && fabs(errorheading) <= 2.0){
             brake();
-            break;
+            tareHeading = false;
+            target_v = vector3D(0.0, 0.0, 0.0);
+            target_r = vector3D(0.0, 0.0, 0.0);
+            auton_target_x = 0.0;
+            auton_target_y = 0.0;
+            auton_target_heading = 0.0;
         }
+        else{
+            target_v_x = delta_X_PID.step(errorX);
+            target_v_y = delta_Y_PID.step(errorY);
+            target_r_heading = delta_Heading_PID.step(errorheading);
 
-        target_v_x = delta_X_PID.step(errorX);
-        target_v_y = delta_Y_PID.step(errorY);
-        target_r_heading = delta_Heading_PID.step(errorheading);
-
-        target_v = normalizeJoystick(check_sign(targetX)*target_v_x, check_sign(targetX)*target_v_y).scalar(MAX_SPEED*0.7); // target velocity
-        target_r = normalizeRotation(check_sign(target_heading)*target_r_heading).scalar(MAX_ANGULAR*0.4); // target rotation
+            target_v = normalizeJoystick(check_sign(auton_target_x)*target_v_x, check_sign(auton_target_y)*target_v_y).scalar(MAX_SPEED*0.7); // target velocity
+            target_r = normalizeRotation(check_sign(auton_target_heading)*target_r_heading).scalar(MAX_ANGULAR*0.35); // target rotation
+        }
 
         //takes robot right as 0
         //Y axis positive is front
@@ -753,44 +760,15 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
     }
 }
 
-void turn90(){
-    // auton_heading_kP = 0.09;
-    // auton_heading_kI = 0.0;
-    // auton_heading_kD = 0.05;
-    auton_heading_kP = 0.09;
-    auton_heading_kI = 0.0;
-    auton_heading_kD = 0.12;
-    moveBaseAutonomous(0.0, 0.0, 90.0);
-}
-
-void turn45(){
-    // auton_heading_kP = 0.12;
-    // auton_heading_kI = 0.0;
-    // auton_heading_kD = 0.03;
-    auton_heading_kP = 0.12;
-    auton_heading_kI = 0.0;
-    auton_heading_kD = 0.2;
-    moveBaseAutonomous(0.0, 0.0, 45.0);
-}
-
-void turn180(){
-    // auton_heading_kP = 0.058; //Without Mogo
-    // auton_heading_kI = 0.0;
-    // auton_heading_kD = 0.031;
-    auton_heading_kP = 0.0625; //Full stack
-    auton_heading_kI = 0.0001;
-    auton_heading_kD = 0.31;
-    moveBaseAutonomous(0.0, 0.0, 180.0);
-}
-
 void autonomous(){
+    pros::Task autonomous(moveBaseAutonomous);
+    turn180();
     //slammingState = SLAM_EXTENDED_STATE;
     // moveBaseAutonomous(0.0, 250.0, 0.0);
     // pros::delay(50);
     // moveBaseAutonomous(0.0, -250.0, 0.0);
     //pros::delay(100);
     //turn45();
-    turn180();
 }
 
 void initialize(){
