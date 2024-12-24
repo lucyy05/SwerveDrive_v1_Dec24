@@ -820,7 +820,7 @@ void autonomous(){
     //slammingState = SLAM_EXTENDED_STATE;
     // moveBaseAutonomous(0.0, 250.0, 0.0);
     // pros::delay(50);
-    // moveBaseAutonomous(0.0, -250.0, 0.0);
+    moveBaseAutonomous(0.0, -250.0, 0.0);
     //pros::delay(100);
     //turn45();
     turn180();
