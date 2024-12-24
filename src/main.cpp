@@ -839,6 +839,19 @@ void opcontrol(){
         else if (master.get_digital_new_press(DIGITAL_DOWN)) {
             slammingState = SLAM_START_STATE;
         }
+
+        if(master.get_digital_new_press(DIGITAL_LEFT)) roller_lifts = !roller_lifts;
+
+        if(roller_lifts) {
+            roller_lifter.set_value(1);
+            pros::delay(110);
+
+        }
+        else{
+            roller_lifter.set_value(0);
+            pros::delay(110);
+        }
+
         pros::delay(2);
     }
 }
