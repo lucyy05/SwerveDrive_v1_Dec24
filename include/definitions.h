@@ -56,12 +56,10 @@
 #define SOLENOID_SENSOR_PORT 'D'
 #define mobilegoal_bottom 'G'
 
-#define COLOR_SENSOR 1
-
 #define SLAM_DUNK_MOTOR 3
 
-#define CONVEYOR_THRES_PROX 50
-#define CONVEYOR_OPTICAL 1
+#define CONVEYOR_THRES_PROX 130
+#define CONVEYOR_OPTICAL 2
 #define CONVEYOR_MOTOR 7
 #define ROLLER_MOTOR 6
 
@@ -83,7 +81,6 @@ pros::Motor rlA(RIGHT_LOWER_BEVEL_MOTOR_1, pros::E_MOTOR_GEARSET_06, false, pros
 pros::Motor rlB(RIGHT_LOWER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
 pros::IMU imu(IMU_PORT);
-pros::Optical colorSensor(COLOR_SENSOR);
 
 pros::Motor slam_dunk_motor(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);

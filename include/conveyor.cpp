@@ -25,9 +25,20 @@ CONVEYOR TODO:
  - [/] implement conveyor auto-store from intake
  - [/] implement conveyor colour detection
  - [/] figure out how to put the conveyor functions in another file for organisation 
+ - [ ] fix bugs
 */
 
 // #====# conveyor util functions
+
+int same_colour(){      // maybe like x0.7 the red
+    pros::c::optical_rgb_s_t detected_colour = conveyor_optical.get_rgb();
+    //red ring: 360, 167, 135  /  blue ring: 120, 178, 256
+    double r = detected_colour.red * 0.7, g = detected_colour.green, b = detected_colour.blue;
+    bool is_valid = fabs(b-r) > 50;        // needs quite a big difference in color to count
+    pros::lcd::print(7, "c: %.1f/%.1f/%.1f: %s", r, g, b, !is_valid ? "not sure" : ((b > r) ? "blue" : "red"));
+    if(!is_valid) return -1;
+    return ((b > r) ? 1 : 0);        // check if its blue and compare if we are blue
+}
 
 void bound_conveyor_position(double binding_value){
     if(conveyor.get_position() >= binding_value){	// if within 90% to end 
@@ -55,7 +66,7 @@ void conveyor_go_home_by_sensor(int voltage){
 
 // #====# sensor-less based movements #====#
 
-double conveyor_loop_period = 883.2;        // TODO: identify and set as constant, or keep as variable and have it constantly updated
+double conveyor_loop_period = 854.4;        // TODO: identify and set as constant, or keep as variable and have it constantly updated
 double _calibrate_at_voltage(int voltage){
 	conveyor_go_home_by_sensor(voltage);
 	double ori_pos = conveyor.get_position();   // identify overshoot, if any
@@ -113,7 +124,7 @@ bool conveyor_go_to_absolute(double percentage_position, int voltage){
     return conveyor_timed_out;
 }
 
-void conveyor_go_to(int conveyor_step);  // prototype
+void conveyor_go_to_step(int conveyor_step);  // prototype
 /* conveyor_step variable - state machine's state / position
  0 - resting (right below the intersection of intake and conveyor)
  1 - store (middle of conveyor, possible to store another ring at intersection)
@@ -123,12 +134,12 @@ int conveyor_step = 0;
 void step_conveyor(){
     conveyor_step = (conveyor_step+1) % 4;
     pros::lcd::print(1, "stp: %d/3, pos: %f", conveyor_step, conveyor.get_position());
-    conveyor_go_to(conveyor_step);
+    conveyor_go_to_step(conveyor_step);
 }
 
 bool detected_ring_before = false;
 
-void conveyor_go_to(int input_conveyor_step){
+void conveyor_go_to_step(int input_conveyor_step){
     switch(input_conveyor_step){
         case 0:
             conveyor_step = 0;
@@ -136,25 +147,25 @@ void conveyor_go_to(int input_conveyor_step){
             break;
         case 1:
             conveyor_step = 1;
-            conveyor_go_to_absolute(0.35, 50);       // store       (waiting to score)
+            conveyor_go_to_absolute(0.48, 50);       // store       (waiting to score)
             // check colour
-            //conveyor_optical.
             break;
         case 2:
         {
             conveyor_step = 2;
-            detected_ring_before = false;                                   // score if ours*
             bool should_continue = false;
             if (is_ring_ours||ignore_colour)
-                should_continue = !conveyor_go_to_absolute(0.90, 110);     // Score     (score, now rehome)
+                should_continue = !conveyor_go_to_absolute(0.98, 110);     // Score     (score, now rehome)
             else {
-                should_continue = !conveyor_go_to_absolute(0.67, 127);      // launch out
+                should_continue = !conveyor_go_to_absolute(0.84, 127);      // launch out
                 conveyor.move(-70);
                 pros::delay(100);
                 conveyor.brake();
             }
+            // reset variables
             is_ring_ours = false;
-            pros::delay(500);           // TODO: make async
+            detected_ring_before = false;
+            pros::delay(500);           // wait for conveyor to actually stop
             if (should_continue) step_conveyor();
             break;
         }
@@ -189,21 +200,26 @@ void calibrate_conveyor(){
 }
 
 void check_for_ring(){
+    conveyor_optical.set_led_pwm(100);
+    bool detected_ring = detect_ring();
+    pros::lcd::print(2,"%s, %s", (!detected_ring_before) ? "true": "false", detected_ring ? "true" : "false");
     if (!detected_ring_before && detect_ring()){
+        pros::lcd::print(3, "entered");
         // advance conveyor to "store"
-        conveyor_go_to(1);
+        roller.brake();
+        // pull ring till same_colour says its good
+        int colourResult = -1;
+        conveyor_go_to_step(1);
+	    conveyor.move(40);
+        while(colourResult == -1){      // while not colour
+            colourResult = same_colour();
+        }
+        conveyor.brake();
+        // conveyor at "store", now check colour (ONLY IN AUTON)
+        conveyor_step = 1;
+        //conveyor_optical.set_led_pwm(0);
         detected_ring_before = true;
-        detected_ring_time = 100;       // this can be reformatted into a task
+        is_ring_ours = (colourResult != 1) ^ is_we_blue_alliance;
     }
 }
 
-bool same_colour(){
-    pros::c::optical_rgb_s_t detected_colour = conveyor_optical.get_rgb();
-    //red ring: 360, 167, 135  /  blue ring: 120, 178, 256
-    double r = detected_colour.red, g = detected_colour.green, b = detected_colour.blue;
-    bool is_valid = fabs(b-r) > 50;        // needs quite a big difference in color to count
-    pros::lcd::print(7, "c: %.1f/%.1f/%.1f: %s", r, g, b, !is_valid ? "not sure" : ((b > r) ? "blue" : "red"));
-    if(!is_valid) return false;
-    return ((b > r) == is_we_blue_alliance);        // check if its blue and compare if we are blue
-
-}

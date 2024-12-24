@@ -808,28 +808,16 @@ void opcontrol(){
             //pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
             roller.move(110); 
         } 
-    else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
-        // detect ring and move conveyor later
-		roller.move(-110);
-        check_for_ring();
+        else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
+            // detect ring and move conveyor later
+            roller.move(-110);
+            check_for_ring();
         } 
-    else {
-		roller.move(0);
-        
-        // basically wait for a bit, along with check_for_ring(), this can be in task
-        if (conveyor_step == 1 && detected_ring_time >= 1){
-            detected_ring_time--; // wait for conveyor to get to position
-            conveyor_optical.set_led_pwm(100);
+        else {
+            roller.move(0);
         }
-        else if (conveyor_step == 1){
-            // conveyor at "store", now check colour (ONLY IN AUTON)
-            is_ring_ours = same_colour();
-        }
-        else{
-            conveyor_optical.set_led_pwm(0);
-        }
-    }
-    pros::lcd::print(0, "ring: %s", is_ring_ours ? "same" : "not same");
-    pros::delay(5);
+        //same_colour();
+        pros::lcd::print(0, "ring: %s", is_ring_ours ? "same" : "not same");
+        pros::delay(5);
     }
 }
