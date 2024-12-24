@@ -33,7 +33,8 @@
 #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
 #define RIGHT_LOWER_BEVEL_MOTOR_2 5
 #define IMU_PORT_1 13
-#define IMU_PORT_2 12
+// #define IMU_PORT_2 12
+#define IMU_PORT 13
 #define LEFT_ROTATION_SENSOR_PORT 18
 #define RIGHT_ROTATION_SENSOR_PORT 8
 
@@ -53,22 +54,19 @@
 #define SLAM_DUNK_SENSOR_PORT 'A'
 #define SLAM_DUNK_SOLENOID 'B'
 
-#define POTENTIOMETER_SENSOR_PORT 'H'
 #define SOLENOID_SENSOR_PORT 'D'
 #define mobilegoal_bottom 'G'
+#define POTENTIOMETER_SENSOR_PORT 'H'
+
+#define CONVEYOR_OPTICAL 1
+#define CONVEYOR_THRES_PROX 130
 
 #define SLAM_DUNK_MOTOR 3
 
-#define CONVEYOR_THRES_PROX 130
-#define CONVEYOR_OPTICAL 1
-#define CONVEYOR_MOTOR 7
 #define ROLLER_MOTOR 6
-
-#define COLOR_SENSOR 1
+#define CONVEYOR_MOTOR 7
 
 #define SERIALPORT 20
-
-#define SLAM_DUNK_MOTOR 3
 
 #define ZERO_VECTOR INFINITY
 
@@ -85,7 +83,6 @@ pros::Motor rlB(RIGHT_LOWER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros
 
 pros::IMU imu(IMU_PORT_1);
 // pros::IMU imu2(IMU_PORT_2);
-pros::Optical colorSensor(COLOR_SENSOR);
 
 pros::Motor slam_dunk_motor(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
@@ -118,11 +115,11 @@ extern "C" void vexGenericSerialBaudrate(  uint32_t index, uint32_t rate );
 extern "C" int32_t vexGenericSerialTransmit( uint32_t index, uint8_t *buffer, int32_t length );
 
 /* Controllers */
-int leftX = 0, leftY = 0, rightX = 0, rightY=0;
+int leftX = 0, leftY = 0, rightX = 0, rightY = 0;
 
 
 /* Parameters START */
-const double DEADBAND =  8.0;
+const double DEADBAND = 8.0;
 const double MAX_RPM = 600.0;
 const double TRANSLATE_RATIO = 1.0;
 const double ROTATE_RATIO = 3.0;
@@ -134,8 +131,7 @@ const double MAX_ANGULAR = MAX_SPEED/WHEEL_BASE_RADIUS; // rad/s
 const double MAX_ANGULAR_SCALE = 0.5;
 const double TO_DEGREES = (180.0 / M_PI);
 const double TO_RADIANS = (M_PI / 180.0);
-const double MAX_VOLTAGE = 12000;
-
+const double MAX_VOLTAGE = 12000.0;
 
 //moving (moveBase)
 vector3D target_v;
@@ -143,7 +139,6 @@ vector3D target_r;
 vector3D temp;
 vector3D v_right;
 vector3D v_left;
-
 
 //voltages
 int32_t lu; // left upper 
@@ -171,7 +166,7 @@ const double distance_kD = 500.0;
 
 const double azim_kP = 0.10; //azimuth, for correcting rotation //.16
 const double azim_kI = 0.0;    //drunk
-const double azim_kD = 200000.0;    //168000
+const double azim_kD = 240000.0;    //168000
 
 const double ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
 
@@ -201,9 +196,17 @@ const double auton_r_velocity_kP = 0.05;   //swerve wheel rotation velocity for 
 const double auton_r_velocity_kI = 0.000;     //tune for translate
 const double auton_r_velocity_kD = 0.02;
 
-const double auton_distance_kP = 0.05; //swerve wheel rotation distance
-const double auton_distance_kI = 0.0;
-const double auton_distance_kD = 0.0;
+double auton_distance_kP = 0.05; //swerve wheel rotation distance
+double auton_distance_kI = 0.0;
+double auton_distance_kD = 0.0;
+
+double auton_heading_kP = 0.0;
+double auton_heading_kI = 0.0;
+double auton_heading_kD = 0.0;
+
+double auton_target_x = 0.0;
+double auton_target_y = 0.0;
+double auton_target_heading = 0.0;
 
 // enum AutonDirections {
 //     NORTH = 0,
@@ -242,7 +245,6 @@ bool liftEnable = false;
 bool isLeftFlipped = false;
 bool isRightFlipped = false;
 
-
 //Slam dunk
 // int defaultSlamValue = 0;
 // Slam dunk constants -- IPIN
@@ -261,7 +263,7 @@ SlammingState slammingState = SLAM_START_STATE;
 
 bool slam_dunk_actuated = false;
 
-double slam_target = 0;
+double slam_target = 0.0;
 double slam_Kp = 0.31;
 double slam_Kd = 0.2;
 double slam_Ki = 0.0;
@@ -281,8 +283,6 @@ int detected_ring_time = 0;
 bool mobile_goal_actuated = false;
 bool mobile_goal_jaw = false;
 
-bool driver = false;
-
 //Optical flow
 const double ALPHA = 0.85;
 const double BETA = 0.38;
@@ -291,5 +291,9 @@ const double height_from_gnd = 20.0;    //Height in mm
 const double scaler = 7.2;              //Adjust for sensitivity for different surfaces
 const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * scaler);
 
-// roller lift
+//Roller lift
 bool roller_lifts = false;
+
+//Driver
+bool driver = true;
+bool arcade = false;
