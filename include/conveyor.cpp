@@ -132,11 +132,11 @@ void conveyor_go_to(int input_conveyor_step){
     switch(input_conveyor_step){
         case 0:
             conveyor_step = 0;
-            conveyor_go_to_absolute(0.55, 40);       // go to rest     (allowed to receive)
+            conveyor_go_to_absolute(0.55, 50);       // go to rest     (allowed to receive)
             break;
         case 1:
             conveyor_step = 1;
-            conveyor_go_to_absolute(0.35, 40);       // store       (waiting to score)
+            conveyor_go_to_absolute(0.35, 50);       // store       (waiting to score)
             // check colour
             //conveyor_optical.
             break;
@@ -147,12 +147,12 @@ void conveyor_go_to(int input_conveyor_step){
             bool should_continue = false;
             if (is_ring_ours||ignore_colour)
                 should_continue = !conveyor_go_to_absolute(0.90, 110);     // Score     (score, now rehome)
-            else 
-                should_continue = !conveyor_go_to_absolute(0.67, 127);
-                
+            else {
+                should_continue = !conveyor_go_to_absolute(0.67, 127);      // launch out
                 conveyor.move(-70);
                 pros::delay(100);
                 conveyor.brake();
+            }
             is_ring_ours = false;
             pros::delay(500);           // TODO: make async
             if (should_continue) step_conveyor();
@@ -160,7 +160,7 @@ void conveyor_go_to(int input_conveyor_step){
         }
         case 3:
             conveyor_step = 3;
-            conveyor_go_home_by_sensor(40);     // rehome   (rehomed, now wait to receive)
+            conveyor_go_home_by_sensor(30);     // rehome   (rehomed, now wait to receive)
             pros::delay(500);           // TODO: make async
             step_conveyor();
             break;
@@ -180,6 +180,8 @@ void calibrate_conveyor(){
         conveyor_loop_period = conveyor_loop_periods_sense;
     }else{
         pros::lcd::print(6, "Conveyor failed %d", conveyor_optical.get_proximity());
+        pros::delay(100);
+        calibrate_conveyor();   // try again
         // oh no, the motors might have slipped too fast 
     }
     pros::lcd::print(0, "C_S: %f, C_SL: %f", conveyor_loop_periods_sense, conveyor_loop_period_senseless);
