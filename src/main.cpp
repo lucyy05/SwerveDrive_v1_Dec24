@@ -2,6 +2,7 @@
 // #include "pros.h"
 #include <iostream>
 
+// be sure to check if 'is_we_blue_alliance' is set correctly in conveyor.cpp
 
 void disabled(){}
 void competition_initialize(){}
@@ -795,6 +796,7 @@ void initialize(){
 
 }
 
+
 void opcontrol(){
     
     pros::Task move_base(moveBase);
@@ -805,24 +807,25 @@ void opcontrol(){
         leftY = master.get_analog(ANALOG_LEFT_Y);
         rightX = master.get_analog(ANALOG_RIGHT_X);
         rightY = master.get_analog(ANALOG_RIGHT_Y);
+        if(master.get_digital_new_press(DIGITAL_A)) mobile_goal_actuated = !mobile_goal_actuated;
         if(master.get_digital_new_press(DIGITAL_B)) autonomous();
+        if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
 
-        // if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
+        pros::lcd::print(5,"pos: %.2f, %%: %.3f, prx: %d", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period, conveyor_optical.get_proximity());
 
-        // Apply deadband to joystick inputs for rotation
-        if (fabs(leftY) < DEADBAND) leftY = 0;
-        if (fabs(rightX) < DEADBAND) rightX = 0;
+        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
+            // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
+            // conveyor.move(110); 
+            step_conveyor();
 
-
-        if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { 
-            //pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
-            conveyor.move(110); 
-        } 
-        else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
-            //pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
-            conveyor.move(-110);
-        }
+            } 
+        else if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
+            // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
+            // conveyor.move(-110);
+            calibrate_conveyor();
+            }
         else { 
+            //pros::lcd::print(0, "CONVEYOR STOPPED\n");
             //pros::lcd::print(0, "CONVEYOR STOPPED\n");
             conveyor.move(0);
         }
@@ -834,24 +837,24 @@ void opcontrol(){
             roller.move(110); 
         } 
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
-            //pros::lcd::print(0, "L1: ROLLER forward, -ve velocity??\n");
+            // detect ring and move conveyor later
             roller.move(-110);
-        }
+            check_for_ring();
+        } 
         else {
-            //pros::lcd::print(0, "ROLLER STOPPED\n");
-            roller.move(0); 
+            roller.move(0);
         }
 
-        if(master.get_digital_new_press(DIGITAL_A)) mobile_goal_actuated = !mobile_goal_actuated;
-
-        if(mobile_goal_actuated) {
-            solenoid.set_value(1);
-            mobilegoal_bot.set_value(0);
-        }
-        else{
-            solenoid.set_value(0);
-            pros::Task::delay(110);
-            mobilegoal_bot.set_value(1);
+        if(mobile_goal_actuated) { 
+            //intake 
+            solenoid.set_value(1); 
+            pros::Task::delay(100); 
+            mobilegoal_bot.set_value(0); 
+        } 
+        else{ 
+            solenoid.set_value(0); 
+            pros::Task::delay(100); 
+            mobilegoal_bot.set_value(1); 
         }
 
         if(master.get_digital_new_press(DIGITAL_X)) slam_dunk_actuated = !slam_dunk_actuated;

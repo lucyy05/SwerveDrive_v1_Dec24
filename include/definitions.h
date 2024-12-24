@@ -1,5 +1,4 @@
 #pragma once
-
 #include <cstdint>
 #include "pros/motors.hpp"
 #include "pros/adi.hpp"
@@ -58,12 +57,14 @@
 #define SOLENOID_SENSOR_PORT 'D'
 #define mobilegoal_bottom 'G'
 
-#define COLOR_SENSOR 1
-
 #define SLAM_DUNK_MOTOR 3
 
+#define CONVEYOR_THRES_PROX 130
+#define CONVEYOR_OPTICAL 1
 #define CONVEYOR_MOTOR 7
 #define ROLLER_MOTOR 6
+
+#define COLOR_SENSOR 1
 
 #define SERIALPORT 20
 
@@ -106,6 +107,7 @@ pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, true);
 // CONVEYOR AND ROLLER
 pros::Motor conveyor(CONVEYOR_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor roller(ROLLER_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Optical conveyor_optical(CONVEYOR_OPTICAL);
 
 // ROLLER LIFT
 pros::ADIDigitalOut roller_lifter(POTENTIOMETER_SENSOR_PORT);
@@ -272,6 +274,9 @@ double global_errorY = 0.0;
 double global_errorX = 0.0;
 double optical_v_x = 0.0;
 double optical_v_y = 0.0;
+
+//CONVEYOR
+int detected_ring_time = 0;
 
 //Mobile goal grabber
 bool mobile_goal_actuated = false;

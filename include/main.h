@@ -37,6 +37,7 @@
 #include "api.h"
 #include "definitions.h"
 #include "pid.h"
+#include "conveyor.cpp"
 
 /**
  * You should add more #includes here
