@@ -796,7 +796,7 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
 
         leftX = master.get_analog(ANALOG_LEFT_X);
 
-        if(arcade == true) leftX = 0.0;
+        if(arcade == true) leftY = 0.0;
         else leftY = master.get_analog(ANALOG_LEFT_Y);
 
         rightX = master.get_analog(ANALOG_RIGHT_X);
