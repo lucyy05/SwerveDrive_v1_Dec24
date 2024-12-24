@@ -84,7 +84,7 @@ pros::Motor rlA(RIGHT_LOWER_BEVEL_MOTOR_1, pros::E_MOTOR_GEARSET_06, false, pros
 pros::Motor rlB(RIGHT_LOWER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
 pros::IMU imu(IMU_PORT_1);
-pros::IMU imu2(IMU_PORT_2);
+// pros::IMU imu2(IMU_PORT_2);
 pros::Optical colorSensor(COLOR_SENSOR);
 
 pros::Motor slam_dunk_motor(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -102,7 +102,6 @@ pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
 
 pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, true);
 pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, true);
-// pros::Imu imu(IMU_SENSOR_PORT);
 
 // CONVEYOR AND ROLLER
 pros::Motor conveyor(CONVEYOR_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -154,11 +153,11 @@ int32_t rl; // right lower
 
 /* Driver constants START */
 // Swerve wheel pivoting
-const double angle_kP_left = 40.0;
+const double angle_kP_left = 30.0;
 const double angle_kI_left = 0.0;
 const double angle_kD_left = 7000.0;
 
-const double angle_kP_right = 40.0;
+const double angle_kP_right = 30.0;
 const double angle_kI_right = 0.0;
 const double angle_kD_right = 7000.0;
 
@@ -170,14 +169,14 @@ const double distance_kP = 50.0; //swerve wheel rotation distance
 const double distance_kI = 0.0;
 const double distance_kD = 500.0;
 
-const double azim_kP = 0.16; //azimuth, for correcting rotation
+const double azim_kP = 0.10; //azimuth, for correcting rotation //.16
 const double azim_kI = 0.0;    //drunk
-const double azim_kD = 168000.0;
+const double azim_kD = 200000.0;    //168000
 
 const double ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
 
-const double r_kF = 0.1;   //feedforward compensation for rotation //flick
-const double r_kF_STATIC = 0.1; //FF STATIC for rotation
+const double r_kF = 0.3;   //feedforward compensation for rotation //flick
+const double r_kF_STATIC = 0.0; //FF STATIC for rotation
 const double v_kF = 0.3;    //feedforward compensation for translation
 const double scale = 25.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
@@ -247,10 +246,10 @@ bool isRightFlipped = false;
 //Slam dunk
 // int defaultSlamValue = 0;
 // Slam dunk constants -- IPIN
-int defaultSlamValue = 1835;
+const int defaultSlamValue = 2975;
 
 // Slam dunk constants -- UPIN
-int defaultSlamValue = 2998;
+//const int defaultSlamValue = 2998;
 
 enum SlammingState {
     SLAM_START_STATE = 0,

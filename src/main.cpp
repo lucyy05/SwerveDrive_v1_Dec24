@@ -294,14 +294,12 @@ void moveBase(){
     double gyro_rate = 0.0;
     double a_err_d = 0.0;   //angular error as a double
 
-    bool toggle_flag = true;
-    bool rot_pid_ena = true;
-
     while(true){ 
         target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
         // to be updated: leftX = 0 to remove left and right translations 
         target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*MAX_ANGULAR_SCALE); // target rotation 
-
+        // imu1_gyro = imu.get_gyro_rate().z * -1.0 * TO_RADIANS;
+        //imu2_gyro = imu2.get_gyro_rate().z * 1.0 * TO_RADIANS;    
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   //Y axis positive is front
         
@@ -312,18 +310,20 @@ void moveBase(){
         current_r_velocity = ((ruA.get_actual_velocity()+ruB.get_actual_velocity()+rlA.get_actual_velocity()+rlB.get_actual_velocity())/4.0); 
  
         current_angular = (-current_l_velocity*sin(left_angle)+current_r_velocity*sin(right_angle))/(2.0*WHEEL_BASE_RADIUS); // current angular velocity 
-        average_x_v = ((current_l_velocity*cos(left_angle))+(current_r_velocity*cos(right_angle)))/2.0; 
-        average_y_v = ((current_l_velocity*sin(left_angle))+(current_r_velocity*sin(right_angle)))/2.0; 
-        current_tl_velocity.load(average_x_v,average_y_v,0.0); 
- 
-        prev_target_v = target_v; // prev target velocity 
-        prev_target_r = target_r; // prev target rotation 
+        // average_x_v = ((current_l_velocity*cos(left_angle))+(current_r_velocity*cos(right_angle)))/2.0; 
+        // average_y_v = ((current_l_velocity*sin(left_angle))+(current_r_velocity*sin(right_angle)))/2.0; 
+        // current_tl_velocity.load(average_x_v,average_y_v,0.0); 
         
-        if(imu.is_calibrating() ){
+        if(imu.is_calibrating()/*||imu2.is_calibrating()*/){
             gyro_rate = current_angular;    // ignore gyro while calibrating, use encoder values
+            master.rumble(".");
         }else{
             gyro_rate = -1.0 * imu.get_gyro_rate().z * TO_RADIANS;
         }
+
+        prev_target_v = target_v; // prev target velocity 
+        prev_target_r = target_r; // prev target rotation 
+
 
         imu_angular = vector3D(0.0,0.0, gyro_rate); // Radians per second, loaded as vector
 
@@ -449,7 +449,7 @@ void slamDunk(){
     double Error = 0.0;
     double Integral = 0.0;
     
-    defaultSlamValue = slam_dunk.get_value();
+    // defaultSlamValue = slam_dunk.get_value();
     //master.print(3,0,"%d", defaultSlamValue);
     while(true){
         switch (slammingState){
@@ -457,7 +457,7 @@ void slamDunk(){
                 slam_target = defaultSlamValue;
                 break;
             case SLAM_MID_STATE: //midpoint - holding position
-                slam_target = defaultSlamValue - 195;
+                slam_target = defaultSlamValue - 145;
                 break;
             case SLAM_EXTENDED_STATE: //extended all the way
                 slam_target = defaultSlamValue - 1555;
@@ -633,7 +633,7 @@ void moveBaseAutonomous(double targetX, double targetY){
         current_l_velocity = ((luA.get_actual_velocity()+luB.get_actual_velocity()+llA.get_actual_velocity()+llB.get_actual_velocity())/4.0); 
         current_r_velocity = ((ruA.get_actual_velocity()+ruB.get_actual_velocity()+rlA.get_actual_velocity()+rlB.get_actual_velocity())/4.0); 
 
-        current_angular = (-current_l_velocity*sin(left_angle)+current_r_velocity*sin(right_angle))/(2.0*WHEEL_BASE_RADIUS); // current angular velocity 
+        current_angular = ((-current_l_velocity*sin(left_angle)+current_r_velocity*sin(right_angle))/(2.0*WHEEL_BASE_RADIUS)); // current angular velocity 
         average_x_v = ((current_l_velocity*cos(left_angle))+(current_r_velocity*cos(right_angle)))/2.0; 
         average_y_v = ((current_l_velocity*sin(left_angle))+(current_r_velocity*sin(right_angle)))/2.0; 
         current_tl_velocity.load(average_x_v,average_y_v,0.0); 
@@ -641,26 +641,10 @@ void moveBaseAutonomous(double targetX, double targetY){
         prev_target_v = target_v; // prev target velocity 
         prev_target_r = target_r; // prev target rotation 
 
-        if(imu.is_calibrating()||imu2.is_calibrating()){
+        gyro_rate = imu.get_gyro_rate().z * -1.0 * TO_RADIANS;
+        if(imu.is_calibrating()){
             gyro_rate = current_angular;    // ignore gyro while calibrating, use encoder values
-        }else{
-            imu1_rate = imu.get_gyro_rate().z * -1.0;
-            imu2_rate = imu2.get_gyro_rate().z * -1.0;
-            if(fabs(imu1_rate-current_angular)>5.0){  //imu1 not accurate
-                gyro_rate = imu2_rate * TO_RADIANS;
-                
-                master.rumble("-.");
-            }
-            else if(fabs(imu2_rate-current_angular)>5.0){  //imu2 not accurate
-                gyro_rate = imu1_rate * TO_RADIANS;
-                master.rumble(".-");
-            }else{
-                gyro_rate = 0.5 * (imu.get_gyro_rate().z + imu2.get_gyro_rate().z) * TO_RADIANS;
-            }
-            if(fabs(gyro_rate-current_angular)>5.0){  //both imu not accurate
-                gyro_rate = current_angular;
-                master.rumble("--");
-            }
+            master.rumble(".");
         }
 
         imu_angular = vector3D(0.0,0.0, gyro_rate); // Radians per second, loaded as angle
@@ -769,36 +753,32 @@ void autonomous(){
 }
 
 void initialize(){
-    //pros::lcd::initialize();
+    pros::lcd::initialize();
     pros::delay(50);
     master.clear();
-    while(!imu.reset(true)&&!imu2.reset(true));  //uncomment for actual
+    //imu.reset(true);  //uncomment for actual
     //pros::delay(100);
     //master.print(0,0,"IMU calibrated  ");
     pros::delay(10);
     master.rumble(".");
     setBrakeModes();
 
-    //while(!left_rotation_sensor.reset());
-    //while(!right_rotation_sensor.reset());
-
     left_rotation_sensor.set_data_rate(5);
     right_rotation_sensor.set_data_rate(5);
-
+    imu.set_data_rate(5);
+    // imu2.set_data_rate(5);
     left_rotation_sensor.set_position(0);
     right_rotation_sensor.set_position(0);
-
-    //defaultSlamValue = slam_dunk.get_value();
-
-    //defaultSlamValue = slam_dunk.get_value();
 
     pros::Task serial_read(serialRead);
 
 }
 
 
+
 void opcontrol(){
-    
+    //while(imu.reset()==PROS_ERR);
+    //while(imu2.reset()==PROS_ERR);
     pros::Task move_base(moveBase);
     pros::Task slam_dunk(slamDunk);
 
@@ -808,10 +788,10 @@ void opcontrol(){
         rightX = master.get_analog(ANALOG_RIGHT_X);
         rightY = master.get_analog(ANALOG_RIGHT_Y);
         if(master.get_digital_new_press(DIGITAL_A)) mobile_goal_actuated = !mobile_goal_actuated;
-        if(master.get_digital_new_press(DIGITAL_B)) autonomous();
+        // if(master.get_digital_new_press(DIGITAL_B)) autonomous();
         if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
 
-        pros::lcd::print(5,"pos: %.2f, %%: %.3f, prx: %d", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period, conveyor_optical.get_proximity());
+        //pros::lcd::print(5,"pos: %.2f, %%: %.3f, prx: %d", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period, conveyor_optical.get_proximity());
 
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
             // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
@@ -881,7 +861,6 @@ void opcontrol(){
         if(roller_lifts) {
             roller_lifter.set_value(1);
             pros::delay(110);
-
         }
         else{
             roller_lifter.set_value(0);
