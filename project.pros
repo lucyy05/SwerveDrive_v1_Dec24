@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "johnswerve",
+    "project_name": "Driver Code",
     "target": "v5",
     "templates": {
       "kernel": {
@@ -309,9 +309,9 @@
       }
     },
     "upload_options": {
-      "slot": 1,
+      "slot": 7,
       "icon": "alien",
-      "after": "none"
+      "after": "screen"
     },
     "use_early_access": true
   }
