@@ -20,7 +20,7 @@
 #define RIGHT_UPPER_BEVEL_MOTOR_2 10
 #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
 #define RIGHT_LOWER_BEVEL_MOTOR_2 5
-#define IMU_PORT 2
+#define IMU_PORT 13
 #define LEFT_ROTATION_SENSOR_PORT 18
 #define RIGHT_ROTATION_SENSOR_PORT 8
 
@@ -175,11 +175,11 @@ const double auton_angle_kP_right = 20.0;
 const double auton_angle_kI_right = 0.0;
 const double auton_angle_kD_right = 5000.0;
 
-const double auton_l_velocity_kP = 0.05;   //swerve wheel rotation velocity for auton
+const double auton_l_velocity_kP = 0.09;   //swerve wheel rotation velocity for auton
 const double auton_l_velocity_kI = 0.000;     //tune for translate
 const double auton_l_velocity_kD = 0.02;
 
-const double auton_r_velocity_kP = 0.05;   //swerve wheel rotation velocity for auton
+const double auton_r_velocity_kP = 0.11;   //swerve wheel rotation velocity for auton
 const double auton_r_velocity_kI = 0.000;     //tune for translate
 const double auton_r_velocity_kD = 0.02;
 
@@ -187,18 +187,22 @@ const double auton_distance_kP = 0.05; //swerve wheel rotation distance
 const double auton_distance_kI = 0.0;
 const double auton_distance_kD = 0.0;
 
-// enum AutonDirections {
-//     NORTH = 0,
-//     SOUTH = 1,
-//     EAST = 2,
-//     WEST = 3,
-//     NORTHEAST = 4,
-//     NORTHWEST = 5,
-//     SOUTHEAST = 6,
-//     SOUTHWEST = 7
-// };
+const double auton_heading_kP = 0.09;
+const double auton_heading_kI = 0.00;
+const double auton_heading_kD = 0.00;
 
-//AutonDirections autonDirection;
+enum AutonDirections {
+    NORTH = 0,
+    SOUTH = 1,
+    EAST = 2,
+    WEST = 3,
+    NORTHEAST = 4,
+    NORTHWEST = 5,
+    SOUTHEAST = 6,
+    SOUTHWEST = 7
+};
+
+AutonDirections autonDirection;
 /* Autonomous constants END */
 
 
@@ -236,16 +240,12 @@ bool liftEnable = false;
 bool isLeftFlipped = false;
 bool isRightFlipped = false;
 
-
 //Slam dunk
-int defaultSlamValue = 0;
-
 enum SlammingState {
     SLAM_START_STATE = 0,
     SLAM_MID_STATE = 1,
     SLAM_EXTENDED_STATE = 2
 };
-
 SlammingState slammingState = SLAM_START_STATE;
 
 bool slam_dunk_actuated = false;
@@ -255,6 +255,9 @@ double slam_Kp = 0.31;
 double slam_Kd = 0.2;
 double slam_Ki = 0.0;
 
+//Slam dunk
+int defaultSlamValue = 0;
+
 //Serial read
 double global_distY = 0.0;
 double global_distX = 0.0;
@@ -262,6 +265,8 @@ double global_errorY = 0.0;
 double global_errorX = 0.0;
 double optical_v_x = 0.0;
 double optical_v_y = 0.0;
+
+double base_error =2.0;
 
 //Mobile goal grabber
 bool mobile_goal_actuated = false;
@@ -276,3 +281,4 @@ const double THRESHOLD = 200.0;
 const double height_from_gnd = 20.0;    //Height in mm
 const double scaler = 7.2;              //Adjust for sensitivity for different surfaces
 const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * scaler);
+
