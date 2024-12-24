@@ -10,20 +10,9 @@
 #include "pros/imu.hpp"
 //#include "api.h"
 
-/* robot with base (UPIN) */
-// #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
-// #define LEFT_UPPER_BEVEL_MOTOR_2 17
-// #define LEFT_LOWER_BEVEL_MOTOR_1 14   //ROBOT FRONT
-// #define LEFT_LOWER_BEVEL_MOTOR_2 15
-// #define RIGHT_UPPER_BEVEL_MOTOR_1 9   //ROBOT BACK
-// #define RIGHT_UPPER_BEVEL_MOTOR_2 10
-// #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
-// #define RIGHT_LOWER_BEVEL_MOTOR_2 5
-// #define IMU_PORT_1 2
-// #define LEFT_ROTATION_SENSOR_PORT 18
-// #define RIGHT_ROTATION_SENSOR_PORT 8
+// JJ CODE, FOR UPIN
 
-/* robot with base (IPIN) */
+/* robot with base (UPIN) */
 #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
 #define LEFT_UPPER_BEVEL_MOTOR_2 17
 #define LEFT_LOWER_BEVEL_MOTOR_1 14   //ROBOT FRONT
@@ -33,10 +22,22 @@
 #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
 #define RIGHT_LOWER_BEVEL_MOTOR_2 5
 #define IMU_PORT_1 13
-// #define IMU_PORT_2 12
-#define IMU_PORT 13
 #define LEFT_ROTATION_SENSOR_PORT 18
 #define RIGHT_ROTATION_SENSOR_PORT 8
+
+/* robot with base (IPIN) */
+// #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
+// #define LEFT_UPPER_BEVEL_MOTOR_2 17
+// #define LEFT_LOWER_BEVEL_MOTOR_1 14   //ROBOT FRONT
+// #define LEFT_LOWER_BEVEL_MOTOR_2 15
+// #define RIGHT_UPPER_BEVEL_MOTOR_1 9   //ROBOT BACK
+// #define RIGHT_UPPER_BEVEL_MOTOR_2 10
+// #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
+// #define RIGHT_LOWER_BEVEL_MOTOR_2 5
+// #define IMU_PORT_1 13
+// // #define IMU_PORT_2 12
+// #define LEFT_ROTATION_SENSOR_PORT 18
+// #define RIGHT_ROTATION_SENSOR_PORT 8
 
 /* test base (NO PAYLOAD)*/
 // #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
@@ -128,7 +129,7 @@ const double WHEEL_BASE_RADIUS = 161.50;    // mm
 const double MAX_SPEED = (2.0*M_PI*WHEEL_RADIUS*MAX_RPM)/60.0;  //mm per second
 const double SPEED_TO_RPM = 60.0/(2.0*M_PI*WHEEL_RADIUS);
 const double MAX_ANGULAR = MAX_SPEED/WHEEL_BASE_RADIUS; // rad/s
-const double MAX_ANGULAR_SCALE = 0.3;
+const double MAX_ANGULAR_SCALE = 0.25;
 const double TO_DEGREES = (180.0 / M_PI);
 const double TO_RADIANS = (M_PI / 180.0);
 const double MAX_VOLTAGE = 12000.0;
@@ -248,10 +249,10 @@ bool isRightFlipped = false;
 //Slam dunk
 // int defaultSlamValue = 0;
 // Slam dunk constants -- IPIN
-const int defaultSlamValue = 2975;
+// const int defaultSlamValue = 2975;
 
 // Slam dunk constants -- UPIN
-//const int defaultSlamValue = 2998;
+const int defaultSlamValue = 2998;
 
 enum SlammingState {
     SLAM_START_STATE = 0,
