@@ -295,6 +295,8 @@ void moveBase(){
     double rot_vector_double = 0.0;
     double rot_pid_double = 0.0;
     double gyro_rate = 0.0;
+    double imu1_rate = 0.0;
+    double imu2_rate = 0.0;
     double a_err_d = 0.0;   //angular error as a double
 
     bool toggle_flag = true;
@@ -324,7 +326,30 @@ void moveBase(){
         current_tl_velocity.load(average_x_v,average_y_v,0.0); 
 
         prev_target_v = target_v; // prev target velocity 
-        prev_target_r = target_r; // prev target rotation 
+        prev_target_r = target_r; // prev target rotation
+
+        // Double IMU Test
+        // if(imu.is_calibrating()||imu2.is_calibrating()){
+        //     gyro_rate = current_angular;    // ignore gyro while calibrating, use encoder values
+        // }else{
+        //     imu1_rate = imu.get_gyro_rate().z * -1.0;
+        //     imu2_rate = imu2.get_gyro_rate().z * -1.0;
+        //     if(fabs(imu1_rate-current_angular)>5.0){  //imu1 not accurate
+        //         gyro_rate = imu2_rate * TO_RADIANS;
+                
+        //         master.rumble("-.");
+        //     }
+        //     else if(fabs(imu2_rate-current_angular)>5.0){  //imu2 not accurate
+        //         gyro_rate = imu1_rate * TO_RADIANS;
+        //         master.rumble(".-");
+        //     }else{
+        //         gyro_rate = 0.5 * (imu.get_gyro_rate().z + imu2.get_gyro_rate().z) * TO_RADIANS;
+        //     }
+        //     if(fabs(gyro_rate-current_angular)>5.0){  //both imu not accurate
+        //         gyro_rate = current_angular;
+        //         master.rumble("--");
+        //     }
+        // }
 
         gyro_rate = -1.0 * imu.get_gyro_rate().z * TO_RADIANS;
 
@@ -770,6 +795,7 @@ void autonomous(){
 
 void initialize(){
     pros::lcd::initialize();
+    //while(!imu.reset(true)&&!imu2.reset(true));
 
     while(imu.reset(true) == PROS_ERR);
     while(imu.set_data_rate(5) == PROS_ERR);
