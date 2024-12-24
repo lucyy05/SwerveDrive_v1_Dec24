@@ -300,7 +300,7 @@ void moveBase(){
     while(true){ 
         target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
         // to be updated: leftX = 0 to remove left and right translations 
-        target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*0.3); // target rotation 
+        target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*MAX_ANGULAR_SCALE); // target rotation 
 
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   //Y axis positive is front
