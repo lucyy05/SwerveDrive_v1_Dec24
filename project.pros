@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "Driver (21/12)",
+    "project_name": "Driver Code",
     "target": "v5",
     "templates": {
       "kernel": {
@@ -309,9 +309,9 @@
       }
     },
     "upload_options": {
-      "slot": 3,
-      "icon": "pizza",
-      "after": "none"
+      "slot": 7,
+      "icon": "alien",
+      "after": "screen"
     },
     "use_early_access": true
   }
