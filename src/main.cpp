@@ -793,37 +793,47 @@ void opcontrol(){
 
         //pros::lcd::print(5,"pos: %.2f, %%: %.3f, prx: %d", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period, conveyor_optical.get_proximity());
 
-        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
-            // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
-            // conveyor.move(110); 
-            step_conveyor();
+        // if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
+        //     // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
+        //     // conveyor.move(110); 
+        //     step_conveyor();
 
-            } 
-        else if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
-            // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
-            // conveyor.move(-110);
-            calibrate_conveyor();
-            }
-        else { 
-            //pros::lcd::print(0, "CONVEYOR STOPPED\n");
-            //pros::lcd::print(0, "CONVEYOR STOPPED\n");
-            conveyor.move(0);
-        }
+        //     } 
+        // else if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
+        //     // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
+        //     // conveyor.move(-110);
+        //     calibrate_conveyor();
+        //     }
+        // else { 
+        //     //pros::lcd::print(0, "CONVEYOR STOPPED\n");
+        //     //pros::lcd::print(0, "CONVEYOR STOPPED\n");
+        //     conveyor.move(0);
+        // }
+
+        // // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
+        // // when L1 is pressed, rollers move forward with NEGATIVE velocity??
+        // if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) { 
+        //     //pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
+        //     roller.move(110); 
+        // } 
+        // else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
+        //     // detect ring and move conveyor later
+        //     roller.move(-110);
+        //     check_for_ring();
+        // } 
+        // else {
+        //     roller.move(0);
+        // }
+
+        if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) conveyor.move(110); 
+        else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) conveyor.move(-110);
+        else conveyor.move(0);
 
         // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
         // when L1 is pressed, rollers move forward with NEGATIVE velocity??
-        if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) { 
-            //pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
-            roller.move(110); 
-        } 
-        else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
-            // detect ring and move conveyor later
-            roller.move(-110);
-            check_for_ring();
-        } 
-        else {
-            roller.move(0);
-        }
+        if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) roller.move(110);
+        else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) roller.move(-110);
+        else roller.move(0);
 
         if(mobile_goal_actuated) { 
             //intake 
