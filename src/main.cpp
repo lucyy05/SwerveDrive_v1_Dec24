@@ -298,7 +298,7 @@ void moveBase(){
     bool rot_pid_ena = true;
 
     while(true){ 
-        target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
+        target_v = normalizeJoystick(0.0, leftY).scalar(MAX_SPEED); // target velocity 
         // to be updated: leftX = 0 to remove left and right translations 
         target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*MAX_ANGULAR_SCALE); // target rotation 
 
