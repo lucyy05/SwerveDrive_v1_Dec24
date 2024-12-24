@@ -52,6 +52,8 @@ class PID
             if (__builtin_signbitf(error_now) != __builtin_signbitf(error_prev)) error_int = 0.0;
 
             // calculate the D term
+            // std::cout<<error_now << std::endl;
+
             double dterm = (kD * error_now - kD * error_prev) / dt;
 
             // calculate the PID output

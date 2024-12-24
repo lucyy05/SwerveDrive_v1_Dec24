@@ -204,11 +204,11 @@ const double auton_distance_kD = 0.0;
 /* Autonomous constants END */
 
 
-const double azim_kP = 0.05; //azimuth, for correcting rotation
+const double azim_kP = 0; //azimuth, for correcting rotation
 const double azim_kI = 0.0;    //drunk
-const double azim_kD = 10.0;
+const double azim_kD = 100.0;
 
-const double ANGULAR_THRESH = 0.0; // Threshold under which to ignore angular error
+const double ANGULAR_THRESH = 0.00; // Threshold under which to ignore angular error
 
 const double r_kF = 0.2;   //feedforward compensation for rotation //flick
 const double r_kF_STATIC = 0.7; //FF STATIC for rotation
@@ -240,7 +240,12 @@ bool isRightFlipped = false;
 
 
 //Slam dunk
-int defaultSlamValue = 0;
+// int defaultSlamValue = 0;
+// Slam dunk constants -- IPIN
+int defaultSlamValue = 1835;
+
+// Slam dunk constants -- UPIN
+int defaultSlamValue = 2998;
 
 enum SlammingState {
     SLAM_START_STATE = 0,

@@ -375,7 +375,8 @@ void moveBase(){
  
         v_right_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_right*current_right_vector);    //dot product should already
         v_left_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_left*current_left_vector);       //compensate angle drift?
- 
+    
+    // std::cout << v_left_velocity << " : " << v_right_velocity << std::endl;
         if(reverse_left){ 
             v_left_velocity = -v_left_velocity; 
         }
@@ -425,6 +426,7 @@ void moveBase(){
         rl = (int32_t)rscale * (r_velocity_pid - r_angle_pid); 
         clampVoltage();
         
+        std::cout << lu << " : " << ll << " : " << ru << " : " << rl << std::endl; 
         move_voltage_wheels(lu,ll,ru,rl);
         pros::delay(2); 
     } 
@@ -445,6 +447,7 @@ void slamDunk(){
     double prevError = 0.0;
     double Error = 0.0;
     double Integral = 0.0;
+    
     defaultSlamValue = slam_dunk.get_value();
     //master.print(3,0,"%d", defaultSlamValue);
     while(true){
@@ -453,7 +456,7 @@ void slamDunk(){
                 slam_target = defaultSlamValue;
                 break;
             case SLAM_MID_STATE: //midpoint - holding position
-                slam_target = defaultSlamValue - 145;
+                slam_target = defaultSlamValue - 195;
                 break;
             case SLAM_EXTENDED_STATE: //extended all the way
                 slam_target = defaultSlamValue - 1555;
@@ -788,6 +791,11 @@ void opcontrol(){
         if(master.get_digital_new_press(DIGITAL_B)) autonomous();
 
         // if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
+
+        // Apply deadband to joystick inputs for rotation
+        if (fabs(leftY) < DEADBAND) leftY = 0;
+        if (fabs(rightX) < DEADBAND) rightX = 0;
+
 
         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { 
             //pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
