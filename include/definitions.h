@@ -8,6 +8,8 @@
 #include <vector>
 #include "vector.h"
 #include "pros/imu.hpp"
+//CAVEN CODE COPY, FOR IPIN
+
 //#include "api.h"
 
 /* robot with base (UPIN) */
@@ -168,7 +170,7 @@ const double azim_kP = 0.10; //azimuth, for correcting rotation //.16
 const double azim_kI = 0.0;    //drunk
 const double azim_kD = 240000.0;    //168000
 
-const double ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
+const double ANGULAR_THRESH = 0.000; // Threshold under which to ignore angular error
 
 const double r_kF = 0.3;   //feedforward compensation for rotation //flick
 const double r_kF_STATIC = 0.0; //FF STATIC for rotation
@@ -248,7 +250,7 @@ bool isRightFlipped = false;
 //Slam dunk
 // int defaultSlamValue = 0;
 // Slam dunk constants -- IPIN
-const int defaultSlamValue = 2975;
+const int defaultSlamValue = 2974;
 
 // Slam dunk constants -- UPIN
 //const int defaultSlamValue = 2998;
