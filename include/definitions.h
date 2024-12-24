@@ -164,11 +164,11 @@ const double distance_kD = 500.0;
 
 /* Autonomous constants START */
 // Swerve wheel pivoting
-const double auton_angle_kP_left = 20.0;
+const double auton_angle_kP_left = 45.0;
 const double auton_angle_kI_left = 0.0;
 const double auton_angle_kD_left = 5000.0;
 
-const double auton_angle_kP_right = 20.0;
+const double auton_angle_kP_right = 45.0;
 const double auton_angle_kI_right = 0.0;
 const double auton_angle_kD_right = 5000.0;
 
@@ -184,9 +184,9 @@ const double auton_distance_kP = 0.05; //swerve wheel rotation distance
 const double auton_distance_kI = 0.0;
 const double auton_distance_kD = 0.0;
 
-const double auton_heading_kP = 0.07; //swerve heading
-const double auton_heading_kI = 0.0;
-const double auton_heading_kD = 0.0;
+double auton_heading_kP = 0.09; //swerve heading
+double auton_heading_kI = 0.0;
+double auton_heading_kD = 0.05;
 
 enum AutonDirections {
     NORTH = 0,
@@ -268,8 +268,6 @@ double optical_v_y = 0.0;
 bool mobile_goal_actuated = false;
 bool mobile_goal_jaw = false;
 
-bool driver = false;
-
 //Optical flow
 const double ALPHA = 0.85;
 const double BETA = 0.38;
@@ -277,3 +275,7 @@ const double THRESHOLD = 200.0;
 const double height_from_gnd = 20.0;    //Height in mm
 const double scaler = 7.2;              //Adjust for sensitivity for different surfaces
 const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * scaler);
+
+//Modes
+bool driver = false;
+bool arcade = true;
