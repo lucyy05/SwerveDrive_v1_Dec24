@@ -222,4 +222,3 @@ void check_for_ring(){
         is_ring_ours = (colourResult != 1) ^ is_we_blue_alliance;
     }
 }
-
