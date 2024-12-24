@@ -52,7 +52,7 @@ void serialRead(void* params){
                     global_distX = dist_X*-10.0;
                     optical_v_x = fabs((fabs(global_distX) - fabs(prevDist_x))) / 0.002;
                     //pros::lcd::print(1, "Optical Flow:");
-                    pros::lcd::print(0, "distX: %.2lf, distY: %.2lf", global_distX, global_distY);
+                    //pros::lcd::print(0, "distX: %.2lf, distY: %.2lf", global_distX, global_distY);
                     dataStream.str(std::string());
                     std::stringstream dataStream("    ");
                     prevDist_x = dist_X*-10.0;
@@ -104,10 +104,10 @@ void tareBaseMotorEncoderPositions() //tares all base motor encoder positions
     pros::delay(1);
 }
 
-void clampVoltage() 
+void clampVoltage(int32_t VOLTAGE) 
 {
     //if any of lu, ll, ru or rl are too big, we need to scale them, and we must scale them all by the same amount so we dont throw off the proportions
-    if(abs(lu) > MAX_VOLTAGE || abs(ll) > MAX_VOLTAGE || abs(ru) > MAX_VOLTAGE || abs(rl) > MAX_VOLTAGE)
+    if(abs(lu) > VOLTAGE || abs(ll) > VOLTAGE || abs(ru) > VOLTAGE || abs(rl) > VOLTAGE)
     {
         //figure out which of lu, ll, ru or rl has the largest magnitude
         int32_t max = abs(lu);
@@ -117,7 +117,7 @@ void clampVoltage()
             max = abs(ru);
         if(max < abs(rl))
             max = abs(rl);
-        double VoltageScalingFactor = ((double) max) / MAX_VOLTAGE; //this will definitely be positive, hence it wont change the sign of lu, ll, ru or rl.
+        double VoltageScalingFactor = ((double) max) / VOLTAGE; //this will definitely be positive, hence it wont change the sign of lu, ll, ru or rl.
         lu = (int32_t)((double)lu / VoltageScalingFactor);
         ll = (int32_t)((double)ll / VoltageScalingFactor);
         ru = (int32_t)((double)ru / VoltageScalingFactor);
@@ -294,9 +294,9 @@ void moveBase(){
     bool rot_pid_ena = true;
 
     while(true){ 
-        target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
+        target_v = normalizeJoystick(0.0, leftY).scalar(MAX_SPEED); // target velocity 
         // to be updated: leftX = 0 to remove left and right translations 
-        target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*MAX_ANGULAR_SCALE); // target rotation 
+        target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*0.3); // target rotation 
 
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   //Y axis positive is front
@@ -420,7 +420,7 @@ void moveBase(){
         ll = (int32_t)lscale * (l_velocity_pid - l_angle_pid); 
         ru = (int32_t)rscale * (r_velocity_pid + r_angle_pid); 
         rl = (int32_t)rscale * (r_velocity_pid - r_angle_pid); 
-        clampVoltage();
+        clampVoltage(battery_voltage);
         
         move_voltage_wheels(lu,ll,ru,rl);
         pros::delay(2); 
@@ -557,6 +557,8 @@ void moveBaseAutonomous(double targetX, double targetY){
     double rot_vector_double = 0.0;
     double rot_pid_double = 0.0;
     double gyro_rate = 0.0;
+    double imu1_rate = 0.0;
+    double imu2_rate = 0.0;
     double a_err_d = 0.0;   //angular error as a double
 
     double offsetX = fabs(global_distX);
@@ -606,7 +608,7 @@ void moveBaseAutonomous(double targetX, double targetY){
         else
             target_v = normalizeJoystick(-target_v_x, -target_v_y).scalar(MAX_SPEED*0.8); // target velocity 
         target_r = normalizeRotation(0.0).scalar(MAX_ANGULAR*0.8); // target rotation
-        pros::lcd::print(1,"error_y: %.1lf", errorY);
+        //pros::lcd::print(1,"error_y: %.1lf", errorY);
         //pros::lcd::print(0,"target_v_x: %.1lf", target_v_x);
         //pros::lcd::print(1,"target_v_y: %.1lf", target_v_y);
 
@@ -632,10 +634,26 @@ void moveBaseAutonomous(double targetX, double targetY){
         prev_target_v = target_v; // prev target velocity 
         prev_target_r = target_r; // prev target rotation 
 
-        if(imu.is_calibrating()){
+        if(imu.is_calibrating()||imu2.is_calibrating()){
             gyro_rate = current_angular;    // ignore gyro while calibrating, use encoder values
         }else{
-            gyro_rate = -1.0 * imu.get_gyro_rate().z * TO_RADIANS;
+            imu1_rate = imu.get_gyro_rate().z * -1.0;
+            imu2_rate = imu2.get_gyro_rate().z * -1.0;
+            if(fabs(imu1_rate-current_angular)>5.0){  //imu1 not accurate
+                gyro_rate = imu2_rate * TO_RADIANS;
+                
+                master.rumble("-.");
+            }
+            else if(fabs(imu2_rate-current_angular)>5.0){  //imu2 not accurate
+                gyro_rate = imu1_rate * TO_RADIANS;
+                master.rumble(".-");
+            }else{
+                gyro_rate = 0.5 * (imu.get_gyro_rate().z + imu2.get_gyro_rate().z) * TO_RADIANS;
+            }
+            if(fabs(gyro_rate-current_angular)>5.0){  //both imu not accurate
+                gyro_rate = current_angular;
+                master.rumble("--");
+            }
         }
 
         imu_angular = vector3D(0.0,0.0, gyro_rate); // Radians per second, loaded as angle
@@ -729,8 +747,8 @@ void moveBaseAutonomous(double targetX, double targetY){
         //pros::lcd::print(4,"l_velocity_pid: %.1lf", l_velocity_pid);
         //pros::lcd::print(5,"r_velocity_pid: %.1lf", r_velocity_pid);
 
-        pros::lcd::print(6, "lu:%.1d,ll:%.1d", lu, ll);
-        pros::lcd::print(7, "ru:%.1d,rl:%.1d", ru, rl);
+        //pros::lcd::print(6, "lu:%.1d,ll:%.1d", lu, ll);
+        //pros::lcd::print(7, "ru:%.1d,rl:%.1d", ru, rl);
 
         move_voltage_wheels(lu,ll,ru,rl);
         pros::delay(5);
@@ -744,15 +762,14 @@ void autonomous(){
 }
 
 void initialize(){
-    pros::lcd::initialize();
+    //pros::lcd::initialize();
     pros::delay(50);
     master.clear();
-    while(!imu.reset(true));  //uncomment for actual
+    while(!imu.reset(true)&&!imu2.reset(true));  //uncomment for actual
     //pros::delay(100);
     //master.print(0,0,"IMU calibrated  ");
-    pros::delay(100);
-    master.rumble(" . . .");
-
+    pros::delay(10);
+    master.rumble(".");
     setBrakeModes();
 
     //while(!left_rotation_sensor.reset());

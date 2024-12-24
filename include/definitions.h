@@ -12,19 +12,6 @@
 //#include "api.h"
 
 /* robot with base (UPIN) */
-#define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
-#define LEFT_UPPER_BEVEL_MOTOR_2 17
-#define LEFT_LOWER_BEVEL_MOTOR_1 14   //ROBOT FRONT
-#define LEFT_LOWER_BEVEL_MOTOR_2 15
-#define RIGHT_UPPER_BEVEL_MOTOR_1 9   //ROBOT BACK
-#define RIGHT_UPPER_BEVEL_MOTOR_2 10
-#define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
-#define RIGHT_LOWER_BEVEL_MOTOR_2 5
-#define IMU_PORT 2
-#define LEFT_ROTATION_SENSOR_PORT 18
-#define RIGHT_ROTATION_SENSOR_PORT 8
-
-/* robot with base (IPIN) */
 // #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
 // #define LEFT_UPPER_BEVEL_MOTOR_2 17
 // #define LEFT_LOWER_BEVEL_MOTOR_1 14   //ROBOT FRONT
@@ -33,9 +20,23 @@
 // #define RIGHT_UPPER_BEVEL_MOTOR_2 10
 // #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
 // #define RIGHT_LOWER_BEVEL_MOTOR_2 5
-// #define IMU_PORT 13
+// #define IMU_PORT_1 2
 // #define LEFT_ROTATION_SENSOR_PORT 18
 // #define RIGHT_ROTATION_SENSOR_PORT 8
+
+/* robot with base (IPIN) */
+#define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
+#define LEFT_UPPER_BEVEL_MOTOR_2 17
+#define LEFT_LOWER_BEVEL_MOTOR_1 14   //ROBOT FRONT
+#define LEFT_LOWER_BEVEL_MOTOR_2 15
+#define RIGHT_UPPER_BEVEL_MOTOR_1 9   //ROBOT BACK
+#define RIGHT_UPPER_BEVEL_MOTOR_2 10
+#define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
+#define RIGHT_LOWER_BEVEL_MOTOR_2 5
+#define IMU_PORT_1 13
+#define IMU_PORT_2 12
+#define LEFT_ROTATION_SENSOR_PORT 18
+#define RIGHT_ROTATION_SENSOR_PORT 8
 
 /* test base (NO PAYLOAD)*/
 // #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
@@ -81,7 +82,8 @@ pros::Motor ruB(RIGHT_UPPER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros
 pros::Motor rlA(RIGHT_LOWER_BEVEL_MOTOR_1, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor rlB(RIGHT_LOWER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
-pros::IMU imu(IMU_PORT);
+pros::IMU imu(IMU_PORT_1);
+pros::IMU imu2(IMU_PORT_2);
 pros::Optical colorSensor(COLOR_SENSOR);
 
 pros::Motor slam_dunk_motor(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -127,10 +129,10 @@ const double WHEEL_BASE_RADIUS = 161.50;    // mm
 const double MAX_SPEED = (2.0*M_PI*WHEEL_RADIUS*MAX_RPM)/60.0;  //mm per second
 const double SPEED_TO_RPM = 60.0/(2.0*M_PI*WHEEL_RADIUS);
 const double MAX_ANGULAR = MAX_SPEED/WHEEL_BASE_RADIUS; // rad/s
-const double MAX_ANGULAR_SCALE = 0.8;
+const double MAX_ANGULAR_SCALE = 0.4;
 const double TO_DEGREES = (180.0 / M_PI);
 const double TO_RADIANS = (M_PI / 180.0);
-const double MAX_VOLTAGE = 12800;
+const double MAX_VOLTAGE = 12000;
 
 
 //moving (moveBase)
@@ -149,21 +151,34 @@ int32_t rl; // right lower
 
 /* Driver constants START */
 // Swerve wheel pivoting
-const double angle_kP_left = 20.0;
+const double angle_kP_left = 40.0;
 const double angle_kI_left = 0.0;
-const double angle_kD_left = 5000.0;
+const double angle_kD_left = 7000.0;
 
-const double angle_kP_right = 20.0;
+const double angle_kP_right = 40.0;
 const double angle_kI_right = 0.0;
-const double angle_kD_right = 5000.0;
+const double angle_kD_right = 7000.0;
 
-const double velocity_kP = 0.002;   //swerve wheel rotation velocity for driver
+const double velocity_kP = 0.0020;   //swerve wheel rotation velocity for driver
 const double velocity_kI = 0.0;     //tune for translate
-const double velocity_kD = 160.0;
+const double velocity_kD = 200.0;
 
 const double distance_kP = 50.0; //swerve wheel rotation distance
 const double distance_kI = 0.0;
 const double distance_kD = 500.0;
+
+const double azim_kP = 0.16; //azimuth, for correcting rotation
+const double azim_kI = 0.0;    //drunk
+const double azim_kD = 168000.0;
+
+const double ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
+
+const double r_kF = 0.1;   //feedforward compensation for rotation //flick
+const double r_kF_STATIC = 0.1; //FF STATIC for rotation
+const double v_kF = 0.3;    //feedforward compensation for translation
+const double scale = 25.0;
+const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
+
 /* Driver constants END */
 
 /* Autonomous constants START */
@@ -202,18 +217,6 @@ const double auton_distance_kD = 0.0;
 //AutonDirections autonDirection;
 /* Autonomous constants END */
 
-
-const double azim_kP = 0.05; //azimuth, for correcting rotation
-const double azim_kI = 0.0;    //drunk
-const double azim_kD = 10.0;
-
-const double ANGULAR_THRESH = 0.0; // Threshold under which to ignore angular error
-
-const double r_kF = 0.2;   //feedforward compensation for rotation //flick
-const double r_kF_STATIC = 0.7; //FF STATIC for rotation
-const double v_kF = 0.3;    //feedforward compensation for translation
-const double scale = 25.0;
-const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
 
 const double ticks_per_mm = 2.5; //convert mm to ticks
 
