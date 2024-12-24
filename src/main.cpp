@@ -779,8 +779,8 @@ void opcontrol(){
         leftY = master.get_analog(ANALOG_LEFT_Y);
         rightX = master.get_analog(ANALOG_RIGHT_X);
         rightY = master.get_analog(ANALOG_RIGHT_Y);
+        if(master.get_digital_new_press(DIGITAL_A)) mobile_goal_actuated = !mobile_goal_actuated;
         if(master.get_digital_new_press(DIGITAL_B)) autonomous();
-
         if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
 
         pros::lcd::print(5,"pos: %.2f, %%: %.3f, prx: %d", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period, conveyor_optical.get_proximity());
@@ -816,6 +816,19 @@ void opcontrol(){
         else {
             roller.move(0);
         }
+
+        if(mobile_goal_actuated) { 
+            //intake 
+            solenoid.set_value(1); 
+            pros::Task::delay(100); 
+            mobilegoal_bot.set_value(0); 
+        } 
+        else{ 
+            solenoid.set_value(0); 
+            pros::Task::delay(100); 
+            mobilegoal_bot.set_value(1); 
+        }
+
         //same_colour();
         pros::lcd::print(0, "ring: %s", is_ring_ours ? "same" : "not same");
         pros::delay(5);
