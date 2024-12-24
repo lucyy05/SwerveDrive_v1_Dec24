@@ -33,6 +33,7 @@
 #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
 #define RIGHT_LOWER_BEVEL_MOTOR_2 5
 #define IMU_PORT 13
+#define IMU_PORT 13
 #define LEFT_ROTATION_SENSOR_PORT 18
 #define RIGHT_ROTATION_SENSOR_PORT 8
 
@@ -110,6 +111,12 @@ pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
 
 // pros::Motor liftL(LEFT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
 // pros::Motor liftR(RIGHT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
+
+pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
+pros::ADIAnalogIn slam_dunk(SLAM_DUNK_SENSOR_PORT);
+pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
+pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
+pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
 
 pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, true);
@@ -262,9 +269,9 @@ const double auton_distance_kP = 0.05; //swerve wheel rotation distance
 const double auton_distance_kI = 0.0;
 const double auton_distance_kD = 0.0;
 
-const double auton_heading_kP = 0.09;
-const double auton_heading_kI = 0.00;
-const double auton_heading_kD = 0.00;
+const double auton_heading_kP = 0.07; //swerve heading
+const double auton_heading_kI = 0.0;
+const double auton_heading_kD = 0.0;
 
 enum AutonDirections {
     NORTH = 0,
