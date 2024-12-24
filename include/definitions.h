@@ -32,7 +32,7 @@
 #define RIGHT_UPPER_BEVEL_MOTOR_2 10
 #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
 #define RIGHT_LOWER_BEVEL_MOTOR_2 5
-#define IMU_PORT_1 13
+// #define IMU_PORT_1 13
 // #define IMU_PORT_2 12
 #define IMU_PORT 13
 #define LEFT_ROTATION_SENSOR_PORT 18
@@ -81,7 +81,7 @@ pros::Motor ruB(RIGHT_UPPER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros
 pros::Motor rlA(RIGHT_LOWER_BEVEL_MOTOR_1, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor rlB(RIGHT_LOWER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
-pros::IMU imu(IMU_PORT_1);
+pros::IMU imu(IMU_PORT);
 // pros::IMU imu2(IMU_PORT_2);
 
 pros::Motor slam_dunk_motor(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -222,7 +222,6 @@ double auton_target_heading = 0.0;
 //AutonDirections autonDirection;
 /* Autonomous constants END */
 
-
 const double ticks_per_mm = 2.5; //convert mm to ticks
 
 double target_angle = 0.0;
@@ -264,8 +263,8 @@ SlammingState slammingState = SLAM_START_STATE;
 bool slam_dunk_actuated = false;
 
 double slam_target = 0.0;
-double slam_Kp = 0.31;
-double slam_Kd = 0.2;
+double slam_Kp = 0.45;
+double slam_Kd = 0.1;
 double slam_Ki = 0.0;
 
 //Serial read

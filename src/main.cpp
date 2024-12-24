@@ -458,7 +458,7 @@ void slamDunk(){
                 slam_target = defaultSlamValue;
                 break;
             case SLAM_MID_STATE: //midpoint - holding position
-                slam_target = defaultSlamValue - 165;
+                slam_target = defaultSlamValue - 195;
                 break;
             case SLAM_EXTENDED_STATE: //extended all the way
                 slam_target = defaultSlamValue - 1555;
@@ -770,22 +770,16 @@ void initialize(){
     // left_rotation_sensor.set_position(0);
     // right_rotation_sensor.set_position(0);
 
-    pros::Task slam_dunk(slamDunk);
-    pros::lcd::initialize();
-    pros::delay(50);
-    master.clear();
     //imu.reset(true);  //uncomment for actual
     //pros::delay(100);
     //master.print(0,0,"IMU calibrated  ");
-    pros::delay(10);
-    master.rumble(".");
-    setBrakeModes();
 
     // imu2.set_data_rate(5);
-    left_rotation_sensor.set_position(0);
-    right_rotation_sensor.set_position(0);
+    // left_rotation_sensor.set_position(0);
+    // right_rotation_sensor.set_position(0);
 
     pros::Task serial_read(serialRead);
+    pros::Task slam_dunk(slamDunk);
 }
 
 void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
@@ -794,16 +788,16 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         if(driver == true) move_base.resume();
         else move_base.suspend();
 
-        leftX = master.get_analog(ANALOG_LEFT_X);
+        leftY = master.get_analog(ANALOG_LEFT_Y);
 
         if(arcade == true) leftX = 0.0;
-        else leftY = master.get_analog(ANALOG_LEFT_Y);
+        else leftX = master.get_analog(ANALOG_LEFT_X);
 
         rightX = master.get_analog(ANALOG_RIGHT_X);
         rightY = master.get_analog(ANALOG_RIGHT_Y);
 
         if(master.get_digital_new_press(DIGITAL_A)) mobile_goal_actuated = !mobile_goal_actuated;
-        // if(master.get_digital_new_press(DIGITAL_B)) autonomous();
+        if(master.get_digital_new_press(DIGITAL_B)) brake();
         if(master.get_digital_new_press(DIGITAL_X)) slam_dunk_actuated = !slam_dunk_actuated;
         if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
 
@@ -864,19 +858,6 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
 
         if(slam_dunk_actuated) slam_in_out.set_value(1);
         else slam_in_out.set_value(0);
-
-        if(driver == true) move_base.resume();
-        else move_base.suspend();
-
-        if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) conveyor.move(110); 
-        else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) conveyor.move(-110);
-        else conveyor.move(0);
-
-        // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
-        // when L1 is pressed, rollers move forward with NEGATIVE velocity??
-        if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) roller.move(110);
-        else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) roller.move(-110);
-        else roller.move(0);
 
         if(master.get_digital_new_press(DIGITAL_UP)){
             slammingState = SLAM_EXTENDED_STATE;
