@@ -181,7 +181,7 @@ vector3D normalizeJoystick(int x_in, int y_in){ //convert translation joystick i
 
     //assign values to the xyz attributes of the vector3D named "out"
     out.load(magnitude * cos(angle * TO_RADIANS), magnitude * sin(angle * TO_RADIANS), 0.0);
-    return -out;
+    return out;
 }
 
 vector3D normalizeRotation(int x_in){ //get rotation speed from rotation joystick
@@ -297,7 +297,7 @@ void moveBase(){
     bool rot_pid_ena = true;
 
     while(true){ 
-        target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
+        target_v = normalizeJoystick(0, leftY).scalar(MAX_SPEED); // target velocity 
         // to be updated: leftX = 0 to remove left and right translations 
         target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*MAX_ANGULAR_SCALE); // target rotation 
 
@@ -787,7 +787,7 @@ void opcontrol(){
         rightY = master.get_analog(ANALOG_RIGHT_Y);
         if(master.get_digital_new_press(DIGITAL_B)) autonomous();
 
-        if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
+        // if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
 
         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { 
             //pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
@@ -848,7 +848,7 @@ void opcontrol(){
             slammingState = SLAM_START_STATE;
         }
 
-        if(master.get_digital_new_press(DIGITAL_LEFT)) roller_lifts = !roller_lifts;
+        if(master.get_digital_new_press(DIGITAL_Y)) roller_lifts = !roller_lifts;
 
         if(roller_lifts) {
             roller_lifter.set_value(1);
