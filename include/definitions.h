@@ -1,4 +1,3 @@
-#pragma once
 #include <cstdint>
 #include "pros/motors.hpp"
 #include "pros/adi.hpp"
@@ -11,19 +10,6 @@
 //#include "api.h"
 
 /* robot with base (UPIN) */
-// #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
-// #define LEFT_UPPER_BEVEL_MOTOR_2 17
-// #define LEFT_LOWER_BEVEL_MOTOR_1 14   //ROBOT FRONT
-// #define LEFT_LOWER_BEVEL_MOTOR_2 15
-// #define RIGHT_UPPER_BEVEL_MOTOR_1 9   //ROBOT BACK
-// #define RIGHT_UPPER_BEVEL_MOTOR_2 10
-// #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
-// #define RIGHT_LOWER_BEVEL_MOTOR_2 5
-// #define IMU_PORT_1 2
-// #define LEFT_ROTATION_SENSOR_PORT 18
-// #define RIGHT_ROTATION_SENSOR_PORT 8
-
-/* robot with base (IPIN) */
 #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
 #define LEFT_UPPER_BEVEL_MOTOR_2 17
 #define LEFT_LOWER_BEVEL_MOTOR_1 14   //ROBOT FRONT
@@ -33,11 +19,10 @@
 #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
 #define RIGHT_LOWER_BEVEL_MOTOR_2 5
 #define IMU_PORT 13
-#define IMU_PORT 13
 #define LEFT_ROTATION_SENSOR_PORT 18
 #define RIGHT_ROTATION_SENSOR_PORT 8
 
-/* test base (NO PAYLOAD)*/
+/* robot with base (IPIN) */
 // #define LEFT_UPPER_BEVEL_MOTOR_1 16   //ROBOT BACK
 // #define LEFT_UPPER_BEVEL_MOTOR_2 17
 // #define LEFT_LOWER_BEVEL_MOTOR_1 14   //ROBOT FRONT
@@ -70,14 +55,12 @@
 #define SOLENOID_SENSOR_PORT 'D'
 #define mobilegoal_bottom 'G'
 
+#define COLOR_SENSOR 1
+
 #define SLAM_DUNK_MOTOR 3
 
-#define CONVEYOR_THRES_PROX 130
-#define CONVEYOR_OPTICAL 1
 #define CONVEYOR_MOTOR 7
 #define ROLLER_MOTOR 6
-
-#define COLOR_SENSOR 1
 
 #define SERIALPORT 20
 
@@ -96,8 +79,7 @@ pros::Motor ruB(RIGHT_UPPER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros
 pros::Motor rlA(RIGHT_LOWER_BEVEL_MOTOR_1, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor rlB(RIGHT_LOWER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
-pros::IMU imu(IMU_PORT_1);
-pros::IMU imu2(IMU_PORT_2);
+pros::IMU imu(IMU_PORT);
 pros::Optical colorSensor(COLOR_SENSOR);
 
 pros::Motor slam_dunk_motor(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -112,13 +94,6 @@ pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
 // pros::Motor liftL(LEFT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
 // pros::Motor liftR(RIGHT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
-pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
-pros::ADIAnalogIn slam_dunk(SLAM_DUNK_SENSOR_PORT);
-pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
-pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
-pros::Motor slam_dunkkkk(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
-
-
 pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, true);
 pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, true);
 // pros::Imu imu(IMU_SENSOR_PORT);
@@ -126,10 +101,8 @@ pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, true);
 // CONVEYOR AND ROLLER
 pros::Motor conveyor(CONVEYOR_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor roller(ROLLER_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
-pros::Optical conveyor_optical(CONVEYOR_OPTICAL);
 
-// ROLLER LIFT
-pros::ADIDigitalOut roller_lifter(POTENTIOMETER_SENSOR_PORT);
+// pros::ADIAnalogIn lifter(POTENTIOMETER_SENSOR_PORT);
 // pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
 
 extern "C" int32_t vexGenericSerialReceive( uint32_t index, uint8_t *buffer, int32_t length );
@@ -140,11 +113,7 @@ extern "C" int32_t vexGenericSerialTransmit( uint32_t index, uint8_t *buffer, in
 /* Controllers */
 int leftX = 0, leftY = 0, rightX = 0, rightY=0;
 
-/* Controllers */
-int leftX = 0, leftY = 0, rightX = 0, rightY=0;
 
-
-/* Parameters START */
 /* Parameters START */
 const double DEADBAND =  8.0;
 const double MAX_RPM = 600.0;
@@ -176,17 +145,17 @@ int32_t rl; // right lower
 
 /* Driver constants START */
 // Swerve wheel pivoting
-const double angle_kP_left = 40.0;
+const double angle_kP_left = 20.0;
 const double angle_kI_left = 0.0;
-const double angle_kD_left = 7000.0;
+const double angle_kD_left = 5000.0;
 
-const double angle_kP_right = 40.0;
+const double angle_kP_right = 20.0;
 const double angle_kI_right = 0.0;
-const double angle_kD_right = 7000.0;
+const double angle_kD_right = 5000.0;
 
-const double velocity_kP = 0.0020;   //swerve wheel rotation velocity for driver
+const double velocity_kP = 0.002;   //swerve wheel rotation velocity for driver
 const double velocity_kI = 0.0;     //tune for translate
-const double velocity_kD = 200.0;
+const double velocity_kD = 160.0;
 
 const double distance_kP = 50.0; //swerve wheel rotation distance
 const double distance_kI = 0.0;
@@ -233,60 +202,19 @@ enum AutonDirections {
 AutonDirections autonDirection;
 /* Autonomous constants END */
 
-const double azim_kP = 0.16; //azimuth, for correcting rotation
+const double MAX_VOLTAGE = 12000;
+
+const double azim_kP = 0.05; //azimuth, for correcting rotation
 const double azim_kI = 0.0;    //drunk
-const double azim_kD = 168000.0;
+const double azim_kD = 10.0;
 
-const double ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
+const double ANGULAR_THRESH = 0.0; // Threshold under which to ignore angular error
 
-const double r_kF = 0.1;   //feedforward compensation for rotation //flick
-const double r_kF_STATIC = 0.1; //FF STATIC for rotation
+const double r_kF = 0.2;   //feedforward compensation for rotation //flick
+const double r_kF_STATIC = 0.7; //FF STATIC for rotation
 const double v_kF = 0.3;    //feedforward compensation for translation
 const double scale = 25.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
-
-/* Driver constants END */
-
-/* Autonomous constants START */
-// Swerve wheel pivoting
-const double auton_angle_kP_left = 20.0;
-const double auton_angle_kI_left = 0.0;
-const double auton_angle_kD_left = 5000.0;
-
-const double auton_angle_kP_right = 20.0;
-const double auton_angle_kI_right = 0.0;
-const double auton_angle_kD_right = 5000.0;
-
-const double auton_l_velocity_kP = 0.05;   //swerve wheel rotation velocity for auton
-const double auton_l_velocity_kI = 0.000;     //tune for translate
-const double auton_l_velocity_kD = 0.02;
-
-const double auton_r_velocity_kP = 0.05;   //swerve wheel rotation velocity for auton
-const double auton_r_velocity_kI = 0.000;     //tune for translate
-const double auton_r_velocity_kD = 0.02;
-
-const double auton_distance_kP = 0.05; //swerve wheel rotation distance
-const double auton_distance_kI = 0.0;
-const double auton_distance_kD = 0.0;
-
-const double auton_heading_kP = 0.07; //swerve heading
-const double auton_heading_kI = 0.0;
-const double auton_heading_kD = 0.0;
-
-enum AutonDirections {
-    NORTH = 0,
-    SOUTH = 1,
-    EAST = 2,
-    WEST = 3,
-    NORTHEAST = 4,
-    NORTHWEST = 5,
-    SOUTHEAST = 6,
-    SOUTHWEST = 7
-};
-
-AutonDirections autonDirection;
-/* Autonomous constants END */
-
 
 const double ticks_per_mm = 2.5; //convert mm to ticks
 
@@ -311,12 +239,7 @@ bool isLeftFlipped = false;
 bool isRightFlipped = false;
 
 //Slam dunk
-// int defaultSlamValue = 0;
-// Slam dunk constants -- IPIN
-int defaultSlamValue = 1835;
-
-// Slam dunk constants -- UPIN
-int defaultSlamValue = 2998;
+int defaultSlamValue = 0;
 
 enum SlammingState {
     SLAM_START_STATE = 0,
@@ -341,9 +264,6 @@ double global_errorX = 0.0;
 double optical_v_x = 0.0;
 double optical_v_y = 0.0;
 
-//CONVEYOR
-int detected_ring_time = 0;
-
 //Mobile goal grabber
 bool mobile_goal_actuated = false;
 bool mobile_goal_jaw = false;
@@ -358,15 +278,4 @@ const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * sc
 
 //Modes
 bool driver = false;
-
-//Optical flow
-const double ALPHA = 0.85;
-const double BETA = 0.38;
-const double THRESHOLD = 200.0;
-const double height_from_gnd = 20.0;    //Height in mm
-const double scaler = 7.2;              //Adjust for sensitivity for different surfaces
-const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * scaler);
-
-// roller lift
-bool roller_lifts = false;
 bool arcade = true;
