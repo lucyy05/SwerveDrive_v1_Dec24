@@ -107,7 +107,8 @@ pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, true);
 pros::Motor conveyor(CONVEYOR_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor roller(ROLLER_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
-// pros::ADIAnalogIn lifter(POTENTIOMETER_SENSOR_PORT);
+// ROLLER LIFT
+pros::ADIDigitalOut roller_lifter(POTENTIOMETER_SENSOR_PORT);
 // pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
 
 extern "C" int32_t vexGenericSerialReceive( uint32_t index, uint8_t *buffer, int32_t length );
@@ -242,7 +243,12 @@ bool isRightFlipped = false;
 
 
 //Slam dunk
-int defaultSlamValue = 0;
+// int defaultSlamValue = 0;
+// Slam dunk constants -- IPIN
+int defaultSlamValue = 1835;
+
+// Slam dunk constants -- UPIN
+int defaultSlamValue = 2998;
 
 enum SlammingState {
     SLAM_START_STATE = 0,
@@ -280,3 +286,6 @@ const double THRESHOLD = 200.0;
 const double height_from_gnd = 20.0;    //Height in mm
 const double scaler = 7.2;              //Adjust for sensitivity for different surfaces
 const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * scaler);
+
+// roller lift
+bool roller_lifts = false;

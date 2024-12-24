@@ -1,4 +1,6 @@
 #include "main.h"
+// #include "pros.h"
+#include <iostream>
 
 
 void disabled(){}
@@ -163,7 +165,7 @@ vector3D normalizeJoystick(int x_in, int y_in){ //convert translation joystick i
     vector3D out;
     if(length < DEADBAND){ //if the joystick is too close to the origin, dont bother moving (this is to correct for stick drift, where the joystick doesnt default to the 0,0 position due to physical damage)
         out.load(0.0, 0.0, 0.0); //assign zero values to the xyz attributes of the vector3D named "out"
-        return out;
+        return -out;
     }
     //forcing the joystick output to be a circle not the square bounding box of the joystick
     //for any radial line of the circle, we find its length from the deadband radius to the radius of the circle of the joystick, then map the speed from 0 to 1 of that length
@@ -213,6 +215,7 @@ double max(double a, double b) { //returns the larger of two doubles
 double min(double a, double b) { //returns the smaller of two doubles
     return (a < b)? a : b;
 }
+
 
 // Driver code
 void moveBase(){ 
@@ -276,7 +279,7 @@ void moveBase(){
     PID left_angle_PID(angle_kP_left, angle_kI_left, angle_kD_left); 
     PID right_angle_PID(angle_kP_right, angle_kI_right, angle_kD_right); 
     PID left_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
-    PID right_velocity_PID(velocity_kP, velocity_kI, velocity_kD); 
+    PID right_velocity_PID(velocity_kP, velocity_kI, velocity_kD);
     PID rotate_robot_PID(azim_kP, azim_kI, azim_kD);
      
     vector3D L2I_pos(WHEEL_BASE_RADIUS,0.0,0.0); 
@@ -294,7 +297,7 @@ void moveBase(){
     bool rot_pid_ena = true;
 
     while(true){ 
-        target_v = normalizeJoystick(0.0, leftY).scalar(MAX_SPEED); // target velocity 
+        target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
         // to be updated: leftX = 0 to remove left and right translations 
         target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*0.3); // target rotation 
 
@@ -372,7 +375,8 @@ void moveBase(){
  
         v_right_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_right*current_right_vector);    //dot product should already
         v_left_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_left*current_left_vector);       //compensate angle drift?
- 
+    
+    // std::cout << v_left_velocity << " : " << v_right_velocity << std::endl;
         if(reverse_left){ 
             v_left_velocity = -v_left_velocity; 
         }
@@ -396,8 +400,8 @@ void moveBase(){
         } 
  
         //calculate the wheel error 
-        current_l_tl_error = (v_left_velocity-current_l_velocity); 
-        current_r_tl_error = (v_right_velocity-current_r_velocity); 
+        current_l_tl_error = (v_left_velocity - current_l_velocity); 
+        current_r_tl_error = (v_right_velocity - current_r_velocity); 
 
         // velocity pid: based on the rate of change of velocity, pid updates the power the wheels 
         l_velocity_pid += left_velocity_PID.step(current_l_tl_error); 
@@ -422,9 +426,10 @@ void moveBase(){
         rl = (int32_t)rscale * (r_velocity_pid - r_angle_pid); 
         clampVoltage(battery_voltage);
         
+        std::cout << lu << " : " << ll << " : " << ru << " : " << rl << std::endl; 
         move_voltage_wheels(lu,ll,ru,rl);
         pros::delay(2); 
-    }
+    } 
 }
 
 
@@ -442,6 +447,7 @@ void slamDunk(){
     double prevError = 0.0;
     double Error = 0.0;
     double Integral = 0.0;
+    
     defaultSlamValue = slam_dunk.get_value();
     //master.print(3,0,"%d", defaultSlamValue);
     while(true){
@@ -450,7 +456,7 @@ void slamDunk(){
                 slam_target = defaultSlamValue;
                 break;
             case SLAM_MID_STATE: //midpoint - holding position
-                slam_target = defaultSlamValue - 145;
+                slam_target = defaultSlamValue - 195;
                 break;
             case SLAM_EXTENDED_STATE: //extended all the way
                 slam_target = defaultSlamValue - 1555;
@@ -783,12 +789,17 @@ void initialize(){
 
     //defaultSlamValue = slam_dunk.get_value();
 
-    pros::Task move_base(moveBase);
-    pros::Task slam_dunk(slamDunk);
+    //defaultSlamValue = slam_dunk.get_value();
+
     pros::Task serial_read(serialRead);
+
 }
 
 void opcontrol(){
+    
+    pros::Task move_base(moveBase);
+    pros::Task slam_dunk(slamDunk);
+
     while(true){
         leftX = master.get_analog(ANALOG_LEFT_X);
         leftY = master.get_analog(ANALOG_LEFT_Y);
@@ -796,7 +807,12 @@ void opcontrol(){
         rightY = master.get_analog(ANALOG_RIGHT_Y);
         if(master.get_digital_new_press(DIGITAL_B)) autonomous();
 
-        if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
+        // if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
+
+        // Apply deadband to joystick inputs for rotation
+        if (fabs(leftY) < DEADBAND) leftY = 0;
+        if (fabs(rightX) < DEADBAND) rightX = 0;
+
 
         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { 
             //pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
@@ -856,6 +872,19 @@ void opcontrol(){
         else if (master.get_digital_new_press(DIGITAL_DOWN)) {
             slammingState = SLAM_START_STATE;
         }
+
+        if(master.get_digital_new_press(DIGITAL_Y)) roller_lifts = !roller_lifts;
+
+        if(roller_lifts) {
+            roller_lifter.set_value(1);
+            pros::delay(110);
+
+        }
+        else{
+            roller_lifter.set_value(0);
+            pros::delay(110);
+        }
+
         pros::delay(2);
     }
 }
