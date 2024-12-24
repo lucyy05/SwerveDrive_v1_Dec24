@@ -746,8 +746,6 @@ void autonomous(){
     moveBaseAutonomous(0.0, -250.0);
 }
 
-*/
-
 void initialize(){
     pros::lcd::initialize();
     pros::delay(50);
