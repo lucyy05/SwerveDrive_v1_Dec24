@@ -313,6 +313,9 @@ void moveBase(){
     double a_err_d = 0.0;   //angular error as a double
 
     while(true){ 
+        prev_target_v = target_v; // prev target velocity 
+        prev_target_r = target_r; // prev target rotation 
+
         target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
         // to be updated: leftX = 0 to remove left and right translations 
         target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*MAX_ANGULAR_SCALE); // target rotation 
@@ -340,9 +343,6 @@ void moveBase(){
         // }
 
         gyro_rate = -1.0 * imu.get_gyro_rate().z * TO_RADIANS;
-
-        prev_target_v = target_v; // prev target velocity 
-        prev_target_r = target_r; // prev target rotation 
 
 
         imu_angular = vector3D(0.0,0.0, gyro_rate); // Radians per second, loaded as vector
@@ -1142,6 +1142,7 @@ void initialize(){
 
 void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
     pros::Task move_base(moveBase);
+
     while(true){
         if(driver == true) move_base.resume();
         else move_base.suspend();

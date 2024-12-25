@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "MAIN",
+    "project_name": "john_branch",
     "target": "v5",
     "templates": {
       "kernel": {
@@ -309,8 +309,8 @@
       }
     },
     "upload_options": {
-      "slot": 5,
-      "icon": "clawbot",
+      "slot": 6,
+      "icon": "X",
       "after": "screen"
     },
     "use_early_access": true
