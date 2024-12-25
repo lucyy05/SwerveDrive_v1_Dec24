@@ -207,24 +207,11 @@ double auton_target_x = 0.0;
 double auton_target_y = 0.0;
 double auton_target_heading = 0.0;
 
-const double auton_azim_kP = 0.05; //azimuth, for correcting rotation
+const double auton_azim_kP = 0.03; //azimuth, for correcting rotation
 const double auton_azim_kI = 0.0;    //drunk
 const double auton_azim_kD = 10.0;
 
 const double AUTON_ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
-
-// enum AutonDirections {
-//     NORTH = 0,
-//     SOUTH = 1,
-//     EAST = 2,
-//     WEST = 3,
-//     NORTHEAST = 4,
-//     NORTHWEST = 5,
-//     SOUTHEAST = 6,
-//     SOUTHWEST = 7
-// };
-
-//AutonDirections autonDirection;
 /* Autonomous constants END */
 
 const double ticks_per_mm = 2.5; //convert mm to ticks
@@ -299,5 +286,5 @@ const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * sc
 bool roller_lifts = false;
 
 //Driver
-bool driver = true;
+bool driver = false;
 bool arcade = false;

@@ -317,7 +317,7 @@ void moveBase(){
         // to be updated: leftX = 0 to remove left and right translations 
         target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*MAX_ANGULAR_SCALE); // target rotation 
         // imu1_gyro = imu.get_gyro_rate().z * -1.0 * TO_RADIANS;
-        //imu2_gyro = imu2.get_gyro_rate().z * 1.0 * TO_RADIANS;    
+        //imu2_gyro = imu2.get_gyro_rate().z * 1.0 * TO_RADIANS;
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   //Y axis positive is front
 
@@ -574,11 +574,11 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         double AUTON_ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
     }
     else{
-        double auton_azim_kP = 0.10; //azimuth, for correcting rotation
+        double auton_azim_kP = 0.03; //azimuth, for correcting rotation
         double auton_azim_kI = 0.0;    //drunk
-        double auton_azim_kD = 240000.0;
+        double auton_azim_kD = 10.0;
 
-        double AUTON_ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
+        double AUTON_ANGULAR_THRESH = 0.00; // Threshold under which to ignore angular error
     }
     PID rotate_robot_PID(auton_azim_kP, auton_azim_kI, auton_azim_kD);
 
@@ -633,39 +633,19 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         if(fabs(errorheading) > fabs(target_heading))
             errorheading = 0.0;
 
-        // pros::lcd::print(5,"headingerror: %.1lf",errorheading);
-        // pros::lcd::print(1,"error_x: %.1lf",errorX);
-        // pros::lcd::print(2,"error_y: %.1lf",errorY);
-        // pros::lcd::print(4,"imu rotation: %.1lf",imu.get_rotation());
-
-        if(errorX == 0.0 && errorY == 0.0 && errorheading == 0.0){
+        if(fabs(errorX) <= 0.0 && fabs(errorY) <= 0.0 && fabs(errorheading) <= 0.0){
             move_voltage_wheels(0,0,0,0);
-            lu = 0;
-            ll = 0;
-            ru = 0;
-            rl = 0;
             brake();
-            pros::delay(2);
-            //while(((luA.get_actual_velocity()+luB.get_actual_velocity()+llA.get_actual_velocity()+llB.get_actual_velocity())/4.0) > 4.0)
-            //while(((ruA.get_actual_velocity()+ruB.get_actual_velocity()+rlA.get_actual_velocity()+rlB.get_actual_velocity())/4.0) > 4.0)
             break;
         }
 
         target_v_x = delta_X_PID.step(errorX);
         target_v_y = delta_Y_PID.step(errorY);
-        target_r_heading = delta_Heading_PID.step(errorheading);
-        // target_v_x = errorX;
-        // target_v_y = errorY;
-        //target_v = vector3D(target_v_x, target_v_y, 0.0);
-        target_v = normalizeJoystick(check_sign(targetX)*target_v_x, check_sign(targetY)*target_v_y).scalar(MAX_SPEED*0.6); // target velocity
-        //target_v = normalizeJoystick(-target_v_x, -target_v_y).scalar(MAX_SPEED*0.8); // target velocity
-        target_r = normalizeRotation(check_sign(target_heading)*target_r_heading).scalar(MAX_ANGULAR*0.45); // target rotation
-        //pros::lcd::print(1,"error_y: %.1lf", errorY);
-        //pros::lcd::print(0,"target_v_x: %.1lf", target_v_x);
-        //pros::lcd::print(1,"target_v_y: %.1lf", target_v_y);
 
-        //pros::lcd::print(2,"error_x: %.1lf", errorX);
-        //pros::lcd::print(3,"error_y: %.1lf", errorY);
+        target_r_heading = delta_Heading_PID.step(errorheading);
+
+        target_v = normalizeJoystick(check_sign(targetX)*target_v_x, check_sign(targetY)*target_v_y).scalar(MAX_SPEED*0.6); // target velocity
+        target_r = normalizeRotation(check_sign(target_heading)*target_r_heading).scalar(MAX_ANGULAR*0.45); // target rotation
 
         //takes robot right as 0
         //Y axis positive is front
@@ -686,12 +666,6 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         prev_target_v = target_v; // prev target velocity 
         prev_target_r = target_r; // prev target rotation 
 
-        // if(imu.is_calibrating()){
-        //     gyro_rate = current_angular;    // ignore gyro while calibrating, use encoder values
-        // }else{
-        //     gyro_rate = -1.0 * imu.get_gyro_rate().z * TO_RADIANS;
-        // }
-
         gyro_rate = -1.0 * imu.get_gyro_rate().z * TO_RADIANS;
 
         imu_angular = vector3D(0.0,0.0, gyro_rate); // Radians per second, loaded as angle
@@ -704,9 +678,10 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         v_fterm = (target_v - prev_target_v)*(v_kF/dt); // rate of change of joystick input * constant v_kF 
         r_fterm = (target_r - prev_target_r)*(r_kF/dt); // rate of change of joystick input * constant r_kF 
         target_v = target_v + v_fterm; // update the target_v and target_r 
-        target_r = target_r + r_fterm; 
+        target_r = target_r + r_fterm;
 
         angular_error = target_r - imu_angular;
+
         if(fabs(angular_error.z) < AUTON_ANGULAR_THRESH){
             angular_error.load(0.0,0.0,0.0);
             rot_pid_double = 0.0;
@@ -717,7 +692,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         rot_FF = (target_r^L2I_pos).scalar(r_kF_STATIC);
         rot_vector_double = rot_pid_double + rot_FF.getY();
         rot_pid = vector3D(0.0, rot_vector_double, 0.0);
-            
+
         v_left = target_v - rot_pid; //in order to rotate counterclockwise
         v_right = target_v + rot_pid; 
 
@@ -767,7 +742,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         // r_error = angle(v_right, current_right_vector); 
         // if (std::isnan(l_error) || std::isnan(r_error)) { 
         //     l_error = 0.0; r_error = 0.0; 
-        // } 
+        // }
 
         //calculate the wheel error 
         current_l_tl_error = (v_left_velocity-current_l_velocity); 
@@ -795,9 +770,6 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         ll = (int32_t)(lscale * (l_velocity_pid - l_angle_pid));
         ru = (int32_t)(rscale * (r_velocity_pid + r_angle_pid));
         rl = (int32_t)(rscale * (r_velocity_pid - r_angle_pid));
-
-        //pros::lcd::print(4,"l_velocity_pid: %.1lf", l_velocity_pid);
-        //pros::lcd::print(5,"r_velocity_pid: %.1lf", r_velocity_pid);
 
         pros::lcd::print(6, "lu:%.1d,ll:%.1d", lu, ll);
         pros::lcd::print(7, "ru:%.1d,rl:%.1d", ru, rl);
@@ -1083,9 +1055,9 @@ void turn90(){
     // auton_heading_kP = 0.09;
     // auton_heading_kI = 0.0;
     // auton_heading_kD = 0.05;
-    auton_heading_kP = 0.15;
+    auton_heading_kP = 0.16;
     auton_heading_kI = 0.0;
-    auton_heading_kD = 0.125;
+    auton_heading_kD = 0.32;
     moveBaseAutonomous(0.0, 0.0, 90.0);
 }
 
@@ -1110,20 +1082,19 @@ void turn180(){
 }
 
 void autonomous(){
-    pros::Task serial_read(serialRead);
-    //slammingState = SLAM_EXTENDED_STATE;
-    // moveBaseAutonomous(0.0, 250.0, 0.0);
-    // pros::delay(50);
-    // moveBaseAutonomous(0.0, -250.0, 0.0);
-    //pros::delay(100);
     pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
                 TASK_STACK_DEPTH_DEFAULT, "Serial read task");
-    moveBaseAutonomous(0.0, 250.0, 0.0);
+    pros::delay(60);
+    moveBaseAutonomous(0.0, 100.0, 0.0);
+    moveBaseAutonomous(0.0, 100.0, 0.0);
+    moveBaseAutonomous(0.0, 100.0, 0.0);
     turn90();
     turn90();
     turn90();
     turn90();
-    moveBaseAutonomous(0.0, -250.0, 0.0);
+    moveBaseAutonomous(0.0, -100.0, 0.0);
+    moveBaseAutonomous(0.0, -100.0, 0.0);
+    moveBaseAutonomous(0.0, -100.0, 0.0);
     serial_task.remove();
 }
 
@@ -1146,14 +1117,9 @@ void initialize(){
     // left_rotation_sensor.set_position(0);
     // right_rotation_sensor.set_position(0);
 
-    //imu.reset(true);  //uncomment for actual
-    //pros::delay(100);
-    //master.print(0,0,"IMU calibrated  ");
-
     // imu2.set_data_rate(5);
-    // left_rotation_sensor.set_position(0);
-    // right_rotation_sensor.set_position(0);
-    pros::Task slam_dunk(slamDunk);
+
+    pros::Task slam_dunk(slamDunk); //Used for both auton and driver
 }
 
 void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
@@ -1171,43 +1137,11 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         rightY = master.get_analog(ANALOG_RIGHT_Y);
 
         if(master.get_digital_new_press(DIGITAL_A)) mobile_goal_actuated = !mobile_goal_actuated;
-        //if(master.get_digital_new_press(DIGITAL_B)) autonomous();
+        if(master.get_digital_new_press(DIGITAL_B)) autonomous();
+        //if(master.get_digital(DIGITAL_B)) brake();
         if(master.get_digital_new_press(DIGITAL_X)) slam_dunk_actuated = !slam_dunk_actuated;
-        if(master.get_digital(DIGITAL_B)) brake();
-
-        //pros::lcd::print(5,"pos: %.2f, %%: %.3f, prx: %d", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period, conveyor_optical.get_proximity());
-
-        // if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
-        //     // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
-        //     // conveyor.move(110); 
-        //     step_conveyor();
-
-        //     } 
-        // else if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
-        //     // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
-        //     // conveyor.move(-110);
-        //     calibrate_conveyor();
-        //     }
-        // else { 
-        //     //pros::lcd::print(0, "CONVEYOR STOPPED\n");
-        //     //pros::lcd::print(0, "CONVEYOR STOPPED\n");
-        //     conveyor.move(0);
-        // }
-
-        // // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
-        // // when L1 is pressed, rollers move forward with NEGATIVE velocity??
-        // if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) { 
-        //     //pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
-        //     roller.move(110); 
-        // } 
-        // else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
-        //     // detect ring and move conveyor later
-        //     roller.move(-110);
-        //     check_for_ring();
-        // } 
-        // else {
-        //     roller.move(0);
-        // }
+        //if(master.get_digital_new_press(DIGITAL_Y)) roller_lifts = !roller_lifts;
+        if(master.get_digital_new_press(DIGITAL_Y)) driver = !driver;
 
         if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) conveyor.move(110); 
         else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) conveyor.move(-110);
@@ -1244,17 +1178,49 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         }
 
         if(master.get_digital_new_press(DIGITAL_LEFT)) arcade = !arcade;
-        if(master.get_digital_new_press(DIGITAL_Y)) roller_lifts = !roller_lifts;
 
         if(roller_lifts) {
             roller_lifter.set_value(1);
-            //pros::delay(110);
         }
         else{
             roller_lifter.set_value(0);
-            //pros::delay(110);
         }
 
         pros::delay(2);
+
+        //JOEL'S CONVEYOR TEST
+        //pros::lcd::print(5,"pos: %.2f, %%: %.3f, prx: %d", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period, conveyor_optical.get_proximity());
+
+        // if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
+        //     // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
+        //     // conveyor.move(110); 
+        //     step_conveyor();
+
+        //     } 
+        // else if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
+        //     // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
+        //     // conveyor.move(-110);
+        //     calibrate_conveyor();
+        //     }
+        // else { 
+        //     //pros::lcd::print(0, "CONVEYOR STOPPED\n");
+        //     //pros::lcd::print(0, "CONVEYOR STOPPED\n");
+        //     conveyor.move(0);
+        // }
+
+        // // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
+        // // when L1 is pressed, rollers move forward with NEGATIVE velocity??
+        // if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) { 
+        //     //pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
+        //     roller.move(110); 
+        // } 
+        // else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
+        //     // detect ring and move conveyor later
+        //     roller.move(-110);
+        //     check_for_ring();
+        // } 
+        // else {
+        //     roller.move(0);
+        // }
     }
 }
