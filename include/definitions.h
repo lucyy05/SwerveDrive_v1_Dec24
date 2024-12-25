@@ -163,15 +163,15 @@ const double distance_kP = 50.0; //swerve wheel rotation distance
 const double distance_kI = 0.0;
 const double distance_kD = 500.0;
 
-const double azim_kP = 0.10; //azimuth, for correcting rotation //.16
+const double azim_kP = 0.03; //azimuth, for correcting rotation //.16
 const double azim_kI = 0.0;    //drunk
-const double azim_kD = 240000.0;    //168000
+const double azim_kD = 10.0;    //168000
 
-const double ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
+const double ANGULAR_THRESH = 0.0; // Threshold under which to ignore angular error
 
-const double r_kF = 0.3;   //feedforward compensation for rotation //flick
-const double r_kF_STATIC = 0.0; //FF STATIC for rotation
-const double v_kF = 0.3;    //feedforward compensation for translation
+const double r_kF = 0.0;   //feedforward compensation for rotation //flick
+const double r_kF_STATIC = 0.7; //FF STATIC for rotation
+const double v_kF = 0.4;    //feedforward compensation for translation
 const double scale = 25.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
 
