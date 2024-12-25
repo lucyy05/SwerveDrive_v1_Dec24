@@ -527,7 +527,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
  
     double current_angular = 0.0; // current angular velocity 
  
-    vector3D current_tl_velocity(0,0,0); //current transaltional velocity
+    vector3D current_tl_velocity(0,0,0); //current translational velocity
  
     vector3D prev_target_v(0,0,0);  
     vector3D prev_target_r(0,0,0); 
@@ -556,13 +556,15 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
     PID right_velocity_PID(auton_r_velocity_kP, auton_r_velocity_kI, auton_r_velocity_kD);
 
     if(fabs(target_heading) > 0.0){
-        double auton_azim_kP = 0.03; //azimuth, for correcting rotation
+        // lower PID values: smoother rotation
+        double auton_azim_kP = 0.05; //azimuth, for correcting rotation
         double auton_azim_kI = 0.0;    //drunk
         double auton_azim_kD = 10.0;
 
         double AUTON_ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
     }
     else{
+        //  higher PID values for quick corrections: no rotation
         double auton_azim_kP = 0.10; //azimuth, for correcting rotation
         double auton_azim_kI = 0.0;    //drunk
         double auton_azim_kD = 240000.0;
@@ -640,6 +642,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
             break;
         }
 
+        // calc velocity control
         target_v_x = delta_X_PID.step(errorX);
         target_v_y = delta_Y_PID.step(errorY);
         target_r_heading = delta_Heading_PID.step(errorheading);
@@ -1075,12 +1078,15 @@ void turn45(){
 }
 
 void turn180(){
-    // auton_heading_kP = 0.058; //Without Mogo
-    // auton_heading_kI = 0.0;
-    // auton_heading_kD = 0.031;
-    auton_heading_kP = 0.0625; //Full stack
-    auton_heading_kI = 0.0001;
-    auton_heading_kD = 0.31;
+    // ORIGINAL VALUES
+    auton_heading_kP = 0.058; //Without Mogo
+    auton_heading_kI = 0.0;
+    auton_heading_kD = 0.031;
+
+   
+    // auton_heading_kP = 0.0625; //Full stack // original value    
+    // auton_heading_kI = 0.0001;
+    // auton_heading_kD = 0.31;
     moveBaseAutonomous(0.0, 0.0, 180.0);
 }
 
@@ -1090,12 +1096,12 @@ void autonomous(){
     // pros::delay(50);
     // moveBaseAutonomous(0.0, -250.0, 0.0);
     //pros::delay(100);
-    moveBaseAutonomous(0.0, 250.0, 0.0);
+    // moveBaseAutonomous(0.0, 250.0, 0.0);
     turn90();
-    turn90();
-    turn90();
-    turn90();
-    moveBaseAutonomous(0.0, -250.0, 0.0);
+    // turn90();
+    // turn90();
+    // turn90();
+    // moveBaseAutonomous(0.0, -250.0, 0.0);
 }
 
 void initialize(){
@@ -1145,7 +1151,14 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         if(master.get_digital_new_press(DIGITAL_A)) mobile_goal_actuated = !mobile_goal_actuated;
         //if(master.get_digital_new_press(DIGITAL_B)) autonomous();
         if(master.get_digital_new_press(DIGITAL_X)) slam_dunk_actuated = !slam_dunk_actuated;
+        
+        turn180();
+
         if(master.get_digital(DIGITAL_B)) brake();
+        
+        // if (master.get_digital_new_press(DIGITAL_B)) {
+            
+        // }
 
         //pros::lcd::print(5,"pos: %.2f, %%: %.3f, prx: %d", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period, conveyor_optical.get_proximity());
 
