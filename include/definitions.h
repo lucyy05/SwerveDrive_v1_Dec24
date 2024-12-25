@@ -34,7 +34,7 @@
 #define RIGHT_UPPER_BEVEL_MOTOR_2 10
 #define RIGHT_LOWER_BEVEL_MOTOR_1 4   //ROBOT FRONT
 #define RIGHT_LOWER_BEVEL_MOTOR_2 5
-#define IMU_PORT_1 13
+// #define IMU_PORT_1 13
 // #define IMU_PORT_2 12
 #define IMU_PORT 13
 #define LEFT_ROTATION_SENSOR_PORT 18
@@ -83,7 +83,7 @@ pros::Motor ruB(RIGHT_UPPER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros
 pros::Motor rlA(RIGHT_LOWER_BEVEL_MOTOR_1, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor rlB(RIGHT_LOWER_BEVEL_MOTOR_2, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 
-pros::IMU imu(IMU_PORT_1);
+pros::IMU imu(IMU_PORT);
 // pros::IMU imu2(IMU_PORT_2);
 
 pros::Motor slam_dunk_motor(SLAM_DUNK_MOTOR, pros::E_MOTOR_GEARSET_18, false, pros::E_MOTOR_ENCODER_DEGREES);
@@ -97,7 +97,6 @@ pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
 
 // pros::Motor liftL(LEFT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
 // pros::Motor liftR(RIGHT_LIFT_MOTOR, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
-
 
 pros::Rotation left_rotation_sensor(LEFT_ROTATION_SENSOR_PORT, true);
 pros::Rotation right_rotation_sensor(RIGHT_ROTATION_SENSOR_PORT, true);
@@ -118,7 +117,6 @@ extern "C" int32_t vexGenericSerialTransmit( uint32_t index, uint8_t *buffer, in
 
 /* Controllers */
 int leftX = 0, leftY = 0, rightX = 0, rightY = 0;
-
 
 /* Parameters START */
 const double DEADBAND = 8.0;
@@ -182,11 +180,11 @@ const double base_v = 0.7; //this defines the min power of the robot when scalin
 
 /* Autonomous constants START */
 // Swerve wheel pivoting
-const double auton_angle_kP_left = 20.0;
+const double auton_angle_kP_left = 45.0;
 const double auton_angle_kI_left = 0.0;
 const double auton_angle_kD_left = 5000.0;
 
-const double auton_angle_kP_right = 20.0;
+const double auton_angle_kP_right = 45.0;
 const double auton_angle_kI_right = 0.0;
 const double auton_angle_kD_right = 5000.0;
 
@@ -198,17 +196,23 @@ const double auton_r_velocity_kP = 0.05;   //swerve wheel rotation velocity for 
 const double auton_r_velocity_kI = 0.000;     //tune for translate
 const double auton_r_velocity_kD = 0.02;
 
-double auton_distance_kP = 0.05; //swerve wheel rotation distance
-double auton_distance_kI = 0.0;
-double auton_distance_kD = 0.0;
+const double auton_distance_kP = 0.05; //swerve wheel rotation distance
+const double auton_distance_kI = 0.0;
+const double auton_distance_kD = 0.0;
 
-double auton_heading_kP = 0.0;
+double auton_heading_kP = 0.09; //swerve heading
 double auton_heading_kI = 0.0;
-double auton_heading_kD = 0.0;
+double auton_heading_kD = 0.05;
 
 double auton_target_x = 0.0;
 double auton_target_y = 0.0;
 double auton_target_heading = 0.0;
+
+const double auton_azim_kP = 0.05; //azimuth, for correcting rotation
+const double auton_azim_kI = 0.0;    //drunk
+const double auton_azim_kD = 10.0;
+
+const double AUTON_ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
 
 // enum AutonDirections {
 //     NORTH = 0,
@@ -223,7 +227,6 @@ double auton_target_heading = 0.0;
 
 //AutonDirections autonDirection;
 /* Autonomous constants END */
-
 
 const double ticks_per_mm = 2.5; //convert mm to ticks
 
@@ -266,8 +269,8 @@ SlammingState slammingState = SLAM_START_STATE;
 bool slam_dunk_actuated = false;
 
 double slam_target = 0.0;
-double slam_Kp = 0.31;
-double slam_Kd = 0.2;
+double slam_Kp = 0.45;
+double slam_Kd = 0.1;
 double slam_Ki = 0.0;
 
 //Serial read
@@ -297,5 +300,5 @@ const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * sc
 bool roller_lifts = false;
 
 //Driver
-bool driver = true;
+bool driver = false;
 bool arcade = false;
