@@ -251,7 +251,7 @@ bool isRightFlipped = false;
 int defaultSlamValue = 1835;
 
 // Slam dunk constants -- UPIN
-int defaultSlamValue = 2998;
+// int defaultSlamValue = 2998;
 
 enum SlammingState {
     SLAM_START_STATE = 0,
@@ -267,8 +267,7 @@ double slam_Kp = 0.31;
 double slam_Kd = 0.2;
 double slam_Ki = 0.0;
 
-//Slam dunk
-int defaultSlamValue = 0;
+
 
 //Serial read
 double global_distY = 0.0;

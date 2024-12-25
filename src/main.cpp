@@ -62,7 +62,7 @@ void serialRead(void* params){
                     global_distX = dist_X*-10.0;
                     optical_v_x = fabs((fabs(global_distX) - fabs(prevDist_x))) / 0.002;
                     //pros::lcd::print(1, "Optical Flow:");
-                    //pros::lcd::print(0, "distX: %.2lf, distY: %.2lf", global_distX, global_distY);
+                    pros::lcd::print(0, "distX: %.2lf, distY: %.2lf", global_distX, global_distY);
                     dataStream.str(std::string());
                     std::stringstream dataStream("    ");
                     prevDist_x = dist_X*-10.0;
@@ -575,8 +575,6 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
     double rot_vector_double = 0.0;
     double rot_pid_double = 0.0;
     double gyro_rate = 0.0;
-    double imu1_rate = 0.0;
-    double imu2_rate = 0.0;
     double a_err_d = 0.0;   //angular error as a double
 
     double offsetX = fabs(global_distX);
@@ -658,12 +656,10 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         // target_v_x = errorX;
         // target_v_y = errorY;
         //target_v = vector3D(target_v_x, target_v_y, 0.0);
-        if(reverse == false)
-            target_v = normalizeJoystick(target_v_x, target_v_y).scalar(MAX_SPEED*0.8); // target velocity 
-        else
-            target_v = normalizeJoystick(-target_v_x, -target_v_y).scalar(MAX_SPEED*0.8); // target velocity 
-        target_r = normalizeRotation(0.0).scalar(MAX_ANGULAR*0.8); // target rotation
-        pros::lcd::print(1,"error_y: %.1lf", errorY);
+        target_v = normalizeJoystick(check_sign(targetX)*target_v_x, check_sign(targetX)*target_v_y).scalar(MAX_SPEED*0.7); // target velocity
+        //target_v = normalizeJoystick(-target_v_x, -target_v_y).scalar(MAX_SPEED*0.8); // target velocity
+        target_r = normalizeRotation(check_sign(target_heading)*target_r_heading).scalar(MAX_ANGULAR*0.4); // target rotation
+        //pros::lcd::print(1,"error_y: %.1lf", errorY);
         //pros::lcd::print(0,"target_v_x: %.1lf", target_v_x);
         //pros::lcd::print(1,"target_v_y: %.1lf", target_v_y);
 
@@ -788,14 +784,13 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         //pros::lcd::print(4,"l_velocity_pid: %.1lf", l_velocity_pid);
         //pros::lcd::print(5,"r_velocity_pid: %.1lf", r_velocity_pid);
 
-        //pros::lcd::print(6, "lu:%.1d,ll:%.1d", lu, ll);
-        //pros::lcd::print(7, "ru:%.1d,rl:%.1d", ru, rl);
+        pros::lcd::print(6, "lu:%.1d,ll:%.1d", lu, ll);
+        pros::lcd::print(7, "ru:%.1d,rl:%.1d", ru, rl);
 
         move_voltage_wheels(lu,ll,ru,rl);
         pros::delay(5);
     }
 }
-
 void turn90(){
     // auton_heading_kP = 0.09;
     // auton_heading_kI = 0.0;
@@ -830,10 +825,12 @@ void autonomous(){
     //slammingState = SLAM_EXTENDED_STATE;
     // moveBaseAutonomous(0.0, 250.0, 0.0);
     // pros::delay(50);
-    moveBaseAutonomous(0.0, -250.0, 0.0);
+    roller.move(-110);
+    moveBaseAutonomous(0.0, -150.0, 0.0);
+    
     //pros::delay(100);
     //turn45();
-    turn180();
+    // turn180();
 }
 
 void initialize(){
@@ -852,9 +849,11 @@ void initialize(){
 
     left_rotation_sensor.set_position(0);
     right_rotation_sensor.set_position(0);
+    // calibrate_conveyor();
 
     pros::Task slam_dunk(slamDunk);
     pros::Task serial_read(serialRead);
+    // pros::Task color_detector(check_for_ring);
 
 }
 
