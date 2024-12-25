@@ -622,10 +622,10 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         if(fabs(errorheading) > fabs(target_heading))
             errorheading = 0.0;
 
-        pros::lcd::print(5,"headingerror: %.1lf",errorheading);
-        pros::lcd::print(1,"error_x: %.1lf",errorX);
-        pros::lcd::print(2,"error_y: %.1lf",errorY);
-        pros::lcd::print(4,"imu rotation: %.1lf",imu.get_rotation());
+        // pros::lcd::print(5,"headingerror: %.1lf",errorheading);
+        // pros::lcd::print(1,"error_x: %.1lf",errorX);
+        // pros::lcd::print(2,"error_y: %.1lf",errorY);
+        // pros::lcd::print(4,"imu rotation: %.1lf",imu.get_rotation());
 
         if(errorX == 0.0 && errorY == 0.0 && errorheading == 0.0){
             move_voltage_wheels(0,0,0,0);
@@ -735,14 +735,28 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
 
         if(reverse_right){ 
             v_right_velocity = -v_right_velocity; 
+        }
+        
+        // calculate the error angle 
+        if(target_v.norm()>0.1 || target_r.norm()>0.01){
+            l_error = angle(v_left, current_left_vector); 
+            r_error = angle(v_right, current_right_vector); 
+        }else{ //NOT TL NOT ROTATE
+            l_error = 0.0;  //DO NOT CHANGE WHEEL ANGLE IF NOT MOVING WHEEL
+            r_error = 0.0;  //THIS IS FOR BETTER BRAKING PERFORMANCE
+        }
+        
+        if (std::isnan(l_error) || std::isnan(r_error)) { 
+            l_error = 0.0;
+            r_error = 0.0; 
         } 
 
         // calculate the error angle 
-        l_error = angle(v_left, current_left_vector); 
-        r_error = angle(v_right, current_right_vector); 
-        if (std::isnan(l_error) || std::isnan(r_error)) { 
-            l_error = 0.0; r_error = 0.0; 
-        } 
+        // l_error = angle(v_left, current_left_vector); 
+        // r_error = angle(v_right, current_right_vector); 
+        // if (std::isnan(l_error) || std::isnan(r_error)) { 
+        //     l_error = 0.0; r_error = 0.0; 
+        // } 
 
         //calculate the wheel error 
         current_l_tl_error = (v_left_velocity-current_l_velocity); 
@@ -1090,12 +1104,15 @@ void autonomous(){
     // pros::delay(50);
     // moveBaseAutonomous(0.0, -250.0, 0.0);
     //pros::delay(100);
+    pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
+                TASK_STACK_DEPTH_DEFAULT, "Serial read task");
     moveBaseAutonomous(0.0, 250.0, 0.0);
     turn90();
     turn90();
     turn90();
     turn90();
     moveBaseAutonomous(0.0, -250.0, 0.0);
+    serial_task.remove();
 }
 
 void initialize(){
@@ -1123,8 +1140,6 @@ void initialize(){
     // imu2.set_data_rate(5);
     // left_rotation_sensor.set_position(0);
     // right_rotation_sensor.set_position(0);
-
-    pros::Task serial_read(serialRead);
     pros::Task slam_dunk(slamDunk);
 }
 
