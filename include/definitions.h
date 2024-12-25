@@ -160,7 +160,7 @@ const double angle_kD_right = 7000.0;
 
 const double velocity_kP = 0.0020;   //swerve wheel rotation velocity for driver
 const double velocity_kI = 0.0;     //tune for translate
-const double velocity_kD = 200.0;
+const double velocity_kD = 150.0;
 
 const double distance_kP = 50.0; //swerve wheel rotation distance
 const double distance_kI = 0.0;
