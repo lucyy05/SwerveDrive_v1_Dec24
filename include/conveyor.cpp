@@ -1,19 +1,20 @@
 #include "definitions.h"
 #include "api.h"
 
-bool ignore_colour = false;
+bool override_ignore_colour = false;
 bool is_we_blue_alliance = true;            // are we blue and should therefore score blue
 bool is_ring_ours = false;                  // is the ring the same colour as ours (updates after intake, storage and like 500ms)
 
-/* CONVEYOR FUNCTION USAGE
- - run calibrate_conveyor() at ideally once first (ideally, run until the conveyor is slightly higher than the center of the hook)
-   - (you could technically skip the calibrate_conveyor() function since a good ish period value has been supplied)
+/* CONVEYOR FUNCTION USAGE IN AUTON
+ - run conveyor_go_to_step(3) as init to home, good calibration value has been supplied
+ - place check_for_ring() in intake roller code, it'll automatically store any rings taken in and detected
  - step_conveyor() is the function to use to automatically go thru the subroutine to:
    - receive ring (from intake)
    - store (free up intake)
-   - score 
-   - "calibrate"
- - use conveyor_go_to_absolute() to move conveyor to where you want. 
+   - score (afterwards, immediately goes to "rehome" (if possible))
+   - rehome (afterwards, immediately goes to "receive" (if possible))
+   #=== good to know probably wont use ===#
+ - use conveyor_go_to_absolute() to move conveyor to where you want. (you dont need to use this, use step_conveyor())
    Location is supplied by a decimal between 0-1 where 0 is the home position (aka where the hook is first detected by the optical sensor)
    and 1 is the home position for the next hook
  - use conveyor_go_home_by_sensor() to "calibrate" the conveyor position, since it uses the prox sensor, IT IS NOT RELIABLE WHEN IT IS TRANSPORTING A RING
@@ -25,7 +26,8 @@ CONVEYOR TODO:
  - [/] implement conveyor auto-store from intake
  - [/] implement conveyor colour detection
  - [/] figure out how to put the conveyor functions in another file for organisation 
- - [ ] fix bugs
+ - [~] fix bugs
+ - [ ] colour reliability
 */
 
 // #====# conveyor util functions
@@ -66,7 +68,7 @@ void conveyor_go_home_by_sensor(int voltage){
 
 // #====# sensor-less based movements #====#
 
-double conveyor_loop_period = 854.4;        // TODO: identify and set as constant, or keep as variable and have it constantly updated
+double conveyor_loop_period = 854.4;
 double _calibrate_at_voltage(int voltage){
 	conveyor_go_home_by_sensor(voltage);
 	double ori_pos = conveyor.get_position();   // identify overshoot, if any
@@ -129,8 +131,10 @@ void conveyor_go_to_step(int conveyor_step);  // prototype
  0 - resting (right below the intersection of intake and conveyor)
  1 - store (middle of conveyor, possible to store another ring at intersection)
  2 - score (score the ring, returns to resting position)
+ 3 - rehome (rehomes the conveyor for better accuracy)
 */
 int conveyor_step = 0;
+/// @brief steps thru the conveyor stages automatically, see conveyor_step brief or conveyor_go_to_step() brief for more info
 void step_conveyor(){
     conveyor_step = (conveyor_step+1) % 4;
     pros::lcd::print(1, "stp: %d/3, pos: %f", conveyor_step, conveyor.get_position());
@@ -139,18 +143,37 @@ void step_conveyor(){
 
 bool detected_ring_before = false;
 
-void conveyor_go_to_step(int input_conveyor_step){
+
+/**
+	 * Used to move the conveyor to stage of the scoring process: rest, store, score, (home)
+	 * 
+     * Stages:
+     * 
+     * 0: [rest] (ready to take in ring, when intake detects a ring, automatically transitions to [store] (behavior from check_for_ring())
+     * 
+     * 1: [store] (stores the ring roughly midway to allow another ring to be kept at intake
+     * 
+     * 2: [score] (scores(or rejects, see ignore colour) the ring, automatically goes to [home] if possible
+     * 
+     * 3: [home] (homes and trims the location for accuracy, automatically goes to [rest]))
+	 * 
+	 * \param  input_conveyor_step
+	 * 				 conveyor stage to go to
+     * \param  ignore_colour default: false
+     *               When [score]ing, determines if it should not take colour into account
+     *               When false, and ring does not match our colour (determined by is_we_blue_alliance), the rejection sequence is ran that will **not** score the ring. This behaviour is disabled when ignore_colour = true.
+	 */
+void conveyor_go_to_step(int input_conveyor_step, bool ignore_colour = false){
     switch(input_conveyor_step){
-        case 0:
+        case 0:         // go to rest     (allowed to receive)
             conveyor_step = 0;
-            conveyor_go_to_absolute(0.55, 50);       // go to rest     (allowed to receive)
+            conveyor_go_to_absolute(0.55, 50);
             break;
-        case 1:
+        case 1:         // store       (waiting to score)
             conveyor_step = 1;
-            conveyor_go_to_absolute(0.48, 50);       // store       (waiting to score)
-            // check colour
+            conveyor_go_to_absolute(0.48, 50);
             break;
-        case 2:
+        case 2:         // score (or reject)
         {
             conveyor_step = 2;
             bool should_continue = false;
@@ -165,21 +188,23 @@ void conveyor_go_to_step(int input_conveyor_step){
             // reset variables
             is_ring_ours = false;
             detected_ring_before = false;
-            pros::delay(500);           // wait for conveyor to actually stop
+            pros::delay(500);           // wait for conveyor to actually stop, can probably actually decrease this to like 50
             if (should_continue) step_conveyor();
             break;
         }
         case 3:
             conveyor_step = 3;
             conveyor_go_home_by_sensor(30);     // rehome   (rehomed, now wait to receive)
-            pros::delay(500);           // TODO: make async
+            pros::delay(500);           // can probably decrease this to like 50
             step_conveyor();
             break;
     }
 }
 
+/// @brief SHOULD NOT BE USED ANYMORE. Calibration number has been found (conveyor_loop_period = 854.4) this function doesnt need to be used anymore
+/// Finds the calibration value for the motor distance between conveyor hooks.
 void calibrate_conveyor(){
-    double conveyor_loop_periods_sense = _calibrate_at_voltage(40);
+    double conveyor_loop_periods_sense = _calibrate_at_voltage(30);
 
     conveyor_go_home(40,conveyor_loop_periods_sense);
     pros::delay(100);
@@ -199,6 +224,8 @@ void calibrate_conveyor(){
     pros::delay(5);
 }
 
+/// @brief Place in the main loop code for ring intake, should be run repeatedly when trying to pickup a ring.
+/// Will automatically store any detected rings and take its colour reading
 void check_for_ring(){
     conveyor_optical.set_led_pwm(100);
     bool detected_ring = detect_ring();
@@ -223,3 +250,7 @@ void check_for_ring(){
     }
 }
 
+/// @brief Homes the conveyor to a known location and then prepare for intake
+void conveyor_init(){
+    conveyor_go_to_step(3);
+}

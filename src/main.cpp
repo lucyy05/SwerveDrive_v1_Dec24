@@ -765,6 +765,8 @@ void initialize(){
     left_rotation_sensor.set_position(0);
     right_rotation_sensor.set_position(0);
 
+    conveyor_init();
+
     //defaultSlamValue = slam_dunk.get_value();
 
     pros::Task move_base(moveBase);
@@ -788,13 +790,13 @@ void opcontrol(){
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
             // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
             // conveyor.move(110); 
-            step_conveyor();
-
+            step_conveyor();                    // conveyor code go to next step ()
             } 
         else if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
             // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
             // conveyor.move(-110);
-            calibrate_conveyor();
+            //calibrate_conveyor();
+            conveyor_go_to_step(2, true);       // always score, ignore colour detection
             }
         else { 
             //pros::lcd::print(0, "CONVEYOR STOPPED\n");
@@ -811,7 +813,7 @@ void opcontrol(){
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
             // detect ring and move conveyor later
             roller.move(-110);
-            check_for_ring();
+            check_for_ring();           // IMPT for conveyor code
         } 
         else {
             roller.move(0);
