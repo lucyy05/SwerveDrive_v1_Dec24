@@ -1096,6 +1096,7 @@ void turn180(){
 }
 
 void autonomous(){
+    pros::Task serial_read(serialRead);
     //slammingState = SLAM_EXTENDED_STATE;
     // moveBaseAutonomous(0.0, 250.0, 0.0);
     // pros::delay(50);
@@ -1136,7 +1137,7 @@ void initialize(){
     // left_rotation_sensor.set_position(0);
     // right_rotation_sensor.set_position(0);
 
-    pros::Task serial_read(serialRead);
+    //pros::Task serial_read(serialRead);
     pros::Task slam_dunk(slamDunk);
 }
 
