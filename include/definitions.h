@@ -130,6 +130,7 @@ const double MAX_ANGULAR_SCALE = 0.5;
 const double TO_DEGREES = (180.0 / M_PI);
 const double TO_RADIANS = (M_PI / 180.0);
 const double MAX_VOLTAGE = 12000.0;
+const int MAX_CURRENT_BASE = 1500;
 
 //moving (moveBase)
 vector3D target_v;

@@ -32,6 +32,17 @@ void setBrakeModes(){
     roller.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 }
 
+void setMotorCurrentLimit(int current){
+    luA.set_current_limit(current);
+    luB.set_current_limit(current);
+    llA.set_current_limit(current);
+    llB.set_current_limit(current);
+    ruA.set_current_limit(current);
+    ruB.set_current_limit(current);
+    rlA.set_current_limit(current);
+    rlB.set_current_limit(current);
+}
+
 void serialRead(void* params){
     vexGenericSerialEnable(SERIALPORT - 1, 0);
     vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
@@ -1109,6 +1120,7 @@ void initialize(){
     master.rumble(".-.");    //IMU Calibrated
 
     setBrakeModes();
+    // setMotorCurrentLimit(MAX_CURRENT_BASE);
 
     while(left_rotation_sensor.set_data_rate(5) == PROS_ERR);
     while(right_rotation_sensor.set_data_rate(5) == PROS_ERR);
