@@ -130,6 +130,7 @@ const double MAX_ANGULAR_SCALE = 0.5;
 const double TO_DEGREES = (180.0 / M_PI);
 const double TO_RADIANS = (M_PI / 180.0);
 const double MAX_VOLTAGE = 12000.0;
+const int MAX_CURRENT_BASE = 1500;
 
 //moving (moveBase)
 vector3D target_v;
@@ -156,21 +157,21 @@ const double angle_kD_right = 7000.0;
 
 const double velocity_kP = 0.0020;   //swerve wheel rotation velocity for driver
 const double velocity_kI = 0.0;     //tune for translate
-const double velocity_kD = 200.0;
+const double velocity_kD = 150.0;
 
 const double distance_kP = 50.0; //swerve wheel rotation distance
 const double distance_kI = 0.0;
 const double distance_kD = 500.0;
 
-const double azim_kP = 0.10; //azimuth, for correcting rotation //.16
+const double azim_kP = 0.03; //azimuth, for correcting rotation //.16
 const double azim_kI = 0.0;    //drunk
-const double azim_kD = 240000.0;    //168000
+const double azim_kD = 10.0;    //168000
 
-const double ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
+const double ANGULAR_THRESH = 0.0; // Threshold under which to ignore angular error
 
-const double r_kF = 0.3;   //feedforward compensation for rotation //flick
-const double r_kF_STATIC = 0.0; //FF STATIC for rotation
-const double v_kF = 0.3;    //feedforward compensation for translation
+const double r_kF = 0.0;   //feedforward compensation for rotation //flick
+const double r_kF_STATIC = 0.7; //FF STATIC for rotation
+const double v_kF = 0.4;    //feedforward compensation for translation
 const double scale = 25.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
 
