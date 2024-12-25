@@ -1,5 +1,6 @@
 #include "definitions.h"
 #include "api.h"
+#define DISABLE_CONVEYOR_LCD_PRINTS
 
 bool override_ignore_colour = false;
 bool is_we_blue_alliance = true;            // are we blue and should therefore score blue
@@ -33,11 +34,19 @@ CONVEYOR TODO:
 // #====# conveyor util functions
 
 int same_colour(){      // maybe like x0.7 the red
+
+    #ifndef DISABLE_CONVEYOR_LCD_PRINTS
     pros::c::optical_rgb_s_t detected_colour = conveyor_optical.get_rgb();
+    #endif
+
     //red ring: 360, 167, 135  /  blue ring: 120, 178, 256
     double r = detected_colour.red * 0.7, g = detected_colour.green, b = detected_colour.blue;
     bool is_valid = fabs(b-r) > 50;        // needs quite a big difference in color to count
+
+    #ifndef DISABLE_CONVEYOR_LCD_PRINTS
     pros::lcd::print(7, "c: %.1f/%.1f/%.1f: %s", r, g, b, !is_valid ? "not sure" : ((b > r) ? "blue" : "red"));
+    #endif
+
     if(!is_valid) return -1;
     return ((b > r) ? 1 : 0);        // check if its blue and compare if we are blue
 }
@@ -73,7 +82,9 @@ double _calibrate_at_voltage(int voltage){
 	conveyor_go_home_by_sensor(voltage);
 	double ori_pos = conveyor.get_position();   // identify overshoot, if any
 	pros::delay(500);
+    #ifndef DISABLE_CONVEYOR_LCD_PRINTS
 	pros::lcd::print(2,"ori_pos: %f", ori_pos);
+    #endif
 	pros::delay(5);
 
 	// find motor distance to next hook
@@ -83,7 +94,9 @@ double _calibrate_at_voltage(int voltage){
 	conveyor.brake();
 	double stepped_pos = conveyor.get_position();
 	pros::delay(500);
+    #ifndef DISABLE_CONVEYOR_LCD_PRINTS
 	pros::lcd::print(3,"stepped_pos: %f", stepped_pos);
+    #endif
 	pros::delay(5);
 
 	return stepped_pos - ori_pos;
@@ -100,15 +113,19 @@ bool conveyor_go_to_absolute(double percentage_position, int voltage){
     bound_conveyor_position(conveyor_loop_period);
     double as_encoder_pos = percentage_position * conveyor_loop_period;
     double conveyor_goal = ((conveyor.get_position() > as_encoder_pos) ? conveyor_loop_period : 0) + as_encoder_pos;
-    
+
+    #ifndef DISABLE_CONVEYOR_LCD_PRINTS
     pros::lcd::print(4, "goal: %.2f, cur: %.2f", conveyor_goal, conveyor.get_position());
+    #endif
     pros::delay(3);
 
 	conveyor.move(voltage);
     bool conveyor_timed_out = false;
     uint32_t start_time = pros::millis();
 	while(conveyor.get_position() < conveyor_goal){
+        #ifndef DISABLE_CONVEYOR_LCD_PRINTS
         pros::lcd::print(4, "goal: %.0f, cur: %.0f t: %d", conveyor_goal, conveyor.get_position(), 1500 - pros::millis() + start_time);
+        #endif
         pros::delay(4);
         if(pros::millis() - start_time > 1500){
             conveyor_timed_out = true;
@@ -116,11 +133,15 @@ bool conveyor_go_to_absolute(double percentage_position, int voltage){
         }
     }
     if(conveyor_timed_out){
-        pros::lcd::print(7, "fuck");
+        #ifndef DISABLE_CONVEYOR_LCD_PRINTS
+        pros::lcd::print(7, "obstacle in the way");
+        #endif
         conveyor.move(-70);
         pros::delay(100);
     }else{
-        pros::lcd::print(7,"okay");
+        #ifndef DISABLE_CONVEYOR_LCD_PRINTS
+        pros::lcd::print(7, "okay");
+        #endif
     }
     conveyor.brake();
     return conveyor_timed_out;
@@ -137,7 +158,9 @@ int conveyor_step = 0;
 /// @brief steps thru the conveyor stages automatically, see conveyor_step brief or conveyor_go_to_step() brief for more info
 void step_conveyor(){
     conveyor_step = (conveyor_step+1) % 4;
+    #ifndef DISABLE_CONVEYOR_LCD_PRINTS
     pros::lcd::print(1, "stp: %d/3, pos: %f", conveyor_step, conveyor.get_position());
+    #endif
     conveyor_go_to_step(conveyor_step);
 }
 
@@ -212,15 +235,21 @@ void calibrate_conveyor(){
     double conveyor_loop_period_senseless = conveyor.get_position();
 
     if(conveyor_optical.get_proximity() > CONVEYOR_THRES_PROX){
+        #ifndef DISABLE_CONVEYOR_LCD_PRINTS
         pros::lcd::print(6, "Conveyor passed %d", conveyor_optical.get_proximity());
+        #endif
         conveyor_loop_period = conveyor_loop_periods_sense;
     }else{
+        #ifndef DISABLE_CONVEYOR_LCD_PRINTS
         pros::lcd::print(6, "Conveyor failed %d", conveyor_optical.get_proximity());
+        #endif
         pros::delay(100);
         calibrate_conveyor();   // try again
         // oh no, the motors might have slipped too fast 
     }
+    #ifndef DISABLE_CONVEYOR_LCD_PRINTS
     pros::lcd::print(0, "C_S: %f, C_SL: %f", conveyor_loop_periods_sense, conveyor_loop_period_senseless);
+    #endif
     pros::delay(5);
 }
 
@@ -229,9 +258,13 @@ void calibrate_conveyor(){
 void check_for_ring(){
     conveyor_optical.set_led_pwm(100);
     bool detected_ring = detect_ring();
+    #ifndef DISABLE_CONVEYOR_LCD_PRINTS
     pros::lcd::print(2,"%s, %s", (!detected_ring_before) ? "true": "false", detected_ring ? "true" : "false");
+    #endif
     if (!detected_ring_before && detect_ring()){
+        #ifndef DISABLE_CONVEYOR_LCD_PRINTS
         pros::lcd::print(3, "entered");
+        #endif
         // advance conveyor to "store"
         roller.brake();
         // pull ring till same_colour says its good
