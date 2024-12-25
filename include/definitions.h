@@ -298,5 +298,5 @@ const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * sc
 bool roller_lifts = false;
 
 //Driver
-bool driver = false;
+bool driver = true;
 bool arcade = false;
