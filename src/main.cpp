@@ -793,57 +793,37 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
     }
 }
 
-void turn180(bool turnleft){
-    // auton_heading_kP = 0.058; //Without Mogo
-    // auton_heading_kI = 0.0;
-    // auton_heading_kD = 0.031;
-    auton_heading_kP = 0.0625; //Full stack
-    auton_heading_kI = 0.0001;
-    auton_heading_kD = 0.31;
-    double heading = 180.0;
-    if(turnleft == true)
-        heading *= -1.0;
-    moveBaseAutonomous(0.0, 0.0, heading);
-}
 
-void turn90(bool turnleft){
-    // auton_heading_kP = 0.09;
-    // auton_heading_kI = 0.0;
-    // auton_heading_kD = 0.05;
-    auton_heading_kP = 0.15;
-    auton_heading_kI = 0.0;
-    auton_heading_kD = 0.125;
-    double heading = 90.0;
-    if(turnleft == true)
-        heading *= -1.0;
-    moveBaseAutonomous(0.0, 0.0, heading);
-}
+void turn(double angle){
+    if (abs(angle) <= 30){
+        auton_heading_kP = 0.3;
+        auton_heading_kI = 0.0;
+        auton_heading_kD = 0.25;
+    }
 
-void turn45(bool turnleft){
-    auton_heading_kP = 0.3;
+    else if (abs(angle) <= 45){
+        auton_heading_kP = 0.3;
     auton_heading_kI = 0.0;
     auton_heading_kD = 0.25;
-    // auton_heading_kP = 0.19;
-    // auton_heading_kI = 0.0;
-    // auton_heading_kD = 20.0;
-    double heading = 45.0;
-    if(turnleft == true)
-        heading *= -1.0;
-    moveBaseAutonomous(0.0, 0.0, heading);
+    }
+
+    else if (abs(angle) <= 90){
+        auton_heading_kP = 0.15;
+        auton_heading_kI = 0.0;
+        auton_heading_kD = 0.125;
+    }
+
+    else if (abs(angle) <= 180){
+        auton_heading_kP = 0.0625; //Full stack
+        auton_heading_kI = 0.0001;
+        auton_heading_kD = 0.31;
+    }
+
+    if(angle < 0)
+        angle *= -1.0;
+    moveBaseAutonomous(0.0, 0.0, angle);
 }
 
-void turn30(bool turnleft){
-    auton_heading_kP = 0.3;
-    auton_heading_kI = 0.0;
-    auton_heading_kD = 0.25;
-    // auton_heading_kP = 0.19;
-    // auton_heading_kI = 0.0;
-    // auton_heading_kD = 20.0;
-    double heading = 30.0;
-    if(turnleft == true)
-        heading *= -1.0;
-    moveBaseAutonomous(0.0, 0.0, heading);
-}
 
 void mobilegoalopen(){
     solenoid.set_value(1);
@@ -855,6 +835,28 @@ void mobilegoalclose(){
     solenoid.set_value(0);
     pros::Task::delay(110);
     mobilegoal_bot.set_value(1);
+}
+
+void auton_test(){
+    // grabs mogo
+    turn(180);
+
+    // score 1st blue ring
+    conveyor_go_to_step(3);
+
+    // collect & store red and blue rings
+    conveyor_go_to_step(1);
+
+    // put mogo in own zone
+    double targetX = 0.0;
+    double targetY = 0.0;
+    double target_heading = 0.0;
+
+    // Move to collect new mogo
+    moveBaseAutonomous(targetX, targetY, target_heading);
+
+    // Eject red stored and score blue ring 
+    conveyor_go_to_step(3);
 }
 
 void autonomous(){
