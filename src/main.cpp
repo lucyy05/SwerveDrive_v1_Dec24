@@ -1068,37 +1068,33 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
 //     }
 // }
 
-void turn90(){
-    // auton_heading_kP = 0.09;
-    // auton_heading_kI = 0.0;
-    // auton_heading_kD = 0.05;
-    auton_heading_kP = 0.15;
-    auton_heading_kI = 0.0;
-    auton_heading_kD = 0.125;
-    moveBaseAutonomous(0.0, 0.0, 90.0);
-}
+void turn(double angle){
+    if (angle <= 90){
+        auton_heading_kP = 0.15;
+        auton_heading_kI = 0.0;
+        auton_heading_kD = 0.125;
+    }
 
-void turn45(){
-    auton_heading_kP = 0.3;
-    auton_heading_kI = 0.0;
-    auton_heading_kD = 0.25;
-    // auton_heading_kP = 0.19;
-    // auton_heading_kI = 0.0;
-    // auton_heading_kD = 20.0;
-    moveBaseAutonomous(0.0, 0.0, 45.0);
-}
+    if (angle <= 45){
+        auton_heading_kP = 0.3;
+        auton_heading_kI = 0.0;
+        auton_heading_kD = 0.25;
+        // auton_heading_kP = 0.19;
+        // auton_heading_kI = 0.0;
+        // auton_heading_kD = 20.0;
+    }
 
-void turn180(){
-    // ORIGINAL VALUES
-    auton_heading_kP = 0.058; //Without Mogo
-    auton_heading_kI = 0.0;
-    auton_heading_kD = 0.031;
-
-   
-    // auton_heading_kP = 0.0625; //Full stack // original value    
-    // auton_heading_kI = 0.0001;
-    // auton_heading_kD = 0.31;
-    moveBaseAutonomous(0.0, 0.0, 180.0);
+    if (angle <= 180){
+        auton_heading_kP = 0.058; //Without Mogo
+        auton_heading_kI = 0.0;
+        auton_heading_kD = 0.031;
+    
+        // auton_heading_kP = 0.0625; //Full stack // original value    
+        // auton_heading_kI = 0.0001;
+        // auton_heading_kD = 0.31;
+    }
+    moveBaseAutonomous(0.0, 0.0, angle);
+    return;
 }
 
 void autonomous(){
@@ -1109,7 +1105,7 @@ void autonomous(){
     // moveBaseAutonomous(0.0, -250.0, 0.0);
     //pros::delay(100);
     // moveBaseAutonomous(0.0, 250.0, 0.0);
-    turn90();
+    turn(90);
     // turn90();
     // turn90();
     // turn90();
@@ -1165,7 +1161,7 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         //if(master.get_digital_new_press(DIGITAL_B)) autonomous();
         if(master.get_digital_new_press(DIGITAL_X)) slam_dunk_actuated = !slam_dunk_actuated;
         
-        turn180();
+        turn(180);
 
         if(master.get_digital(DIGITAL_B)) brake();
         
