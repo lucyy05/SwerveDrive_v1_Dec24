@@ -791,18 +791,18 @@ void opcontrol(){
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
             // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
             // conveyor.move(110); 
-            step_conveyor();                    // conveyor code go to next step ()
+            //step_conveyor();                    // conveyor code go to next step ()
             } 
         else if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
             // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
             // conveyor.move(-110);
             //calibrate_conveyor();
-            conveyor_go_to_step(2, true);       // always score, ignore colour detection
+            //conveyor_go_to_step(2, true);       // always score, ignore colour detection
             }
         else { 
             //pros::lcd::print(0, "CONVEYOR STOPPED\n");
             //pros::lcd::print(0, "CONVEYOR STOPPED\n");
-            conveyor.move(0);
+            //conveyor.move(0);
         }
 
         // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
@@ -833,7 +833,7 @@ void opcontrol(){
         }
 
         //same_colour();
-        pros::lcd::print(0, "ring: %s", is_ring_ours ? "same" : "not same");
-        pros::delay(5);
+        pros::lcd::print(0, "ring: %s, times: %d", is_ring_ours ? "same" : "not same", times_moved);
+        pros::delay(15);
     }
 }

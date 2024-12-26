@@ -1,10 +1,16 @@
 #include "definitions.h"
 #include "api.h"
-#define DISABLE_CONVEYOR_LCD_PRINTS
+//#define DISABLE_CONVEYOR_LCD_PRINTS
 
 bool override_ignore_colour = false;
 bool is_we_blue_alliance = true;            // are we blue and should therefore score blue
 bool is_ring_ours = false;                  // is the ring the same colour as ours (updates after intake, storage and like 500ms)
+
+/* TODO:
+ - [ ] make multiple intake working
+   - [ ] trim automatically instead of going home to trim
+ - [ ] yeet reliably
+*/
 
 /* CONVEYOR FUNCTION USAGE IN AUTON
  - run conveyor_go_to_step(3) as init to home, good calibration value has been supplied
@@ -42,7 +48,7 @@ int same_colour(){      // maybe like x0.7 the red
     bool is_valid = fabs(b-r) > 50;        // needs quite a big difference in color to count
 
     #ifndef DISABLE_CONVEYOR_LCD_PRINTS
-    pros::lcd::print(7, "c: %.1f/%.1f/%.1f: %s", r, g, b, !is_valid ? "not sure" : ((b > r) ? "blue" : "red"));
+    pros::lcd::print(6, "c: %.1f/%.1f/%.1f: %s", r, g, b, !is_valid ? "not sure" : ((b > r) ? "blue" : "red"));
     #endif
 
     if(!is_valid) return -1;
@@ -107,7 +113,10 @@ void conveyor_go_home(int voltage, double conveyor_loop_dist){
 	while(conveyor.get_position() < conveyor_loop_dist);
     conveyor.brake();
 }
+
+int times_moved = 0;
 bool conveyor_go_to_absolute(double percentage_position, int voltage){
+    times_moved++;
     bound_conveyor_position(conveyor_loop_period);
     double as_encoder_pos = percentage_position * conveyor_loop_period;
     double conveyor_goal = ((conveyor.get_position() > as_encoder_pos) ? conveyor_loop_period : 0) + as_encoder_pos;
@@ -286,7 +295,7 @@ void check_for_ring(){
         pros::lcd::print(3, "entered");
         #endif
         // advance conveyor to "store"
-        roller.brake();
+        //roller.brake();
         // pull ring till same_colour says its good
         int colourResult = align_ring_for_colour();
         // conveyor at "store", now check colour (ONLY IN AUTON)
@@ -302,27 +311,24 @@ void check_for_ring(){
 // ind:0, status of ring at arm. ind:1, status of ring at [store]. ind:2, status of ring at intake ?
 // -2: no ring, -1: not sure what colour, 0: not alliance colour, 1: alliance colour
 bool continue_conveyor = true;
+bool allowed_to_score = true;
 void autoConveyor(){        // "stores" 3 ring, run as task?
     while(continue_conveyor){
         // wait for ring
-        while(!detected_ring_before && detect_ring()){
-            pros::delay(50);    // test
+        if(!detected_ring_before && detect_ring()){
+            // maybe stop intake
+            int colourResult = align_ring_for_colour();
+            conveyor.move(0);
+            detected_ring_before = true;
+            is_ring_ours = (colourResult != 1) ^ is_we_blue_alliance;
+            pros::lcd::print(2,"c: %d, IRO: %s", colourResult, is_ring_ours ? "Yes" : "No");
+            pros::delay(50);
         }
-        // maybe stop intake
-        int colourResult = align_ring_for_colour();
-        switch(colourResult){
-            case 0:
-                conveyor_go_to_yeet();
-                break;
-            case 1:
-                conveyor_go_to_score();
-                break;
-            default:
-                //wtf
-                break;
+        if(allowed_to_score && detected_ring_before){
+            step_conveyor();
+            pros::delay(50);
         }
-
-        pros::delay(15);
+        pros::delay(50);
     }
     continue_conveyor = true;   // lets it start again
 }
@@ -330,7 +336,7 @@ void autoConveyor(){        // "stores" 3 ring, run as task?
 /// @brief Homes the conveyor to a known location and then prepare for intake
 void conveyor_init(){
     conveyor_step = 3;
-    //conveyor_go_to_step(3);
+    conveyor_go_to_step(3);
     conveyor_optical.set_led_pwm(100);
 
 }
