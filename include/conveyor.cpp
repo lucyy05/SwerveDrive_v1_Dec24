@@ -12,6 +12,7 @@ bool auto_trim_with_green = true;
    - [ ] trim automatically instead of going home to trim
    - [/] trim with green instead
  - [/] yeet reliably
+ - [ ] move conveyor backwards accurately
 */
 
 /* CONVEYOR FUNCTION USAGE IN AUTON
@@ -63,6 +64,15 @@ void bound_conveyor_position(double binding_value){
 	}
 }
 
+double bound_conveyor_location(double conveyor_location, double binding_value, bool reverse = false){
+    if(!reverse && conveyor_location >= binding_value){
+        return conveyor_location + binding_value;
+    }
+    if(reverse && conveyor_location <= binding_value){
+        return conveyor_location - binding_value;
+    }
+}
+
 // detects if a ring has been taken by intake, should only when conveyor is at resting position
 bool detect_ring(){
     return conveyor_optical.get_proximity() > 100;   //  might need to change
@@ -72,23 +82,66 @@ bool detect_ring(){
 
 // possible improvement: after detecting hook, move backwards slowly till hook is undetected in case of inertia overshooting 
 /// IMPT: THIS USES THE PROXIMITY SENSOR TO DETECT THE CONVEYOR HOOK AND **WILL NOT WORK WHEN A RING IS BEING TRANSPORTED**
-void conveyor_go_home_by_sensor(int voltage){       
+bool conveyor_go_home_by_sensor(int voltage){       
 	conveyor.move(voltage);
-	while(conveyor_optical.get_proximity() > CONVEYOR_PROX_THRES);       // if detect hook, leave first
-	while(conveyor_optical.get_proximity() < CONVEYOR_PROX_THRES);       // run till detect hook again, home is considered the point where the hook is first detected
+    uint32_t start_time = pros::millis();
+    bool timed_out = false;
+	while(conveyor_optical.get_proximity() > CONVEYOR_PROX_THRES && !timed_out){
+        pros::delay(1);
+        if(pros::millis() > start_time + 2000){
+            timed_out = true;
+            break;
+        }
+    };       // if detect hook, leave first
+	while(conveyor_optical.get_proximity() < CONVEYOR_PROX_THRES && !timed_out){
+        pros::delay(1);
+        if(pros::millis() > start_time + 2000){
+            timed_out = true;
+            break;
+        }
+    };       // run till detect hook again, home is considered the point where the hook is first detected
 	conveyor.brake(); 
 	conveyor.tare_position();
+    if(timed_out){
+        #ifndef DISABLE_CONVEYOR_LCD_PRINTS
+        pros::lcd::print(7, "obstacle in the way");
+        #endif
+        conveyor.move(-70);
+        pros::delay(100);
+    }
+    return timed_out;
 }
 
-void conveyor_go_home_by_sensor_green(int voltage){       
+bool conveyor_go_home_by_sensor_green(int voltage){       
 	conveyor.move(voltage);
-	while(conveyor_optical.get_rgb().green > CONVEYOR_GREEN_THRES){
-        pros::lcd::print(5, "g: %.2f", conveyor_optical.get_rgb().green);
-        pros::delay(5);
-    }       // if detect hook, leave first
-	while(conveyor_optical.get_rgb().green < CONVEYOR_GREEN_THRES);       // run till detect hook again, home is considered the point where the hook is first detected
+	conveyor.move(voltage);
+    uint32_t start_time = pros::millis();
+    bool timed_out = false;
+	while(conveyor_optical.get_rgb().green > CONVEYOR_GREEN_THRES && !timed_out){
+        //pros::lcd::print(3, "g: %.2f", conveyor_optical.get_rgb().green);
+        pros::delay(1);
+        if(pros::millis() > start_time + 2000){
+            timed_out = true;
+            break;
+        }
+    };       // if detect hook, leave first
+	while(conveyor_optical.get_rgb().green < CONVEYOR_GREEN_THRES && !timed_out){
+        pros::delay(1);
+        if(pros::millis() > start_time + 2000){
+            timed_out = true;
+            break;
+        }
+    };       // run till detect hook again, home is considered the point where the hook is first detected
 	conveyor.brake(); 
 	conveyor.tare_position();
+    if(timed_out){
+        #ifndef DISABLE_CONVEYOR_LCD_PRINTS
+        pros::lcd::print(7, "obstacle in the way");
+        #endif
+        conveyor.move(-70);
+        pros::delay(100);
+    }
+    return timed_out;
 }
 
 // #====# sensor-less based movements #====#
@@ -255,11 +308,13 @@ void conveyor_go_to_step(int input_conveyor_step, bool ignore_colour){
             break;
         }
         case 3:
-            conveyor_step = 3;
-            conveyor_go_home_by_sensor_green(30);     // rehome   (rehomed, now wait to receive)
-            pros::delay(500);           // can probably decrease this to like 50
-            step_conveyor();
-            break;
+            {
+                conveyor_step = 3;
+                bool should_continue = conveyor_go_home_by_sensor_green(30);     // rehome   (rehomed, now wait to receive)
+                pros::delay(500);           // can probably decrease this to like 50
+                if (should_continue) step_conveyor();
+                break;
+            }
     }
 }
 
@@ -341,7 +396,9 @@ void autoConveyor(){        // "stores" 3 ring, run as task?
             conveyor.move(0);
             detected_ring_before = true;
             is_ring_ours = (colourResult != 1) ^ is_we_blue_alliance;
+            #ifndef DISABLE_CONVEYOR_LCD_PRINTS
             pros::lcd::print(2,"c: %d, IRO: %s", colourResult, is_ring_ours ? "Yes" : "No");
+            #endif
             pros::delay(50);
         }
         if(allowed_to_score && detected_ring_before){

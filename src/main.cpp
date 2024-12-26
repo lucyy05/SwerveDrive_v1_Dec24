@@ -833,7 +833,9 @@ void opcontrol(){
         }
 
         //same_colour();
-        pros::lcd::print(0, "ring: %s, times: %d", is_ring_ours ? "same" : "not same", times_moved);
+        //pros::lcd::print(0, "ring: %s, times: %d", is_ring_ours ? "same" : "not same", times_moved);
+        pros::lcd::print(3, "g: %.2f", conveyor_optical.get_rgb().green);
+        
         pros::delay(15);
     }
 }
