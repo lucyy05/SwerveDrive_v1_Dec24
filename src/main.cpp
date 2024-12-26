@@ -873,7 +873,7 @@ void autonomous(){
         pros::Task serial_task(serialRead, (void*)"serial", 1,
                     TASK_STACK_DEPTH_DEFAULT, "Serial read task");
         serial_task_enabled = true;
-        pros::delay(20);
+        pros::delay(15);
     }
     // mobilegoalopen();
     // roller.move(-110);
@@ -891,7 +891,13 @@ void autonomous(){
     // turn180(false);
     // conveyor.move(110);
     // moveBaseAutonomous(300.0, 0.0, 0.0);
+
     moveBaseAutonomous(-100.0, 0.0, 0.0);
+    moveBaseAutonomous(100.0, 0.0, 0.0);
+    moveBaseAutonomous(-100.0, 0.0, 0.0);
+    moveBaseAutonomous(100.0, 0.0, 0.0);
+    moveBaseAutonomous(-100.0, 0.0, 0.0);
+    moveBaseAutonomous(100.0, 0.0, 0.0);
 
     //moveBaseAutonomous(0.0, 300.0, 0.0);
     // pros::delay(500);
