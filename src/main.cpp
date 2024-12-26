@@ -1097,6 +1097,10 @@ void turn(double angle){
     return;
 }
 
+void auton_test(){
+    conveyor_go_to_step()
+}
+
 void autonomous(){
     pros::Task serial_read(serialRead);
     //slammingState = SLAM_EXTENDED_STATE;
