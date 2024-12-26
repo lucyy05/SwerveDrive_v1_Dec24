@@ -2,14 +2,16 @@
 #include "api.h"
 //#define DISABLE_CONVEYOR_LCD_PRINTS
 
-bool override_ignore_colour = false;
+bool override_ignore_colour = true;
 bool is_we_blue_alliance = true;            // are we blue and should therefore score blue
 bool is_ring_ours = false;                  // is the ring the same colour as ours (updates after intake, storage and like 500ms)
+bool auto_trim_with_green = true;
 
 /* TODO:
  - [ ] make multiple intake working
    - [ ] trim automatically instead of going home to trim
- - [ ] yeet reliably
+   - [/] trim with green instead
+ - [/] yeet reliably
 */
 
 /* CONVEYOR FUNCTION USAGE IN AUTON
@@ -34,7 +36,7 @@ CONVEYOR TODO:
  - [/] implement conveyor colour detection
  - [/] figure out how to put the conveyor functions in another file for organisation 
  - [~] fix bugs
- - [ ] colour reliability
+ - [~] colour reliability
 */
 
 // #====# conveyor util functions
@@ -72,12 +74,22 @@ bool detect_ring(){
 /// IMPT: THIS USES THE PROXIMITY SENSOR TO DETECT THE CONVEYOR HOOK AND **WILL NOT WORK WHEN A RING IS BEING TRANSPORTED**
 void conveyor_go_home_by_sensor(int voltage){       
 	conveyor.move(voltage);
-	while(conveyor_optical.get_proximity() > CONVEYOR_THRES_PROX);       // if detect hook, leave first
-	while(conveyor_optical.get_proximity() < CONVEYOR_THRES_PROX);       // run till detect hook again, home is considered the point where the hook is first detected
+	while(conveyor_optical.get_proximity() > CONVEYOR_PROX_THRES);       // if detect hook, leave first
+	while(conveyor_optical.get_proximity() < CONVEYOR_PROX_THRES);       // run till detect hook again, home is considered the point where the hook is first detected
 	conveyor.brake(); 
 	conveyor.tare_position();
 }
 
+void conveyor_go_home_by_sensor_green(int voltage){       
+	conveyor.move(voltage);
+	while(conveyor_optical.get_rgb().green > CONVEYOR_GREEN_THRES){
+        pros::lcd::print(5, "g: %.2f", conveyor_optical.get_rgb().green);
+        pros::delay(5);
+    }       // if detect hook, leave first
+	while(conveyor_optical.get_rgb().green < CONVEYOR_GREEN_THRES);       // run till detect hook again, home is considered the point where the hook is first detected
+	conveyor.brake(); 
+	conveyor.tare_position();
+}
 
 // #====# sensor-less based movements #====#
 
@@ -93,8 +105,8 @@ double _calibrate_at_voltage(int voltage){
 
 	// find motor distance to next hook
 	conveyor.move(voltage);
-	while(conveyor_optical.get_proximity() > CONVEYOR_THRES_PROX);
-	while(conveyor_optical.get_proximity() < CONVEYOR_THRES_PROX);
+	while(conveyor_optical.get_proximity() > CONVEYOR_PROX_THRES);
+	while(conveyor_optical.get_proximity() < CONVEYOR_PROX_THRES);
 	conveyor.brake();
 	double stepped_pos = conveyor.get_position();
 	pros::delay(500);
@@ -180,14 +192,22 @@ bool conveyor_go_to_store(){
     return conveyor_go_to_absolute(0.48, 50);
 }
 bool conveyor_go_to_score(){
-    return conveyor_go_to_absolute(0.98, 110);
+    return conveyor_go_to_absolute(0.99, 110);
 }
 bool conveyor_go_to_yeet(){
-    bool ret = conveyor_go_to_absolute(0.84, 127);      // launch out
+    bool ret = conveyor_go_to_absolute(0.78, 127);      // launch out
     conveyor.move(-70);
-    pros::delay(100);
+    pros::delay(60);
     conveyor.brake();
     return ret;
+}
+// get to 7cm reliably
+bool conveyor_score_aliance(){
+    conveyor.move(-70);
+    pros::delay(180);
+    conveyor.brake();
+    pros::delay(30);
+    return conveyor_go_to_score();
 }
 /**
 	 * Used to move the conveyor to stage of the scoring process: rest, store, score, (home)
@@ -236,7 +256,7 @@ void conveyor_go_to_step(int input_conveyor_step, bool ignore_colour){
         }
         case 3:
             conveyor_step = 3;
-            conveyor_go_home_by_sensor(30);     // rehome   (rehomed, now wait to receive)
+            conveyor_go_home_by_sensor_green(30);     // rehome   (rehomed, now wait to receive)
             pros::delay(500);           // can probably decrease this to like 50
             step_conveyor();
             break;
@@ -253,7 +273,7 @@ void calibrate_conveyor(){
     
     double conveyor_loop_period_senseless = conveyor.get_position();
 
-    if(conveyor_optical.get_proximity() > CONVEYOR_THRES_PROX){
+    if(conveyor_optical.get_proximity() > CONVEYOR_PROX_THRES){
         #ifndef DISABLE_CONVEYOR_LCD_PRINTS
         pros::lcd::print(6, "Conveyor passed %d", conveyor_optical.get_proximity());
         #endif
@@ -335,8 +355,8 @@ void autoConveyor(){        // "stores" 3 ring, run as task?
 
 /// @brief Homes the conveyor to a known location and then prepare for intake
 void conveyor_init(){
+    conveyor_optical.set_led_pwm(100);
     conveyor_step = 3;
     conveyor_go_to_step(3);
-    conveyor_optical.set_led_pwm(100);
 
 }

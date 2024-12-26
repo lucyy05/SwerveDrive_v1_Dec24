@@ -772,7 +772,7 @@ void initialize(){
     pros::Task move_base(moveBase);
     pros::Task slam_dunk(slamDunk);
     pros::Task serial_read(serialRead);
-    pros::Task auto_conveyor(autoConveyor);
+    //pros::Task auto_conveyor(autoConveyor);
 }
 
 
@@ -791,11 +791,11 @@ void opcontrol(){
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
             // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
             // conveyor.move(110); 
-            //step_conveyor();                    // conveyor code go to next step ()
+            step_conveyor();                    // conveyor code go to next step ()
             } 
         else if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
             // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
-            // conveyor.move(-110);
+            conveyor_score_aliance();
             //calibrate_conveyor();
             //conveyor_go_to_step(2, true);       // always score, ignore colour detection
             }
