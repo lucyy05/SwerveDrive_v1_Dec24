@@ -725,6 +725,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
             reverse_right = true;
         } 
 
+        //in RPM
         v_right_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_right*current_right_vector);    //dot product should already
         v_left_velocity = SPEED_TO_RPM* TRANSLATE_RATIO*(v_left*current_left_vector);       //compensate angle drift?
 
@@ -753,13 +754,14 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         } 
 
         //calculate the wheel error 
-        current_l_tl_error = (v_left_velocity-current_l_velocity); 
-        current_r_tl_error = (v_right_velocity-current_r_velocity); 
+        current_l_tl_error = std::clamp((v_left_velocity-current_l_velocity),-MAX_RPM*2.0, MAX_RPM*2.0); 
+        current_r_tl_error = std::clamp((v_right_velocity-current_r_velocity),-MAX_RPM*2.0, MAX_RPM*2.0); 
         //pros::lcd::print(1,"%.1lf", current_l_tl_error);
 
         // velocity pid: based on the rate of change of velocity, pid updates the power the wheels 
-        l_velocity_pid += left_velocity_PID.step(current_l_tl_error); 
-        r_velocity_pid += right_velocity_PID.step(current_r_tl_error); 
+        l_velocity_pid += std::clamp(left_velocity_PID.step(current_l_tl_error), -MAX_VOLTAGE, MAX_VOLTAGE); 
+        r_velocity_pid += std::clamp(right_velocity_PID.step(current_r_tl_error), -MAX_VOLTAGE, MAX_VOLTAGE); 
+
 
         // angle pid: based on error, pid updates the power to the wheels 
         l_angle_pid = left_angle_PID.step(l_error); //power to force anticlockwise aiming
@@ -857,26 +859,26 @@ void mobilegoalclose(){
 void autonomous(){
     // pros::Task serial_task(serialRead, (void*)"serial", 1, //Uncomment for actual match
     //                 TASK_STACK_DEPTH_DEFAULT, "Serial read task");
-    if(serial_task_enabled == false){ //Test code, remove for actual match code
-        pros::Task serial_task(serialRead, (void*)"serial", 1,
-                    TASK_STACK_DEPTH_DEFAULT, "Serial read task");
-        serial_task_enabled = true;
-        pros::delay(15);
-    }
-    moveBaseAutonomous(-300.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, 300.0, 0.0);
-    moveBaseAutonomous(300.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, -300.0, 0.0);
-    moveBaseAutonomous(-300.0, 0.0, 0.0);
-    moveBaseAutonomous(300.0, 0.0, 0.0);
+    // if(serial_task_enabled == false){ //Test code, remove for actual match code
+    //     pros::Task serial_task(serialRead, (void*)"serial", 1,
+    //                 TASK_STACK_DEPTH_DEFAULT, "Serial read task");
+    //     serial_task_enabled = true;
+    //     pros::delay(15);
+    // }
+    // moveBaseAutonomous(-300.0, 0.0, 0.0);
+    // moveBaseAutonomous(0.0, 300.0, 0.0);
+    // moveBaseAutonomous(300.0, 0.0, 0.0);
+    // moveBaseAutonomous(0.0, -300.0, 0.0);
+    // moveBaseAutonomous(-300.0, 0.0, 0.0);
+    // moveBaseAutonomous(300.0, 0.0, 0.0);
     // serial_task.suspend(); //Uncomment for actual match
 }
 
 void initialize(){
     pros::lcd::initialize();
-    //while(!imu.reset(true)&&!imu2.reset(true));
-    vexGenericSerialEnable(SERIALPORT - 1, 0);
-    vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
+    // //while(!imu.reset(true)&&!imu2.reset(true));
+    // vexGenericSerialEnable(SERIALPORT - 1, 0);
+    // vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
     pros::delay(10);
 
     while(imu.reset(true) == PROS_ERR);
