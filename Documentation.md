@@ -203,9 +203,11 @@ Purpose:
 
 - uses a PID-like method to calculate motor power and move the arm to different positions based on the slammingState
 
-NOTE
+NOTE<br>
 SLAM_START_STATE – Resting position.
+
 SLAM_MID_STATE – Midpoint or holding position.
+
 SLAM_EXTENDED_STATE – Fully extended.
 
 <h2>void moveBaseAutonomous(double targetX, double targetY, double target_heading)</h2>
