@@ -164,7 +164,22 @@ void step_conveyor(){
 
 bool detected_ring_before = false;
 
-
+bool conveyor_go_to_rest(){
+    return conveyor_go_to_absolute(0.55, 50);
+}
+bool conveyor_go_to_store(){
+    return conveyor_go_to_absolute(0.48, 50);
+}
+bool conveyor_go_to_score(){
+    return conveyor_go_to_absolute(0.98, 110);
+}
+bool conveyor_go_to_yeet(){
+    bool ret = conveyor_go_to_absolute(0.84, 127);      // launch out
+    conveyor.move(-70);
+    pros::delay(100);
+    conveyor.brake();
+    return ret;
+}
 /**
 	 * Used to move the conveyor to stage of the scoring process: rest, store, score, (home)
 	 * 
@@ -188,23 +203,20 @@ void conveyor_go_to_step(int input_conveyor_step, bool ignore_colour){
     switch(input_conveyor_step){
         case 0:         // go to rest     (allowed to receive)
             conveyor_step = 0;
-            conveyor_go_to_absolute(0.55, 50);
+            conveyor_go_to_rest();
             break;
         case 1:         // store       (waiting to score)
             conveyor_step = 1;
-            conveyor_go_to_absolute(0.48, 50);
+            conveyor_go_to_store();
             break;
         case 2:         // score (or reject)
         {
             conveyor_step = 2;
             bool should_continue = false;
             if (is_ring_ours||ignore_colour)
-                should_continue = !conveyor_go_to_absolute(0.98, 110);     // Score     (score, now rehome)
+                should_continue = !conveyor_go_to_score();     // Score     (score, now rehome)
             else {
-                should_continue = !conveyor_go_to_absolute(0.84, 127);      // launch out
-                conveyor.move(-70);
-                pros::delay(100);
-                conveyor.brake();
+                should_continue = !conveyor_go_to_yeet();      // remove
             }
             // reset variables
             is_ring_ours = false;
@@ -273,10 +285,64 @@ void check_for_ring(){
         }
         conveyor.brake();
         // conveyor at "store", now check colour (ONLY IN AUTON)
-        conveyor_step = 1;
+
+
         //conveyor_optical.set_led_pwm(0);
         detected_ring_before = true;
         is_ring_ours = (colourResult != 1) ^ is_we_blue_alliance;
+    }
+}
+
+/// The auton task method functions
+
+// ind:0, status of ring at arm. ind:1, status of ring at [store]. ind:2, status of ring at intake ?
+// -2: no ring, -1: not sure what colour, 0: not alliance colour, 1: alliance colour
+int curr_rings_stored[3] = {-2, -2, -2}; 
+void check_ring_for_neutral_stake(){        // "stores" 3 ring, run as task?
+    int number_of_rings_stored = 0;
+    while(1){
+        // start roller 
+        roller.move(-110);
+
+        if(number_of_rings_stored == 0){        // if no rings, immediately store
+            // wait till ring is detected
+            while(!detect_ring()){      // wait till ring detected
+                pros::delay(50);
+            }
+            // ring is now detected, align ring to colour sensor
+            roller.brake();
+            int colourResult = -1;
+            conveyor_go_to_step(1);     // get to initial pos
+            conveyor.move(40);          // slowly get there
+            while(colourResult == -1){      // wait till good reading
+                pros::delay(5);
+                colourResult = same_colour();
+            }
+            conveyor.brake();           // now got good reading
+
+            get_rid_of_non_alliance();      // might not wanna get rid yet
+
+            // store
+            curr_rings_stored[1] = colourResult;        // remember what colour the ring stored is
+            number_of_rings_stored = 1;
+
+
+        }else if(number_of_rings_stored == 1){
+
+        }
+
+        pros::delay(15);
+    }
+}
+
+void get_rid_of_non_alliance(){
+    // move arm away from yeet
+    // ...
+    if(curr_rings_stored[1] == 0){      // if ring at [store] is not ours
+        // yeet, return home, 
+        conveyor_go_to_yeet();
+        pros::delay(15);
+        conveyor_go_to_step(3);
     }
 }
 
