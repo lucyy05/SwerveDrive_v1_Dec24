@@ -833,7 +833,7 @@ void initialize(){
     while(imu.set_data_rate(5) == PROS_ERR);
 
     pros::delay(100);
-    master.rumble(" . . .");    //IMU Calibrated
+    master.rumble(". .");    //IMU Calibrated
 
     setBrakeModes();
 
