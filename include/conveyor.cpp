@@ -35,10 +35,8 @@ CONVEYOR TODO:
 
 int same_colour(){      // maybe like x0.7 the red
 
-    #ifndef DISABLE_CONVEYOR_LCD_PRINTS
     pros::c::optical_rgb_s_t detected_colour = conveyor_optical.get_rgb();
-    #endif
-
+    
     //red ring: 360, 167, 135  /  blue ring: 120, 178, 256
     double r = detected_colour.red * 0.7, g = detected_colour.green, b = detected_colour.blue;
     bool is_valid = fabs(b-r) > 50;        // needs quite a big difference in color to count
@@ -147,7 +145,7 @@ bool conveyor_go_to_absolute(double percentage_position, int voltage){
     return conveyor_timed_out;
 }
 
-void conveyor_go_to_step(int conveyor_step);  // prototype
+void conveyor_go_to_step(int input_conveyor_step, bool ignore_colour = false);  // prototype
 /* conveyor_step variable - state machine's state / position
  0 - resting (right below the intersection of intake and conveyor)
  1 - store (middle of conveyor, possible to store another ring at intersection)
@@ -186,7 +184,7 @@ bool detected_ring_before = false;
      *               When [score]ing, determines if it should not take colour into account
      *               When false, and ring does not match our colour (determined by is_we_blue_alliance), the rejection sequence is ran that will **not** score the ring. This behaviour is disabled when ignore_colour = true.
 	 */
-void conveyor_go_to_step(int input_conveyor_step, bool ignore_colour = false){
+void conveyor_go_to_step(int input_conveyor_step, bool ignore_colour){
     switch(input_conveyor_step){
         case 0:         // go to rest     (allowed to receive)
             conveyor_step = 0;
@@ -256,7 +254,6 @@ void calibrate_conveyor(){
 /// @brief Place in the main loop code for ring intake, should be run repeatedly when trying to pickup a ring.
 /// Will automatically store any detected rings and take its colour reading
 void check_for_ring(){
-    conveyor_optical.set_led_pwm(100);
     bool detected_ring = detect_ring();
     #ifndef DISABLE_CONVEYOR_LCD_PRINTS
     pros::lcd::print(2,"%s, %s", (!detected_ring_before) ? "true": "false", detected_ring ? "true" : "false");
@@ -286,4 +283,6 @@ void check_for_ring(){
 /// @brief Homes the conveyor to a known location and then prepare for intake
 void conveyor_init(){
     conveyor_go_to_step(3);
+    conveyor_optical.set_led_pwm(100);
+
 }
