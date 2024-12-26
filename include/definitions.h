@@ -163,17 +163,23 @@ const double distance_kP = 50.0; //swerve wheel rotation distance
 const double distance_kI = 0.0;
 const double distance_kD = 500.0;
 
-const double azim_kP = 0.03; //azimuth, for correcting rotation //.16
+const double azim_kP = 0.05; //azimuth, for correcting rotation //.16
 const double azim_kI = 0.0;    //drunk
 const double azim_kD = 10.0;    //168000
 
 const double ANGULAR_THRESH = 0.0; // Threshold under which to ignore angular error
 
-const double r_kF = 0.0;   //feedforward compensation for rotation //flick
+const double r_kF = 0.2;   //feedforward compensation for rotation //flick
 const double r_kF_STATIC = 0.7; //FF STATIC for rotation
-const double v_kF = 0.4;    //feedforward compensation for translation
+const double v_kF = 0.3;    //feedforward compensation for translation
 const double scale = 25.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
+
+// const double r_kF = 0.0;   //feedforward compensation for rotation //flick
+// const double r_kF_STATIC = 0.7; //FF STATIC for rotation
+// const double v_kF = 0.4;    //feedforward compensation for translation
+// const double scale = 25.0;
+// const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
 
 /* Driver constants END */
 
@@ -187,11 +193,11 @@ const double auton_angle_kP_right = 45.0;
 const double auton_angle_kI_right = 0.0;
 const double auton_angle_kD_right = 5000.0;
 
-const double auton_l_velocity_kP = 0.05;   //swerve wheel rotation velocity for auton
+const double auton_l_velocity_kP = 0.0005;   //swerve wheel rotation velocity for auton
 const double auton_l_velocity_kI = 0.000;     //tune for translate
 const double auton_l_velocity_kD = 0.02;
 
-const double auton_r_velocity_kP = 0.05;   //swerve wheel rotation velocity for auton
+const double auton_r_velocity_kP = 0.00056;   //swerve wheel rotation velocity for auton
 const double auton_r_velocity_kI = 0.000;     //tune for translate
 const double auton_r_velocity_kD = 0.02;
 
@@ -207,11 +213,11 @@ double auton_target_x = 0.0;
 double auton_target_y = 0.0;
 double auton_target_heading = 0.0;
 
-const double auton_azim_kP = 0.03; //azimuth, for correcting rotation
-const double auton_azim_kI = 0.0;    //drunk
-const double auton_azim_kD = 10.0;
+double auton_azim_kP = 0.03; //azimuth, for correcting rotation
+double auton_azim_kI = 0.0;    //drunk
+double auton_azim_kD = 10.0;
 
-const double AUTON_ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
+double AUTON_ANGULAR_THRESH = 0.0; // Threshold under which to ignore angular error
 /* Autonomous constants END */
 
 const double ticks_per_mm = 2.5; //convert mm to ticks
