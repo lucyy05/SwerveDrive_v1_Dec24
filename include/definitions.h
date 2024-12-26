@@ -133,7 +133,8 @@ const double MAX_ANGULAR_SCALE = 0.25;
 const double TO_DEGREES = (180.0 / M_PI);
 const double TO_RADIANS = (M_PI / 180.0);
 const double MAX_VOLTAGE = 12000.0;
-const int MAX_CURRENT_BASE = 2000;
+const int MAX_CURRENT_BASE = 1800;
+const int VOLTAGE_CUTOFF = 2200; // mV
 
 //moving (moveBase)
 vector3D target_v;
@@ -190,17 +191,17 @@ const double auton_angle_kP_right = 45.0;
 const double auton_angle_kI_right = 0.0;
 const double auton_angle_kD_right = 5000.0;
 
-const double auton_l_velocity_kP = 0.05;   //swerve wheel rotation velocity for auton
+const double auton_l_velocity_kP = 0.0005;   //swerve wheel rotation velocity for auton
 const double auton_l_velocity_kI = 0.000;     //tune for translate
 const double auton_l_velocity_kD = 0.02;
 
-const double auton_r_velocity_kP = 0.05;   //swerve wheel rotation velocity for auton
+const double auton_r_velocity_kP = 0.00056;   //swerve wheel rotation velocity for auton
 const double auton_r_velocity_kI = 0.000;     //tune for translate
 const double auton_r_velocity_kD = 0.02;
 
 const double auton_distance_kP = 0.05; //swerve wheel rotation distance
 const double auton_distance_kI = 0.0;
-const double auton_distance_kD = 0.0;
+const double auton_distance_kD = 0.50;
 
 double auton_heading_kP = 0.09; //swerve heading
 double auton_heading_kI = 0.0;
@@ -210,24 +211,11 @@ double auton_target_x = 0.0;
 double auton_target_y = 0.0;
 double auton_target_heading = 0.0;
 
-const double auton_azim_kP = 0.05; //azimuth, for correcting rotation
-const double auton_azim_kI = 0.0;    //drunk
-const double auton_azim_kD = 10.0;
+double auton_azim_kP = 0.03; //azimuth, for correcting rotation
+double auton_azim_kI = 0.0;    //drunk
+double auton_azim_kD = 10.0;
 
-const double AUTON_ANGULAR_THRESH = 0.001; // Threshold under which to ignore angular error
-
-// enum AutonDirections {
-//     NORTH = 0,
-//     SOUTH = 1,
-//     EAST = 2,
-//     WEST = 3,
-//     NORTHEAST = 4,
-//     NORTHWEST = 5,
-//     SOUTHEAST = 6,
-//     SOUTHWEST = 7
-// };
-
-//AutonDirections autonDirection;
+double AUTON_ANGULAR_THRESH = 0.0; // Threshold under which to ignore angular error
 /* Autonomous constants END */
 
 const double ticks_per_mm = 2.5; //convert mm to ticks
@@ -276,6 +264,7 @@ double slam_Kd = 0.1;
 double slam_Ki = 0.0;
 
 //Serial read
+bool serial_task_enabled = false;
 double global_distY = 0.0;
 double global_distX = 0.0;
 double global_errorY = 0.0;
