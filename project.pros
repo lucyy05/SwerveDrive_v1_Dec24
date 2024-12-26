@@ -311,7 +311,7 @@
     "upload_options": {
       "slot": 5,
       "icon": "clawbot",
-      "after": "screen"
+      "after": "none"
     },
     "use_early_access": true
   }
