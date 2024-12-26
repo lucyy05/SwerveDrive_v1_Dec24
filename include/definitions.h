@@ -131,7 +131,7 @@ const double TO_DEGREES = (180.0 / M_PI);
 const double TO_RADIANS = (M_PI / 180.0);
 const double MAX_VOLTAGE = 12000.0;
 const int MAX_CURRENT_BASE = 1500;
-const int VOLTAGE_CUTOFF = 2200; // mV
+const int VOLTAGE_CUTOFF = 2700; // mV
 
 //moving (moveBase)
 vector3D target_v;
