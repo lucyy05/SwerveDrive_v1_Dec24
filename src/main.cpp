@@ -792,6 +792,133 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
     }
 }
 
+void alignWheels(){ 
+
+    double left_angle; 
+    double right_angle; 
+    double left_target_angle; 
+    double right_target_angle; 
+    //vector3D rotational_v_vector; // vector expression for angular velocity -- only has z component 
+
+    vector3D current_left_vector; // direction unit vector for wheels
+    vector3D current_right_vector; 
+
+    double l_error = 0.0; // how far the left and right angles wrt to the their respective target angles 
+    double r_error = 0.0; 
+
+    double l_angle_pid = 0.0; // power diff for angular velocity 
+    double r_angle_pid = 0.0; 
+
+    double lscale = 0; // power scale to adjust the power to the wheels i.e. less power for the wheels if position of the wheels is wrong and vv 
+    double rscale = 0; 
+
+    double current_angular = 0.0; // current angular velocity 
+
+    vector3D current_tl_velocity(0,0,0); //current transaltional velocity
+
+    vector3D prev_target_v(0,0,0);  
+    vector3D prev_target_r(0,0,0); 
+
+
+    double average_x_v = 0; 
+    double average_y_v = 0; 
+
+    uint32_t start_t = pros::millis();
+    uint32_t elapsed_t = pros::millis();
+    bool flag = false;
+    bool loop_flag = true;
+    //voltages
+    int32_t lu = 0; // left upper 
+    int32_t ll = 0; // left lower 
+    int32_t ru = 0; // right upper 
+    int32_t rl = 0; // right lower 
+
+    //PID instances
+    PID left_angle_PID(angle_kP_left, angle_kI_left, angle_kD_left); 
+    PID right_angle_PID(angle_kP_right, angle_kI_right, angle_kD_right); 
+
+    while(loop_flag){ 
+        prev_target_v = target_v; // prev target velocity 
+        prev_target_r = target_r; // prev target rotation 
+
+        target_v = normalizeJoystick(0.0,100.0).scalar(MAX_SPEED); // target velocity 
+        // to be updated: leftX = 0 to remove left and right translations 
+        target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*MAX_ANGULAR_SCALE); // target rotation 
+        // imu1_gyro = imu.get_gyro_rate().z * -1.0 * TO_RADIANS;
+        //imu2_gyro = imu2.get_gyro_rate().z * 1.0 * TO_RADIANS;    
+        left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
+        right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   //Y axis positive is front
+
+        current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);  
+        current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0); 
+
+
+   
+        v_left = target_v; //in order to rotate counterclockwise
+        v_right = target_v; 
+
+        bool reverse_right = false; 
+        bool reverse_left = false; 
+        
+        // check if the angle is obtuse 
+        if (v_left * current_left_vector < 0){   
+            // reverse if angle is obtuse for shorter rotation 
+            v_left = -v_left; 
+            reverse_left = true; 
+        } 
+
+        if (v_right * current_right_vector < 0){   
+            // reverse if angle is obtuse for shorter rotation 
+            v_right = -v_right; 
+            reverse_right = true; 
+        } 
+
+        l_error = angle(v_left, current_left_vector); 
+        r_error = angle(v_right, current_right_vector); 
+        
+        if (std::isnan(l_error) || std::isnan(r_error)) { 
+            l_error = 0.0;
+            r_error = 0.0; 
+        } 
+
+        if(l_error<(0.2*TO_RADIANS)&&r_error<(0.2*TO_RADIANS)){
+            if(!flag){
+                flag = true;
+                start_t = pros::millis();
+            }
+            elapsed_t = pros::millis() - start_t;
+            if(elapsed_t>1000){
+                loop_flag = false;
+            }
+        }
+
+        // angle pid: based on error, pid updates the power to the wheels 
+        l_angle_pid = left_angle_PID.step(l_error); //power to force anticlockwise aiming
+        r_angle_pid = right_angle_PID.step(r_error); 
+
+        // higher base_v: drifts and lower base_v: lags 
+        lscale = scale;// * ((1.0-base_v)*fabs((l_error))+base_v); 
+        rscale = scale;// * ((1.0-base_v)*fabs((r_error))+base_v); 
+        
+        // lu = (int32_t)std::clamp(lscale * (l_velocity_pid + l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); //this side seems less powerful on the robot 
+        // ll = (int32_t)std::clamp(lscale * (l_velocity_pid - l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
+        // ru = (int32_t)std::clamp(rscale * (r_velocity_pid + r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
+        // rl = (int32_t)std::clamp(rscale * (r_velocity_pid - r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
+        
+        lu = (int32_t)lscale * (l_angle_pid); 
+        ll = (int32_t)lscale * (l_angle_pid); 
+        ru = (int32_t)rscale * (r_angle_pid); 
+        rl = (int32_t)rscale * (r_angle_pid); 
+        clampVoltage(MAX_VOLTAGE);
+        limitVoltage(MAX_VOLTAGE);
+
+        std::cout << lu << " : " << ll << " : " << ru << " : " << rl << std::endl; 
+        move_voltage_wheels(lu,ll,ru,rl);
+        pros::delay(2);
+    }
+    return;
+}
+
 void turn180(bool turnleft){
     // auton_heading_kP = 0.058; //Without Mogo
     // auton_heading_kI = 0.0;
@@ -854,6 +981,28 @@ void mobilegoalclose(){
     solenoid.set_value(0);
     pros::Task::delay(110);
     mobilegoal_bot.set_value(1);
+}
+
+void right_robot_auton(){
+    moveBaseAutonomous(0.0,-750.0,0.0);
+    moveBaseAutonomous(300.0,0.0,0.0);
+    
+    moveBaseAutonomous(300.0,0.0,0.0);
+    moveBaseAutonomous(0.0,-60.0,0.0);
+    mobilegoalclose();
+    // start scoring thread
+    moveBaseAutonomous(0.0,900.0,0.0);
+    moveBaseAutonomous(0.0,0.0,-49.7);
+    moveBaseAutonomous(0.0,413.0,0.0);
+    
+    moveBaseAutonomous(0.0,-150.0,0.0);
+    moveBaseAutonomous(0.0,150.0,0.0);
+    moveBaseAutonomous(0.0,-300.0,0.0);
+    mobilegoalopen();
+    //RAISE ARM HERE
+    //STOP SCORING THREAD
+    moveBaseAutonomous(0.0,-1300.0,0.0);
+
 }
 
 void autonomous(){
