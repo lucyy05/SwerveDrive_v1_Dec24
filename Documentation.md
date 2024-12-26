@@ -6,7 +6,8 @@ Parameter: No parameters
 
 Return type: No return value
 
-Purpose: 
+Purpose:
+
 Sets the brake modes for all drive motors and key actuators. Prevents unintended drift and keeps mechanisms in place after movement ends.
 
 E_MOTOR_BRAKE_HOLD – Locks motor position when stopped (for precise holds).
@@ -30,7 +31,12 @@ Parameter: void* params – Generic pointer (not directly used, can pass NULL)
 Return type: No return value
 
 Purpose:
-Tracks robot movement through external sensors(?? need to check with john)
+
+- Reading data from a serial port.
+
+- Parsing the incoming data stream to extract positional information (dist_X, dist_Y).
+
+- Calculating velocities based on the changes in positional data.
 
 <h2>void brake()</h2>
 
@@ -44,8 +50,11 @@ Parameter: No parameters
 
 Return type: No return value
 
-Purpose: 
-Ensure that all motor encoders are synchronized to zero. This prevents drift in encoder readings and maintains the accuracy of distance and positional calculations.
+Purpose:
+
+Ensure that all motor encoders are synchronized to zero. 
+
+This prevents drift in encoder readings and maintains the accuracy of distance and positional calculations.
 
 <h2>void clampVoltage(int32_t VOLTAGE)</h2>
 
@@ -66,8 +75,7 @@ Parameter Range: -12V to 12V
 
 Return type: No return value
 
-Purpose:
-Controls voltage sent to motors
+Purpose: Controls voltage sent to motors
 
 <h2>double wrapAngle(double angle)</h2>
 
@@ -77,8 +85,7 @@ Parameter Range: -inf to +inf
 
 Return type: double, angle wrapped in -180 < angle <= 180
 
-Purpose:
-Forces angle to stay within -180 to 180 degrees
+Purpose: Forces angle to stay within -180 to 180 degrees
 
 <h2>getNormalizedSensorAngle(pros::Rotation &sensor)</h2>
 
@@ -99,9 +106,7 @@ Range: -127 to 127
 int y_in: Joystick input along y-axis
 Range: -127 to 127
 
-Return type:
-vector3D: 2D vector representing the joystick direction and magnitude
-
+Return type: vector3D: 2D vector representing the joystick direction and magnitude
 X and Y components scaled between -1.0 to 1.0
 
 Purpose:
@@ -125,27 +130,37 @@ Purpose:
 <h2>double angle(vector3D v1, vector3D v2)</h2>
 
 Parameters:
+
 vector3D v1: First vector, represents direction/position in 2D/3D space
 
 vector3D v2: Second vector, represents another direction/position
 
-Return type: double -- Angle between 2 vectors (radians)
+<br>Return type: double -- Angle between 2 vectors (radians)
 
 Return range: -pi to pi
 
-Purpose:
+<br>Purpose:
+
 Computes the signed angle between 2 vectors using dot product and determinant.
 
-Dot product: How much 2 vectors "align"
-i.e.
+
+
+<br>Dot product: How much 2 vectors "align"
+
 +ve value: vectors point in the same directions
+
 0: vectors are perpendicular
+
 -ve value: vectors point in opposite directions
 
-Determinant: How much 1 vector "rotates" from another
-i.e.
+
+
+<br>Determinant: How much 1 vector "rotates" from another
+
 +ve value: v2 rotated CCW from v1
+
 0: vectors are collinear
+
 -ve value: v2 rotated CW from v1
 
 atan(y, x)
@@ -213,8 +228,11 @@ SLAM_EXTENDED_STATE – Fully extended.
 <h2>void moveBaseAutonomous(double targetX, double targetY, double target_heading)</h2>
 
 Parameters:
+
 double targetX – Target distance along the X-axis (millimeters)
+
 double targetY – Target distance along the Y-axis (millimeters)
+
 double target_heading – Target rotational heading (degrees)
 
 Return type: No return value
