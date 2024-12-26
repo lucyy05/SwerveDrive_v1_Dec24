@@ -266,6 +266,7 @@ double slam_Kd = 0.1;
 double slam_Ki = 0.0;
 
 //Serial read
+bool serial_task_enabled = false;
 double global_distY = 0.0;
 double global_distX = 0.0;
 double global_errorY = 0.0;

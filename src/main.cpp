@@ -49,9 +49,9 @@ void serialRead(void* params){
     double dist_Y = 0.0;
     double prevDist_x = 0.0;
     double prevDist_y = 0.0;
+    uint8_t buffer[256];
+    int bufLength = 256;
     while(true){
-        uint8_t buffer[256];
-        int bufLength = 256;
         int32_t nRead = vexGenericSerialReceive(SERIALPORT - 1, buffer, bufLength);
         if(nRead >= 0){
             std::stringstream dataStream("");
@@ -67,11 +67,11 @@ void serialRead(void* params){
                     recordOpticalX = false;
                     dataStream >> dist_X;
                     global_distX = dist_X*-10.0;
-                    optical_v_x = fabs((fabs(global_distX) - fabs(prevDist_x))) / 0.002;
+                    //optical_v_x = fabs((fabs(global_distX) - fabs(prevDist_x))) / 0.002;
                     //pros::lcd::print(1, "Optical Flow:");
-                    pros::lcd::print(0, "distX: %.2lf, distY: %.2lf", global_distX, global_distY);
+                    //pros::lcd::print(0, "distX: %.2lf, distY: %.2lf", global_distX, global_distY);
                     dataStream.str(std::string());
-                    std::stringstream dataStream("    ");
+                    //std::stringstream dataStream("");
                     prevDist_x = dist_X*-10.0;
                     //pros::lcd::print(4, "optical v_x: %.2lf", optical_v_x);
                 }
@@ -79,10 +79,10 @@ void serialRead(void* params){
                     recordOpticalY = false;
                     dataStream >> dist_Y;
                     global_distY = dist_Y*-10.0;
-                    optical_v_y = fabs((fabs(global_distY) - fabs(prevDist_y))) / 0.002;
+                    //optical_v_y = fabs((fabs(global_distY) - fabs(prevDist_y))) / 0.002;
                     //pros::lcd::print(3, "distY: %.2lf", global_distY);
                     dataStream.str(std::string());
-                    std::stringstream dataStream("    ");
+                    //std::stringstream dataStream("");
                     prevDist_y = dist_Y*-10.0;
                     //pros::lcd::print(5, "optical v_y: %.2lf", optical_v_y);
                 }
@@ -611,14 +611,17 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
     while(true){
         if(fabs(targetX) > 0.0)
             errorX = fabs(fabs(targetX) - fabs((fabs(global_distX) - offsetX)));
+        if(fabs(targetX) > 0.0 && fabs(errorX) > fabs(targetX))
+            errorX = 0.0;
         if(fabs(targetX) <= 0.0 || fabs(errorX) <= 3.0)
             errorX = 0.0;
         if(fabs(fabs(global_distX) - offsetX) > fabs(targetX))
             errorX = 0.0;
-        master.print(0,0,"%.lf",errorX);
 
         if(fabs(targetY) > 0.0)
             errorY = fabs(fabs(targetY) - fabs((fabs(global_distY) - offsetY)));
+        if(fabs(targetY) > 0.0 && fabs(errorY) > fabs(targetY))
+            errorY = 0.0;
         if(fabs(targetY) <= 0.0 || fabs(errorY) <= 3.0)
             errorY = 0.0;
         if(fabs((fabs(global_distY) - offsetY)) > fabs(targetY))
@@ -630,8 +633,18 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
             errorheading = 0.0;
         if(fabs(errorheading) > fabs(target_heading))
             errorheading = 0.0;
+        if(fabs(target_heading) > 0.0 && fabs(errorheading) > fabs(target_heading))
+            errorheading = 0.0;
+
+        pros::lcd::print(0,"Error_x: %.1lf",errorX);
+        pros::lcd::print(1,"target_x: %.1lf",targetX);
+        pros::lcd::print(2,"Offset_x: %.1lf",offsetX);
+        pros::lcd::print(3,"Optical_x: %.1lf",global_distX);
+        pros::lcd::print(4,"Optical_y: %.1lf",global_distY);
 
         if(fabs(errorX) <= 0.0 && fabs(errorY) <= 0.0 && fabs(errorheading) <= 0.0){
+            //master.print(0,0,"%.lf",fabs(global_distX) - offsetX);
+            pros::lcd::print(5,"End error x: %.lf",errorX);
             move_voltage_wheels(0,0,0,0);
             lu = 0;
             ll = 0;
@@ -854,9 +867,14 @@ void mobilegoalclose(){
 }
 
 void autonomous(){
-    pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
+    // pros::Task serial_task(serialRead, (void*)"serial", 1, //Uncomment for actual match
+    //                 TASK_STACK_DEPTH_DEFAULT, "Serial read task");
+    if(serial_task_enabled == false){ //Test code, remove for actual match code
+        pros::Task serial_task(serialRead, (void*)"serial", 1,
                     TASK_STACK_DEPTH_DEFAULT, "Serial read task");
-    pros::delay(50);
+        serial_task_enabled = true;
+        pros::delay(20);
+    }
     // mobilegoalopen();
     // roller.move(-110);
     // moveBaseAutonomous(0.0, -270.0, 0.0);
@@ -884,8 +902,7 @@ void autonomous(){
     // mobilegoalopen();
     // moveBaseAutonomous(-300.0, 0.0, 0.0);
     //moveBaseAutonomous(-300.0, 0.0, 0.0);
-    //free((void*)"serial");
-    //serial_task.remove();
+    // serial_task.remove(); //Uncomment for actual match code
 }
 
 void initialize(){
@@ -1008,7 +1025,7 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         }
 
         if(master.get_digital_new_press(DIGITAL_LEFT)) arcade = !arcade;
-        if(master.get_digital_new_press(DIGITAL_Y)) roller_lifts = !roller_lifts;
+        //if(master.get_digital_new_press(DIGITAL_Y)) roller_lifts = !roller_lifts;
 
         if(roller_lifts) {
             roller_lifter.set_value(1);
