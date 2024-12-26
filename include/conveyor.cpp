@@ -35,10 +35,7 @@ CONVEYOR TODO:
 
 int same_colour(){      // maybe like x0.7 the red
 
-    #ifndef DISABLE_CONVEYOR_LCD_PRINTS
     pros::c::optical_rgb_s_t detected_colour = conveyor_optical.get_rgb();
-    #endif
-
     //red ring: 360, 167, 135  /  blue ring: 120, 178, 256
     double r = detected_colour.red * 0.7, g = detected_colour.green, b = detected_colour.blue;
     bool is_valid = fabs(b-r) > 50;        // needs quite a big difference in color to count
@@ -147,7 +144,7 @@ bool conveyor_go_to_absolute(double percentage_position, int voltage){
     return conveyor_timed_out;
 }
 
-void conveyor_go_to_step(int conveyor_step);  // prototype
+void conveyor_go_to_step(int conveyor_step, bool ignore_colour = false);  // prototype
 /* conveyor_step variable - state machine's state / position
  0 - resting (right below the intersection of intake and conveyor)
  1 - store (middle of conveyor, possible to store another ring at intersection)
