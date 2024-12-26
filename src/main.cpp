@@ -772,6 +772,7 @@ void initialize(){
     pros::Task move_base(moveBase);
     pros::Task slam_dunk(slamDunk);
     pros::Task serial_read(serialRead);
+    pros::Task auto_conveyor(autoConveyor);
 }
 
 
@@ -813,7 +814,7 @@ void opcontrol(){
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
             // detect ring and move conveyor later
             roller.move(-110);
-            check_for_ring();           // IMPT for conveyor code
+            //check_for_ring();           // IMPT for conveyor code
         } 
         else {
             roller.move(0);

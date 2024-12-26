@@ -263,6 +263,17 @@ void calibrate_conveyor(){
     pros::delay(5);
 }
 
+int align_ring_for_colour(){
+    int colourResult = -1;
+    conveyor_go_to_step(1);
+    conveyor.move(40);
+    while(colourResult == -1){      // while not sure of colour
+        colourResult = same_colour();
+    }
+    conveyor.brake();
+    return colourResult;
+}
+
 /// @brief Place in the main loop code for ring intake, should be run repeatedly when trying to pickup a ring.
 /// Will automatically store any detected rings and take its colour reading
 void check_for_ring(){
@@ -277,15 +288,8 @@ void check_for_ring(){
         // advance conveyor to "store"
         roller.brake();
         // pull ring till same_colour says its good
-        int colourResult = -1;
-        conveyor_go_to_step(1);
-	    conveyor.move(40);
-        while(colourResult == -1){      // while not colour
-            colourResult = same_colour();
-        }
-        conveyor.brake();
+        int colourResult = align_ring_for_colour();
         // conveyor at "store", now check colour (ONLY IN AUTON)
-
 
         //conveyor_optical.set_led_pwm(0);
         detected_ring_before = true;
@@ -297,58 +301,36 @@ void check_for_ring(){
 
 // ind:0, status of ring at arm. ind:1, status of ring at [store]. ind:2, status of ring at intake ?
 // -2: no ring, -1: not sure what colour, 0: not alliance colour, 1: alliance colour
-int curr_rings_stored[3] = {-2, -2, -2}; 
-void check_ring_for_neutral_stake(){        // "stores" 3 ring, run as task?
-    int number_of_rings_stored = 0;
-    while(1){
-        // start roller 
-        roller.move(-110);
-
-        if(number_of_rings_stored == 0){        // if no rings, immediately store
-            // wait till ring is detected
-            while(!detect_ring()){      // wait till ring detected
-                pros::delay(50);
-            }
-            // ring is now detected, align ring to colour sensor
-            roller.brake();
-            int colourResult = -1;
-            conveyor_go_to_step(1);     // get to initial pos
-            conveyor.move(40);          // slowly get there
-            while(colourResult == -1){      // wait till good reading
-                pros::delay(5);
-                colourResult = same_colour();
-            }
-            conveyor.brake();           // now got good reading
-
-            get_rid_of_non_alliance();      // might not wanna get rid yet
-
-            // store
-            curr_rings_stored[1] = colourResult;        // remember what colour the ring stored is
-            number_of_rings_stored = 1;
-
-
-        }else if(number_of_rings_stored == 1){
-
+bool continue_conveyor = true;
+void autoConveyor(){        // "stores" 3 ring, run as task?
+    while(continue_conveyor){
+        // wait for ring
+        while(!detected_ring_before && detect_ring()){
+            pros::delay(50);    // test
+        }
+        // maybe stop intake
+        int colourResult = align_ring_for_colour();
+        switch(colourResult){
+            case 0:
+                conveyor_go_to_yeet();
+                break;
+            case 1:
+                conveyor_go_to_score();
+                break;
+            default:
+                //wtf
+                break;
         }
 
         pros::delay(15);
     }
-}
-
-void get_rid_of_non_alliance(){
-    // move arm away from yeet
-    // ...
-    if(curr_rings_stored[1] == 0){      // if ring at [store] is not ours
-        // yeet, return home, 
-        conveyor_go_to_yeet();
-        pros::delay(15);
-        conveyor_go_to_step(3);
-    }
+    continue_conveyor = true;   // lets it start again
 }
 
 /// @brief Homes the conveyor to a known location and then prepare for intake
 void conveyor_init(){
-    conveyor_go_to_step(3);
+    conveyor_step = 3;
+    //conveyor_go_to_step(3);
     conveyor_optical.set_led_pwm(100);
 
 }
