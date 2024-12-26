@@ -192,13 +192,29 @@ const double auton_angle_kD_right = 5000.0;
 // const double auton_l_velocity_kI = 0.000;     //tune for translate
 // const double auton_l_velocity_kD = 0.02;
 
-const double auton_r_velocity_kP = 0.05;   //swerve wheel rotation velocity for auton
-const double auton_r_velocity_kI = 0.000;     //tune for translate
-const double auton_r_velocity_kD = 0.02;
+// const double auton_r_velocity_kP = 0.00056;   //swerve wheel rotation velocity for auton, 0.00052 is good. 0.00056 with 0.85 bias. 0.0062
+// const double auton_r_velocity_kI = 0.000;     //tune for translate
+// const double auton_r_velocity_kD = 0.02;
 
-const double auton_distance_kP = 0.05; //swerve wheel rotation distance
+ double auton_l_velocity_kP = 0.005;   //swerve wheel rotation velocity for auton
+ double auton_l_velocity_kI = 0.000;     //tune for translate
+ double auton_l_velocity_kD = 0.02;
+
+ double auton_r_velocity_kP = 0.0054;   //swerve wheel rotation velocity for auton, 0.00052 is good. 0.00056 with 0.85 bias. 0.0062
+ double auton_r_velocity_kI = 0.000;     //tune for translate
+ double auton_r_velocity_kD = 0.02;
+
+//  double auton_l_velocity_kP = 0.0075;   //swerve wheel rotation velocity for auton
+//  double auton_l_velocity_kI = 0.000;     //tune for translate
+//  double auton_l_velocity_kD = 0.02;
+
+//  double auton_r_velocity_kP = 0.008;   //swerve wheel rotation velocity for auton, 0.00052 is good. 0.00056 with 0.85 bias. 0.0062
+//  double auton_r_velocity_kI = 0.000;     //tune for translate
+//  double auton_r_velocity_kD = 0.02;
+
+const double auton_distance_kP = 0.03; //swerve wheel rotation distance
 const double auton_distance_kI = 0.0;
-const double auton_distance_kD = 0.5;
+const double auton_distance_kD = 5.0;
 
 double auton_heading_kP = 0.09; //swerve heading
 double auton_heading_kI = 0.0;
@@ -291,5 +307,5 @@ const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * sc
 bool roller_lifts = false;
 
 //Driver
-bool driver = true;
+bool driver = false;
 bool arcade = false;

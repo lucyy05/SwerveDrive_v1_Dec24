@@ -597,10 +597,6 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading, b
     int32_t rl = 0; // right lower
 
     // PID instances
-    PID left_angle_PID(auton_angle_kP_left, auton_angle_kI_left, auton_angle_kD_left);
-    PID right_angle_PID(auton_angle_kP_right, auton_angle_kI_right, auton_angle_kD_right);
-    PID left_velocity_PID(auton_l_velocity_kP, auton_l_velocity_kI, auton_l_velocity_kD);
-    PID right_velocity_PID(auton_r_velocity_kP, auton_r_velocity_kI, auton_r_velocity_kD);
 
     if (fabs(target_heading) > 0.0)
     {
@@ -622,35 +618,40 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading, b
     if (fabs(targetX) > 0.0)
     {
         auton_l_velocity_kP = 0.0005; // swerve wheel rotation velocity for auton
-        auton_l_velocity_kI = 0.000; // tune for translate
+        auton_l_velocity_kI = 0.000;  // tune for translate
         auton_l_velocity_kD = 0.02;
 
         auton_r_velocity_kP = 0.0005; // swerve wheel rotation velocity for auton, 0.00052 is good. 0.00056 with 0.85 bias. 0.0062
-        auton_r_velocity_kI = 0.000; // tune for translate
+        auton_r_velocity_kI = 0.000;  // tune for translate
         auton_r_velocity_kD = 0.02;
     }
 
     if (fabs(targetY) > 0.0)
     {
- double auton_l_velocity_kP = 0.005;   //swerve wheel rotation velocity for auton
- double auton_l_velocity_kI = 0.000;     //tune for translate
- double auton_l_velocity_kD = 0.02;
+        auton_l_velocity_kP = 0.005; // swerve wheel rotation velocity for auton, upin
+        auton_l_velocity_kI = 0.000; // tune for translate
+        auton_l_velocity_kD = 150;
 
- double auton_r_velocity_kP = 0.0052;   //swerve wheel rotation velocity for auton, 0.00052 is good. 0.00056 with 0.85 bias. 0.0062
- double auton_r_velocity_kI = 0.000;     //tune for translate
- double auton_r_velocity_kD = 0.02;
+        auton_r_velocity_kP = 0.006; // swerve wheel rotation velocity for auton, 0.00052 is good. 0.00056 with 0.85 bias. 0.0062
+        auton_r_velocity_kI = 0.000; // tune for translate
+        auton_r_velocity_kD = 150;
     }
 
-if (!accelerate){
-const double auton_l_velocity_kP = 0.0005;   //swerve wheel rotation velocity for auton
-const double auton_l_velocity_kI = 0.000;     //tune for translate
-const double auton_l_velocity_kD = 0.02;
+    if (!accelerate)
+    {
+        auton_l_velocity_kP = 0.0020; // swerve wheel rotation velocity for auton
+        auton_l_velocity_kI = 0.000;  // tune for translate
+        auton_l_velocity_kD = 150;
 
-const double auton_r_velocity_kP = 0.00056;   //swerve wheel rotation velocity for auton, 0.00052 is good. 0.00056 with 0.85 bias. 0.0062
-const double auton_r_velocity_kI = 0.000;     //tune for translate
-const double auton_r_velocity_kD = 0.02;
-}
+        auton_r_velocity_kP = 0.0025; // swerve wheel rotation velocity for auton, 0.00052 is good. 0.00056 with 0.85 bias. 0.0062
+        auton_r_velocity_kI = 0.000;  // tune for translate
+        auton_r_velocity_kD = 150;
+    }
 
+    PID left_angle_PID(auton_angle_kP_left, auton_angle_kI_left, auton_angle_kD_left);
+    PID right_angle_PID(auton_angle_kP_right, auton_angle_kI_right, auton_angle_kD_right);
+    PID left_velocity_PID(auton_l_velocity_kP, auton_l_velocity_kI, auton_l_velocity_kD);
+    PID right_velocity_PID(auton_r_velocity_kP, auton_r_velocity_kI, auton_r_velocity_kD);
 
     PID rotate_robot_PID(auton_azim_kP, auton_azim_kI, auton_azim_kD);
 
@@ -963,73 +964,45 @@ void autonomous()
 {
     if (serial_task_enabled == false)
     { // Test code, remove for actual match code
-        pros::Task serial_task(serialRead, (void *)"serial", 1,
+        pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT,
                                TASK_STACK_DEPTH_DEFAULT, "Serial read task");
         serial_task_enabled = true;
         pros::delay(20);
     }
     pros::delay(50);
-mobilegoalclose();
-    roller.move(-110);
-    // moveBaseAutonomous(0.0, -270.0, 0.0);
-    // // pros::delay(40);
-    // moveBaseAutonomous(0.0, -270.0, 0.0);
-    // // moveBaseAutonomous(0.0, -200.0, 0.0);
-    // // moveBaseAutonomous(0.0, -100.0, 0.0);
-    // moveBaseAutonomous(0.0, -270.0, 0.0);
-    moveBaseAutonomous(0.0, -350.0, 0.0, true );
-    // pros::delay(40);
-    moveBaseAutonomous(0.0, -330.0, 0.0 , true );
-    // moveBaseAutonomous(0.0, -200.0, 0.0);
-    // moveBaseAutonomous(0.0, -100.0, 0.0);
-    moveBaseAutonomous(0.0, -240.0, 0.0 , true );
-        mobilegoalopen();
-    // pros::delay(100);
     // mobilegoalclose();
-    pros::delay(400);
-    turn30(true);
-    moveBaseAutonomous(0.0, 350.0, 0.0 , true );
-    turn180(false);
-    conveyor.move(110);
+    mobilegoalopen();
+    roller.move(-110);
+    // // // // route
+    // // // // mobile goal snatching
+    moveBaseAutonomous(0.0, -350.0, 0.0, true);
+    // moveBaseAutonomous(0.0, -330.0, 0.0, true);
+    // moveBaseAutonomous(0.0, -240.0, 0.0, true);
+    // // mobilegoalopen();
+    // mobilegoalclose();
+    // pros::delay(400);
+    // turn30(true);
 
-
-    moveBaseAutonomous(150.0, 0.0, 0.0, false);
-    moveBaseAutonomous(0.0, 250.0, 0.0 , false);
-    // moveBaseAutonomous(-150.0, 0.0, 0.0 , false);
+    // // // // rush for the 1st stack
+    // moveBaseAutonomous(0.0, 350.0, 0.0, true);
     // turn180(false);
-        moveBaseAutonomous(0.0, -250.0, 0.0, false);
-    moveBaseAutonomous(0.0, -250.0, 0.0, false);
-    // moveBaseAutonomous(0.0, -200.0, 0.0);
 
-    // // moveBaseAutonomous(300.0, 250.0, 0.0);
+    // // // // run conveyor with color sorting
+    // // conveyor.move(110);
 
-    // // pros::delay(500);
-    // moveBaseAutonomous(0.0, -250.0, 0.0);
-    // moveBaseAutonomous(0.0, -250.0, 0.0);
-    // moveBaseAutonomous(0.0, -200.0, 0.0);
+    // // // // getting the ring on the white line
+    // moveBaseAutonomous(150.0, 0.0, 0.0, false);
+    // moveBaseAutonomous(0.0, 300.0, 0.0, false);
 
+    // // // // move back and drop mobile goal
+    // moveBaseAutonomous(0.0, -250.0, 0.0, false);
+    // moveBaseAutonomous(0.0, -250.0, 0.0, false);
+    // // mobilegoalclose();
     // mobilegoalopen();
 
-    // moveBaseAutonomous(-250.0, 0.0, 0.0);
-    // moveBaseAutonomous(-250.0, 0.0, 0.0);
-    // moveBaseAutonomous(-200.0, 0.0, 0.0);
 
-    // moveBaseAutonomous(-300.0, 0.0, 0.0);
 
-    // pros::delay(40);
-    // moveBaseAutonomous(0.0, -250.0, 0.0);
 
-    //     moveBaseAutonomous(-200.0, -300.0, 0.0);
-
-    // moveBaseAutonomous(0.0, -100.0, 0.0);
-
-    // pros::delay(100);
-    //  moveBaseAutonomous(0.0, 250.0, 0.0);
-    //  turn90();
-    //  turn90();
-    //  turn90();
-    //  turn90();
-    //  moveBaseAutonomous(0.0, -250.0, 0.0);
     //  serial_task.remove();
 }
 
