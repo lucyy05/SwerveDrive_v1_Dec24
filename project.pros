@@ -1,11 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-<<<<<<< HEAD
-    "project_name": "auton",
-=======
-    "project_name": "CAVEN DRIVER",
->>>>>>> main
+    "project_name": "MAIN",
     "target": "v5",
     "templates": {
       "kernel": {
@@ -313,13 +309,8 @@
       }
     },
     "upload_options": {
-<<<<<<< HEAD
-      "slot": 3,
-      "icon": "pizza",
-=======
-      "slot": 7,
-      "icon": "alien",
->>>>>>> main
+      "slot": 5,
+      "icon": "clawbot",
       "after": "screen"
     },
     "use_early_access": true
