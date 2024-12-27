@@ -180,26 +180,25 @@ const double r_kF_STATIC = 0.7; //FF STATIC for rotation
 const double v_kF = 0.4;    //feedforward compensation for translation
 const double scale = 25.0;
 const double base_v = 0.7; //this defines the min power of the robot when scaling its power down for each side when the wheels are aiming the wrong way
-
 /* Driver constants END */
 
 /* Autonomous constants START */
 // Swerve wheel pivoting
-const double auton_angle_kP_left = 45.0;
+const double auton_angle_kP_left = 55.0;
 const double auton_angle_kI_left = 0.0;
 const double auton_angle_kD_left = 5000.0;
 
-const double auton_angle_kP_right = 45.0;
+const double auton_angle_kP_right = 55.0;
 const double auton_angle_kI_right = 0.0;
 const double auton_angle_kD_right = 5000.0;
 
 const double auton_l_velocity_kP = 0.05;   //swerve wheel rotation velocity for auton
 const double auton_l_velocity_kI = 0.000;     //tune for translate
-const double auton_l_velocity_kD = 0.02;
+const double auton_l_velocity_kD = 200.0;
 
-const double auton_r_velocity_kP = 0.05;   //swerve wheel rotation velocity for auton
+const double auton_r_velocity_kP = 0.00055;   //swerve wheel rotation velocity for auton
 const double auton_r_velocity_kI = 0.000;     //tune for translate
-const double auton_r_velocity_kD = 0.02;
+const double auton_r_velocity_kD = 200.0;
 
 double auton_distance_kP = 0.15; //swerve wheel rotation distance
 double auton_distance_kI = 0.0;
