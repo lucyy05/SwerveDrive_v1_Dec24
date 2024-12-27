@@ -1,6 +1,5 @@
 #include "main.h"
 
-
 void disabled(){}
 void competition_initialize(){}
 
@@ -84,7 +83,6 @@ void serialRead(void* params){
                 if (recordOpticalY) dataStream << (char)buffer[i];
                 if (thisDigit == 'X') recordOpticalX = true;
                 if (thisDigit == 'Y') recordOpticalY = true;
-                pros::lcd::print(0,"x:%.1lf, y:%.1lf", global_distX, global_distY);
             }
         }
         pros::Task::delay(2);
@@ -505,14 +503,14 @@ void slamDunk(void* params){
 void moveBaseAutonomous(double targetX, double targetY, double target_heading){
     targetY *= -1.0;
     if(fabs(targetX) < 400.0 || fabs(targetY) < 400.0){
-        auton_distance_kP = 0.16; //swerve wheel rotation distance
+        auton_distance_kP = 0.06; //swerve wheel rotation distance
         auton_distance_kI = 0.0;
         auton_distance_kD = 0.2;
     }
     else{
-        auton_distance_kP = 0.09; //swerve wheel rotation distance
+        auton_distance_kP = 0.60; //swerve wheel rotation distance
         auton_distance_kI = 0.0;
-        auton_distance_kD = 50.0;
+        auton_distance_kD = 100.0;
     }
     double v_right_velocity = 0.0; // target velocity magnitude
     double v_left_velocity = 0.0;
@@ -588,7 +586,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         // auton_azim_kI = 0.0;    //drunk
         // auton_azim_kD = 15.0;
 
-        auton_azim_kP = 0.1; //azimuth, for correcting rotation
+        auton_azim_kP = 0.05; //azimuth, for correcting rotation
         auton_azim_kI = 0.0;    //drunk
         auton_azim_kD = 20.0;
 
@@ -649,6 +647,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
             errorY = targetY - (global_distY - offsetY);
         else
             errorY = 0.0;
+        pros::lcd::print(1,"err_x: %1.1lf, err_y: %1.1lf", errorX, errorY);
         // if(fabs(targetY) > 0.0)
         //     errorY = fabs(fabs(targetY) - fabs((fabs(global_distY) - offsetY)));
         // if(fabs(targetY) > 0.0 && fabs(errorY) > fabs(targetY))
@@ -779,7 +778,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         // calculate the error angle 
         // l_error = angle(v_left, current_left_vector); 
         // r_error = angle(v_right, current_right_vector); 
-        if(target_v.norm()>0.1 || target_r.norm()>0.01){
+        if(target_v.norm()>0.01 || target_r.norm()>0.001){
             l_error = angle(v_left, current_left_vector); 
             r_error = angle(v_right, current_right_vector); 
         }else{ //NOT TL NOT ROTATE
@@ -821,10 +820,11 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         ll = (int32_t)(lscale * (l_velocity_pid - l_angle_pid));
         ru = (int32_t)(rscale * (r_velocity_pid + r_angle_pid));
         rl = (int32_t)(rscale * (r_velocity_pid - r_angle_pid));
-
         clampVoltage(battery_voltage);
         limitVoltage(battery_voltage);
         //move_voltage_wheels(0,0,0,0);
+        pros::lcd::print(2,"lu:%d, ru:%d",lu,ru);
+        pros::lcd::print(3,"ll:%d, rl:%d",ll,rl);
         move_voltage_wheels(lu,ll,ru,rl);
         pros::delay(4);
     }
@@ -870,13 +870,26 @@ void turn45(bool turnleft){
 }
 
 void turn30(bool turnleft){
-    auton_heading_kP = 0.3;
-    auton_heading_kI = 0.0;
-    auton_heading_kD = 0.25;
-    // auton_heading_kP = 0.19;
+    // auton_heading_kP = 0.3;
     // auton_heading_kI = 0.0;
-    // auton_heading_kD = 20.0;
+    // auton_heading_kD = 0.25;
+    auton_heading_kP = 0.19;
+    auton_heading_kI = 0.0;
+    auton_heading_kD = 20.0;
     double heading = 30.0;
+    if(turnleft == true)
+        heading *= -1.0;
+    moveBaseAutonomous(0.0, 0.0, heading);
+}
+
+void turn20(bool turnleft){
+    // auton_heading_kP = 0.3;
+    // auton_heading_kI = 0.0;
+    // auton_heading_kD = 0.25;
+    auton_heading_kP = 0.19;
+    auton_heading_kI = 0.0;
+    auton_heading_kD = 20.0;
+    double heading = 20.0;
     if(turnleft == true)
         heading *= -1.0;
     moveBaseAutonomous(0.0, 0.0, heading);
@@ -908,19 +921,20 @@ void autonomous(){
 
     /*UPIN MOVEMENT START*/
     mobilegoalopen();
-    moveBaseAutonomous(0.0, -910.0, 0.0);
-    pros::delay(10);
-    mobilegoalclose();
-    pros::delay(100);
-    turn30(false);
-    rollerOn();
-    moveBaseAutonomous(0.0, 400.0, 0.0);
-    turn180(true);
-    conveyorOn();
-    moveBaseAutonomous(-250.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, 350.0, 0.0);
-    moveBaseAutonomous(0.0, -750.0, 0.0);
-    pros::delay(3000);
+    moveBaseAutonomous(0.0, -1050.0, 0.0);
+    master.rumble("--");
+    // pros::delay(5);
+    // mobilegoalclose();
+    // pros::delay(100);
+    // turn20(false);
+    // rollerOn();
+    // moveBaseAutonomous(0.0, 400.0, 0.0);
+    // turn180(true);
+    // conveyorOn();
+    // moveBaseAutonomous(-250.0, 0.0, 0.0);
+    // moveBaseAutonomous(0.0, 350.0, 0.0);
+    // moveBaseAutonomous(0.0, -550.0, 0.0);
+    // pros::delay(3000);
     /*UPIN MOVEMENT END*/
 
     /*IPIN MOVEMENT START*/
@@ -942,16 +956,17 @@ void autonomous(){
     // serial_task.remove(); //Uncomment for actual match
 }
 
-pros::task_t serial_task;
+pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT+1,
+                    TASK_STACK_DEPTH_DEFAULT, "serial task");
 
 void initialize(){
     pros::lcd::initialize();
-    if(serial_task_enabled == false){   //Test code, remove for actual match code
-        pros::Task serial_read(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
-                    TASK_STACK_DEPTH_DEFAULT, "serial task");
-        serial_task_enabled = true;
-        pros::delay(15);
-    }
+    // if(serial_task_enabled == false){   //Test code, remove for actual match code
+    //     pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
+    //                 TASK_STACK_DEPTH_DEFAULT, "serial task");
+    //     serial_task_enabled = true;
+    //     pros::delay(15);
+    // }
     // //while(!imu.reset(true)&&!imu2.reset(true));
     // vexGenericSerialEnable(SERIALPORT - 1, 0);
     // vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
@@ -983,10 +998,10 @@ void initialize(){
 }
 
 void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
+    serial_task.remove();
     pros::Task move_base(moveBase, (void*)"driver", TASK_PRIORITY_MAX-2,
                     TASK_STACK_DEPTH_DEFAULT, "driver task");
     while(true){
-        pros::lcd::print(7,"%.1lf",global_distY);
         if(driver == true) move_base.resume();
         else move_base.suspend();
 
