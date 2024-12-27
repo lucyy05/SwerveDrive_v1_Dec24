@@ -508,9 +508,9 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         auton_distance_kD = 0.2;
     }
     else{
-        auton_distance_kP = 0.60; //swerve wheel rotation distance
+        auton_distance_kP = 0.055; //swerve wheel rotation distance
         auton_distance_kI = 0.0;
-        auton_distance_kD = 100.0;
+        auton_distance_kD = 0.0;
     }
     double v_right_velocity = 0.0; // target velocity magnitude
     double v_left_velocity = 0.0;
@@ -588,9 +588,9 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
 
         auton_azim_kP = 0.05; //azimuth, for correcting rotation
         auton_azim_kI = 0.0;    //drunk
-        auton_azim_kD = 20.0;
+        auton_azim_kD = 10.0;
 
-        AUTON_ANGULAR_THRESH = 0.0; // Threshold under which to ignore angular error
+        AUTON_ANGULAR_THRESH = 0.00; // Threshold under which to ignore angular error
     }
     PID rotate_robot_PID(auton_azim_kP, auton_azim_kI, auton_azim_kD);
 
@@ -647,6 +647,8 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
             errorY = targetY - (global_distY - offsetY);
         else
             errorY = 0.0;
+        if(errorY < 2.0 && errorY > -2.0)
+            errorY = 0.0;
         pros::lcd::print(1,"err_x: %1.1lf, err_y: %1.1lf", errorX, errorY);
         // if(fabs(targetY) > 0.0)
         //     errorY = fabs(fabs(targetY) - fabs((fabs(global_distY) - offsetY)));
@@ -669,7 +671,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         if(fabs(target_heading) > 0.0 && fabs(errorheading) > fabs(target_heading))
             errorheading = 0.0;
 
-        if(fabs(errorX) <= 2.0 && fabs(errorY) <= 2.0 && fabs(errorheading) <= 0.5){
+        if(fabs(errorX) <= 3.0 && fabs(errorY) <= 3.0 && fabs(errorheading) <= 0.5){
             move_voltage_wheels(0,0,0,0);
             lu = 0;
             ll = 0;
@@ -778,7 +780,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         // calculate the error angle 
         // l_error = angle(v_left, current_left_vector); 
         // r_error = angle(v_right, current_right_vector); 
-        if(target_v.norm()>0.01 || target_r.norm()>0.001){
+        if(target_v.norm()>0.1 || target_r.norm()>0.01){
             l_error = angle(v_left, current_left_vector); 
             r_error = angle(v_right, current_right_vector); 
         }else{ //NOT TL NOT ROTATE
@@ -915,14 +917,91 @@ void conveyorOn(){
     conveyor.move(110);
 }
 
+bool conveyorStart = false;
+
+void colorSorting(){
+    conveyor_optical.set_led_pwm(100);
+    conveyor_optical.set_integration_time(5);
+    //6 - 13 hue red
+    //120 - 140 hue for conveyor hook and near
+    //204 - 217 hue for blue 
+    bool blue = false;
+    bool red = false;
+    bool conveyor_detect = false;
+    int color = 0;
+    bool alliance_blue = false;
+    mobilegoalopen();
+    while(true){
+        roller.move(-110);
+        if(master.get_digital_new_press(DIGITAL_A)){
+            mobilegoalclose();
+        }
+        if(conveyorStart){
+            conveyor.move(40);
+        }
+        color = conveyor_optical.get_hue();
+        if(color > 120 && color < 140){ //conveyor
+            conveyor_detect = true;
+            conveyor.move(0);
+            pros::delay(50);
+        }
+        if(color > 6 && color < 13){ //red
+            red = true;
+        }
+        if(color > 204 && color < 217){ //blue
+            blue = true;
+        }
+
+        if(red == true && conveyor_detect == true){
+            conveyorStart = false;
+            if(alliance_blue == false){
+                conveyor.tare_position();
+                while(conveyor.get_position() < 590)
+                    conveyor.move(117);
+                pros::delay(5);
+                conveyor.tare_position();
+                while(conveyor.get_position() > -90)
+                    conveyor.move(-127);
+                conveyor.brake();
+                pros::delay(50);
+                conveyorStart = true;
+                blue = false;
+                red = false;
+                conveyor_detect = false;
+            }
+        }
+
+        if(blue == true && conveyor_detect == true){
+            conveyorStart = false;
+            if(alliance_blue == false){
+                conveyor.tare_position();
+                while(conveyor.get_position() < 700)
+                    conveyor.move(110);
+                conveyorStart = true;
+                red = false;
+                blue = false;
+                conveyor_detect = false;
+            }
+        }
+        pros::Task::delay(5);
+    }
+}
+
 void autonomous(){
+    mobilegoalopen();
+    moveBaseAutonomous(-230.0, 0.0, 0.0);
+    conveyor.move(50);
+    pros::delay(5000);
+    // conveyorStart = true;
+    // pros::Task color(colorSorting);
     // pros::Task serial_task(serialRead, (void*)"serial", 1, //Uncomment for actual match
     //                 TASK_STACK_DEPTH_DEFAULT, "Serial read task");
 
     /*UPIN MOVEMENT START*/
-    mobilegoalopen();
-    moveBaseAutonomous(0.0, -1050.0, 0.0);
-    master.rumble("--");
+    //mobilegoalopen();
+    //moveBaseAutonomous(-1000.0, 0.0, 0.0);
+    //moveBaseAutonomous(0.0, 1000.0, 0.0);
+    //master.rumble("--");
     // pros::delay(5);
     // mobilegoalclose();
     // pros::delay(100);
@@ -961,12 +1040,14 @@ pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT+1,
 
 void initialize(){
     pros::lcd::initialize();
-    // if(serial_task_enabled == false){   //Test code, remove for actual match code
-    //     pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
-    //                 TASK_STACK_DEPTH_DEFAULT, "serial task");
-    //     serial_task_enabled = true;
-    //     pros::delay(15);
-    // }
+    conveyor_optical.set_led_pwm(100);
+    conveyor_optical.set_integration_time(5);
+    if(serial_task_enabled == false){   //Test code, remove for actual match code
+        pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
+                    TASK_STACK_DEPTH_DEFAULT, "serial task");
+        serial_task_enabled = true;
+        pros::delay(15);
+    }
     // //while(!imu.reset(true)&&!imu2.reset(true));
     // vexGenericSerialEnable(SERIALPORT - 1, 0);
     // vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
@@ -998,8 +1079,8 @@ void initialize(){
 }
 
 void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
-    serial_task.remove();
-    pros::Task move_base(moveBase, (void*)"driver", TASK_PRIORITY_MAX-2,
+    //serial_task.remove();
+    pros::Task move_base(moveBase, (void*)"driver", TASK_PRIORITY_DEFAULT+3,
                     TASK_STACK_DEPTH_DEFAULT, "driver task");
     while(true){
         if(driver == true) move_base.resume();
@@ -1089,8 +1170,8 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         }
 
         //if(master.get_digital_new_press(DIGITAL_LEFT)) arcade = !arcade;
-        //if(master.get_digital_new_press(DIGITAL_LEFT)) driver = !driver;
-        if(master.get_digital_new_press(DIGITAL_LEFT)) yoinker_actuated = !yoinker_actuated;
+        if(master.get_digital_new_press(DIGITAL_LEFT)) driver = !driver;
+        //if(master.get_digital_new_press(DIGITAL_LEFT)) yoinker_actuated = !yoinker_actuated;
         if(master.get_digital_new_press(DIGITAL_Y)) roller_lifts = !roller_lifts;
 
         if(yoinker_actuated)

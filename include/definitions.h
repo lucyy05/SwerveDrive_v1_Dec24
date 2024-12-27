@@ -61,7 +61,7 @@
 #define POTENTIOMETER_SENSOR_PORT 'H'
 #define YOINKE_SENSOR_PORT 'F'
 
-#define CONVEYOR_OPTICAL 1
+#define CONVEYOR_OPTICAL 2
 #define CONVEYOR_THRES_PROX 130
 
 #define SLAM_DUNK_MOTOR 3
@@ -192,17 +192,17 @@ const double auton_angle_kP_right = 55.0;
 const double auton_angle_kI_right = 0.0;
 const double auton_angle_kD_right = 5000.0;
 
-const double auton_l_velocity_kP = 0.0005;   //swerve wheel rotation velocity for auton
-const double auton_l_velocity_kI = 0.000;     //tune for translate
-const double auton_l_velocity_kD = 200.0;
+const double auton_l_velocity_kP = 0.001;   //swerve wheel rotation velocity for auton
+const double auton_l_velocity_kI = 0.0;     //tune for translate
+const double auton_l_velocity_kD = 0.0;
 
-const double auton_r_velocity_kP = 0.00055;   //swerve wheel rotation velocity for auton
-const double auton_r_velocity_kI = 0.000;     //tune for translate
-const double auton_r_velocity_kD = 200.0;
+const double auton_r_velocity_kP = 0.001;   //swerve wheel rotation velocity for auton
+const double auton_r_velocity_kI = 0.0;     //tune for translate
+const double auton_r_velocity_kD = 0.0;
 
-double auton_distance_kP = 0.15; //swerve wheel rotation distance
+double auton_distance_kP = 0.001; //swerve wheel rotation distance
 double auton_distance_kI = 0.0;
-double auton_distance_kD = 0.2;
+double auton_distance_kD = 0.0;
 
 // const double auton_distance_kP = 0.15; //swerve wheel rotation distance auton translate left or right
 // const double auton_distance_kI = 0.0;
@@ -299,5 +299,5 @@ const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * sc
 bool roller_lifts = false;
 
 //Driver
-bool driver = false;
+bool driver = true;
 bool arcade = false;
