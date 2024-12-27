@@ -857,6 +857,14 @@ void auton_test(){
 
     // Eject red stored and score blue ring 
     conveyor_go_to_step(3);
+
+    // moveBaseAutonomous
+
+    // U turn, and go straight to score mogo
+    turn(180);
+
+    // turn 90 to collect other mogo
+    turn(90);
 }
 
 void autonomous(){
