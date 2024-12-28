@@ -25,6 +25,21 @@ class PID
             error_prev = 0.0;
             error_int = 0.0; 
         }
+        
+        void reset(){
+            time_now = -1;
+            time_prev = -1;
+            error_now = 0.0;
+            error_prev = 0.0;
+            error_int = 0.0; 
+        }
+
+        void init(double P, double I, double D){
+            kP = P;
+            kI = I;
+            kD = D;
+            reset();
+        }
 
         double step(double error){ //calculates the PID output based on the error and the PID constants
             if(time_prev == -1){
