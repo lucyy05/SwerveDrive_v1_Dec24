@@ -312,8 +312,8 @@ void moveBase(){
         prev_target_r = target_r; // prev target rotation 
 
         target_v = normalizeJoystick(leftX, leftY).scalar(MAX_SPEED); // target velocity 
-        // to be updated: leftX = 0 to remove left and right translations 
         target_r = normalizeRotation(rightX).scalar(MAX_ANGULAR*MAX_ANGULAR_SCALE); // target rotation 
+        
         // imu1_gyro = imu.get_gyro_rate().z * -1.0 * TO_RADIANS;
         //imu2_gyro = imu2.get_gyro_rate().z * 1.0 * TO_RADIANS;    
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
@@ -326,16 +326,6 @@ void moveBase(){
         current_r_velocity = ((ruA.get_actual_velocity()+ruB.get_actual_velocity()+rlA.get_actual_velocity()+rlB.get_actual_velocity())/4.0); 
 
         current_angular = (-current_l_velocity*sin(left_angle)+current_r_velocity*sin(right_angle))/(2.0*WHEEL_BASE_RADIUS); // current angular velocity 
-        // average_x_v = ((current_l_velocity*cos(left_angle))+(current_r_velocity*cos(right_angle)))/2.0; 
-        // average_y_v = ((current_l_velocity*sin(left_angle))+(current_r_velocity*sin(right_angle)))/2.0; 
-        // current_tl_velocity.load(average_x_v,average_y_v,0.0); 
-        
-        // if(imu.is_calibrating()/*||imu2.is_calibrating()*/){
-        //     gyro_rate = current_angular;    // ignore gyro while calibrating, use encoder values
-        //     master.rumble(".");
-        // }else{
-        //     gyro_rate = -1.0 * imu.get_gyro_rate().z * TO_RADIANS;
-        // }
 
         gyro_rate = -1.0 * imu.get_gyro_rate().z * TO_RADIANS;
 
@@ -428,11 +418,6 @@ void moveBase(){
         // higher base_v: drifts and lower base_v: lags 
         lscale = (battery_voltage/MAX_VOLTAGE) * scale;// * ((1.0-base_v)*fabs((l_error))+base_v); 
         rscale = (battery_voltage/MAX_VOLTAGE) * scale;// * ((1.0-base_v)*fabs((r_error))+base_v); 
-        
-        // lu = (int32_t)std::clamp(lscale * (l_velocity_pid + l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); //this side seems less powerful on the robot 
-        // ll = (int32_t)std::clamp(lscale * (l_velocity_pid - l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
-        // ru = (int32_t)std::clamp(rscale * (r_velocity_pid + r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
-        // rl = (int32_t)std::clamp(rscale * (r_velocity_pid - r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE); 
         
         lu = (int32_t)lscale * (l_velocity_pid + l_angle_pid); 
         ll = (int32_t)lscale * (l_velocity_pid - l_angle_pid); 
