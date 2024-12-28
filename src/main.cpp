@@ -923,41 +923,6 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         if(master.get_digital_new_press(DIGITAL_X)) slam_dunk_actuated = !slam_dunk_actuated;
         if(master.get_digital(DIGITAL_B)) brake();
 
-        //JOEL'S CONVEYOR TEST
-        //pros::lcd::print(5,"pos: %.2f, %%: %.3f, prx: %d", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period, conveyor_optical.get_proximity());
-
-        // if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
-        //     // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
-        //     // conveyor.move(110); 
-        //     step_conveyor();
-
-        //     } 
-        // else if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
-        //     // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
-        //     // conveyor.move(-110);
-        //     calibrate_conveyor();
-        //     }
-        // else { 
-        //     //pros::lcd::print(0, "CONVEYOR STOPPED\n");
-        //     //pros::lcd::print(0, "CONVEYOR STOPPED\n");
-        //     conveyor.move(0);
-        // }
-
-        // // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
-        // // when L1 is pressed, rollers move forward with NEGATIVE velocity??
-        // if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) { 
-        //     //pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
-        //     roller.move(110); 
-        // } 
-        // else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
-        //     // detect ring and move conveyor later
-        //     roller.move(-110);
-        //     check_for_ring();
-        // } 
-        // else {
-        //     roller.move(0);
-        // }
-
         if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) conveyor.move(110); 
         else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) conveyor.move(-110);
         else conveyor.move(0);
@@ -990,7 +955,10 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         }
         else if(master.get_digital_new_press(DIGITAL_DOWN)) {
             slammingState = SLAM_START_STATE;
-        }
+        } 
+
+        if (master.get_digital_new_press(DIGITAL_LEFT))
+            yoinker_actuated = !yoinker_actuated;
 
         if(master.get_digital_new_press(DIGITAL_LEFT)) arcade = !arcade;
         if(master.get_digital_new_press(DIGITAL_Y)) roller_lifts = !roller_lifts;
@@ -1001,6 +969,11 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         else{
             roller_lifter.set_value(0);
         }
+
+        if (yoinker_actuated)
+            yoinker.set_value(0);
+        else
+            yoinker.set_value(1);
 
         pros::delay(2);
     }

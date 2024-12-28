@@ -60,6 +60,7 @@
 #define SOLENOID_SENSOR_PORT 'D'
 #define mobilegoal_bottom 'G'
 #define POTENTIOMETER_SENSOR_PORT 'H'
+#define YOINKER_SENSOR_PORT 'F'
 
 #define CONVEYOR_OPTICAL 1
 #define CONVEYOR_THRES_PROX 130
@@ -92,6 +93,7 @@ pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
 pros::ADIAnalogIn slam_dunk(SLAM_DUNK_SENSOR_PORT);
 pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
 pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
+pros::ADIDigitalOut yoinker(YOINKER_SENSOR_PORT);
 
 // pros::Motor intakeLower(UPPER_INTAKE_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
 // pros::Motor intakeUpper(LOWER_INTAKE_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
@@ -293,3 +295,4 @@ bool roller_lifts = false;
 //Driver
 bool driver = true;
 bool arcade = true;
+bool yoinker_actuated = false;
