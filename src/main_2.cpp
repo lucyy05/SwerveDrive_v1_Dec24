@@ -1013,7 +1013,8 @@ moveBaseAutonomous(.0,200.0,0.0);
 turn90(true);
 moveBaseAutonomous(.0,-900.0,0.0);
 moveBaseAutonomous(-200.0,0.0,0.0);
-moveBaseAutonomous(.0,900.0,0.0);
+moveBaseAutonomous(.0,1400.0,0.0);
+moveBaseAutonomous(-150.0,0.0,0.0);
 }
 
 void positive_red_auton()
