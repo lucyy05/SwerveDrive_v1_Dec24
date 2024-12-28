@@ -923,20 +923,28 @@ void autonomous(){
     /*UPIN MOVEMENT START*/
     mobilegoalopen();
 rollerOn();
+//score alliance stakes
 moveBaseAutonomous(535.0,0.0,0.0);
 conveyor.move(50);
 pros::delay(500);
+
+//grab mobile goal
 moveBaseAutonomous(-300.0,0.0,0.0);
 moveBaseAutonomous(0.0,200.0,0.0);
 turn90(true);
 moveBaseAutonomous(0.0,-390.0,0.0);
 mobilegoalclose();
 moveBaseAutonomous(0.0,-510.0,0.0);
+
+//scoring 3 rings and clearing positive corner
 moveBaseAutonomous(-250.0,0.0,0.0);
 //tested until here
 moveBaseAutonomous(.0,1300.0,0.0);
 moveBaseAutonomous(.0,-490.0,0.0);
 moveBaseAutonomous(.0,490.0,0.0);
+
+//scoring 1 more rings and slamming mobile goal into positive corner
+
 moveBaseAutonomous(.0,-700.0,0.0);
 moveBaseAutonomous(250.0,0.0,0.0);
 turn180(true);
