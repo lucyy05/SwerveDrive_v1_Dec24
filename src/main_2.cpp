@@ -1174,7 +1174,7 @@ void opcontrol()
         if (master.get_digital_new_press(DIGITAL_A))
             mobile_goal_actuated = !mobile_goal_actuated;
         if (master.get_digital_new_press(DIGITAL_B))
-            autonomous();
+            // autonomous();
         if (master.get_digital_new_press(DIGITAL_X))
             slam_dunk_actuated = !slam_dunk_actuated;
 
@@ -1233,12 +1233,14 @@ void opcontrol()
 
         if (mobile_goal_actuated)
         {
+            pros::lcd::print(0, "mobile_goal_actuated");
             solenoid.set_value(1);
             pros::Task::delay(110);
             mobilegoal_bot.set_value(0);
         }
         else
         {
+            pros::lcd::print(0, "mobile_goal_flat");
             solenoid.set_value(0);
             pros::Task::delay(110);
             mobilegoal_bot.set_value(1);
