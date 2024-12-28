@@ -950,8 +950,10 @@ moveBaseAutonomous(250.0,0.0,0.0);
 turn180(true);
 moveBaseAutonomous(250.0,0.0,0.0);
 moveBaseAutonomous(0.0,-450.0,0.0);
-
-// moveBaseAutonomous(-150.0,0.0,0.0);
+mobilegoalopen();
+//ready for match state
+moveBaseAutonomous(.0,100.0,0.0);
+moveBaseAutonomous(-500.0,.0,0.0);
 }
 
 pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT+1,
