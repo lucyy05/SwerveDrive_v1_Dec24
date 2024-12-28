@@ -61,8 +61,11 @@
 #define POTENTIOMETER_SENSOR_PORT 'H'
 #define YOINKER_SENSOR_PORT 'F'
 
-#define CONVEYOR_OPTICAL 1
+#define CONVEYOR_OPTICAL 2
 #define CONVEYOR_THRES_PROX 130
+#define CONVEYOR_PROX_THRES 130
+#define CONVEYOR_GREEN_THRES 200
+#define CONVEYOR_RED_MIN_THRESH 10
 
 #define SLAM_DUNK_MOTOR 3
 
@@ -280,13 +283,16 @@ double optical_v_y = 0.0;
 
 //CONVEYOR
 int detected_ring_time = 0;
+bool blue_detected = false;
+bool others_detected = false;
+bool hook_detected = false;
 
 //Mobile goal grabber
 bool mobile_goal_actuated = false;
 bool mobile_goal_jaw = false;
 
 //Yoinker
-bool yoinker_actuated = false;
+bool yoinker_actuated = true;
 
 //Optical flow
 const double ALPHA = 0.85;

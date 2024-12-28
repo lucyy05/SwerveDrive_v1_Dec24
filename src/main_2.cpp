@@ -1002,18 +1002,88 @@ void conveyorOff()
     conveyor.move(-110);
 }
 
+void conveyorAuton(void* params){
+    //100 - 140 hook hues
+    //190 - 220 blue hues
+    //350 - 10 red hues
+    //pros::c::optical_rgb_s_t rgb;
+    int blue = 0;
+    int others = 0;
+    mobilegoalclose();
+    while(true){
+        conveyor.move(20);
+        roller.move(-100);
+        double hue_value = conveyor_optical.get_hue();
+        pros::lcd::print(5,"Hue:%lf",hue_value);
+        //rgb = conveyor_optical.get_rgb();
+        if(!blue_detected){
+            if(hue_value > 190.0 && hue_value < 230.0){
+                blue_detected = true;
+                pros::lcd::print(3,"blue");
+                blue++;
+            }
+            // else if(!(hue_value > 120.0 && hue_value < 140.0)){
+            //     others_detected = true;
+            //     others++;
+            //     pros::lcd::print(3,"no colour");
+            // }
+        }
+        pros::lcd::print(1,"blue:%d, others:%d",blue,others);
+
+        if(hue_value > 120.0 && hue_value < 140.0){
+            hook_detected = true;
+            pros::lcd::print(3,"hook detected");
+        }
+
+        pros::lcd::print(0,"hue:%.1lf",hue_value);
+
+        if(hook_detected){
+            //pros::lcd::print(1,"Hook");
+            //ros::delay(200);
+            hook_detected = false;
+            if(is_we_red_alliance ^ blue_detected){
+                conveyor.tare_position();
+                conveyor_go_to_score();
+                pros::delay(100);
+                blue_detected = false;
+                //pros::lcd::print(6,"scoring");
+            }else{
+                conveyor.tare_position();
+                // while(conveyor.get_position() < 555){
+                //     conveyor.move(127);
+                // }
+                // conveyor.move(0);
+                // conveyor.brake();
+                // pros::delay(50);
+                // conveyor.tare_position();
+                // while(conveyor.get_position() > -20){
+                //     conveyor.move(-127);
+                // }
+                conveyor_go_to_yeet();
+                pros::delay(100);
+                //others_detected = false;
+                blue_detected = false;
+                //pros::lcd::print(6,"yeeting");
+            }
+            //pros::lcd::print(2,"no Hook");
+        }
+
+        pros::delay(2);
+    }
+}
+
 void positive_blue_auton()
 {
     mobilegoalopen();
-        // start scoring thread
-        rollerOn();
-moveBaseAutonomous(535.0,0.0,0.0);
-moveBaseAutonomous(-300.0,0.0,0.0);
-moveBaseAutonomous(.0,200.0,0.0);
-turn90(true);
-moveBaseAutonomous(.0,-900.0,0.0);
-moveBaseAutonomous(-200.0,0.0,0.0);
-moveBaseAutonomous(.0,900.0,0.0);
+    // start scoring thread
+    rollerOn();
+    moveBaseAutonomous(535.0,0.0,0.0);
+    moveBaseAutonomous(-300.0,0.0,0.0);
+    moveBaseAutonomous(.0,200.0,0.0);
+    turn90(true);
+    moveBaseAutonomous(.0,-900.0,0.0);
+    moveBaseAutonomous(-200.0,0.0,0.0);
+    moveBaseAutonomous(.0,900.0,0.0);
 }
 
 void positive_red_auton()
@@ -1105,6 +1175,8 @@ pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT + 1,
 void initialize()
 {
     pros::lcd::initialize();
+    conveyor_optical.set_led_pwm(100);
+    conveyor_optical.set_integration_time(2);
     if (serial_task_enabled == false)
     { // Test code, remove for actual match code
         pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT,
@@ -1138,13 +1210,14 @@ void initialize()
     // imu.reset(true);  //uncomment for actual
     // pros::delay(100);
     // master.print(0,0,"IMU calibrated  ");
-    while (global_distX == 0.0 || global_distY == 0.0)
-    {
-    }
+    // while (global_distX == 0.0 || global_distY == 0.0)
+    // {
+    // }
     // imu2.set_data_rate(5);
     pros::Task slam_dunk(slamDunk, (void *)"slam", TASK_PRIORITY_DEFAULT,
                          TASK_STACK_DEPTH_DEFAULT, "slam task");
-
+    pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT + 1,
+                         TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     master.rumble(".-.");
 }
 
@@ -1153,8 +1226,29 @@ void opcontrol()
     // serial_task.remove();
     pros::Task move_base(moveBase, (void *)"driver", TASK_PRIORITY_MAX - 2,
                          TASK_STACK_DEPTH_DEFAULT, "driver task");
+    int blue = 0;
+    int red = 0;
     while (true)
     {
+        //double hue_value = conveyor_optical.get_hue();
+        // pros::lcd::print(0,"%lf",hue_value);
+        // if(hue_value < 14.0){
+        //     red_detected = true;
+        //     pros::lcd::print(3,"red");
+        //     red++;
+        // }
+        // else if(hue_value > 190.0 && hue_value < 230.0){
+        //     blue_detected = true;
+        //     pros::lcd::print(3,"blue");
+        //     blue++;
+        // }
+        // else{
+        //     blue_detected = false;
+        //     pros::lcd::print(3,"no colour");
+        // }
+        //  pros::lcd::print(4,"red count: %d",red);
+        //   pros::lcd::print(5,"blue count: %d",blue);
+
         if (driver == true)
             move_base.resume();
         else
@@ -1219,7 +1313,7 @@ void opcontrol()
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
             conveyor.move(-110);
         else
-            conveyor.move(0);
+            //conveyor.move(0);
 
         // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
         // when L1 is pressed, rollers move forward with NEGATIVE velocity??
@@ -1228,7 +1322,7 @@ void opcontrol()
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
             roller.move(-110);
         else
-            roller.move(0);
+            //roller.move(0);
 
         if (mobile_goal_actuated)
         {
