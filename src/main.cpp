@@ -136,10 +136,26 @@ void clampVoltage(int32_t VOLTAGE)
 }
 
 void limitVoltage(int32_t BATTERY_VOLTAGE){
-    lu = lu * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF)/BATTERY_VOLTAGE) + VOLTAGE_CUTOFF;
-    ll = ll * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF)/BATTERY_VOLTAGE) + VOLTAGE_CUTOFF;
-    ru = ru * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF)/BATTERY_VOLTAGE) + VOLTAGE_CUTOFF;
-    rl = rl * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF)/BATTERY_VOLTAGE) + VOLTAGE_CUTOFF;
+    if(fabs(lu)<VOLTAGE_CUTOFF){
+        lu = 0;
+    }else{
+        lu = (lu * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF)/BATTERY_VOLTAGE)) + VOLTAGE_CUTOFF;
+    }
+    if(fabs(ll)<VOLTAGE_CUTOFF){
+        ll = 0;
+    }else{
+        ll = (ll * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF)/BATTERY_VOLTAGE)) + VOLTAGE_CUTOFF;
+    }
+    if(fabs(ru)<VOLTAGE_CUTOFF){
+        ru = 0;
+    }else{
+        ru = (ru * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF)/BATTERY_VOLTAGE)) + VOLTAGE_CUTOFF;
+    }
+    if(fabs(rl)<VOLTAGE_CUTOFF){
+        rl = 0;
+    }else{
+        rl = (rl * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF)/BATTERY_VOLTAGE)) + VOLTAGE_CUTOFF;
+    }
 }
 
 void move_voltage_wheels(int32_t lu, int32_t ll, int32_t ru, int32_t rl){
@@ -411,6 +427,11 @@ void moveBase(){
         l_velocity_pid += left_velocity_PID.step(current_l_tl_error); 
         r_velocity_pid += right_velocity_PID.step(current_r_tl_error); 
 
+        if(target_v.norm()<2.0 && current_l_velocity< 2.0 && current_r_velocity < 2.0){
+            l_velocity_pid = 0.0;
+            r_velocity_pid = 0.0;
+        }
+
         // angle pid: based on error, pid updates the power to the wheels 
         l_angle_pid = left_angle_PID.step(l_error); //power to force anticlockwise aiming
         r_angle_pid = right_angle_PID.step(r_error); 
@@ -594,33 +615,48 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         while(imu.tare_rotation() == PROS_ERR);
 
     while(true){
-        if(fabs(targetX) > 0.0)
-            errorX = fabs(fabs(targetX) - fabs((fabs(global_distX) - offsetX)));
-        if(fabs(targetX) > 0.0 && fabs(errorX) > fabs(targetX))
+        
+
+       
+        prev_target_v = target_v; // prev target velocity
+        prev_target_r = target_r; // prev target rotation
+
+        if (fabs(targetX) != 0.0)
+            errorX = targetX - (global_distX - offsetX);
+        else
             errorX = 0.0;
-        if(fabs(targetX) <= 0.0 || fabs(errorX) <= 3.0)
-            errorX = 0.0;
-        if(fabs(fabs(global_distX) - offsetX) > fabs(targetX))
+        if (errorX < 2.0 && errorX > -2.0)
             errorX = 0.0;
 
-        if(fabs(targetY) > 0.0)
-            errorY = fabs(fabs(targetY) - fabs((fabs(global_distY) - offsetY)));
-        if(fabs(targetY) > 0.0 && fabs(errorY) > fabs(targetY))
+        if (fabs(targetY) != 0.0)
+            errorY = targetY - (global_distY - offsetY);
+        else
             errorY = 0.0;
-        if(fabs(targetY) <= 0.0 || fabs(errorY) <= 3.0)
+        if (errorY < 2.0 && errorY > -2.0)
             errorY = 0.0;
-        if(fabs((fabs(global_distY) - offsetY)) > fabs(targetY))
-            errorY = 0.0;
+        // pros::lcd::print(1,"err_x: %1.1lf, err_y: %1.1lf", errorX, errorY);
+        //  if(fabs(targetY) > 0.0)
+        //      errorY = fabs(fabs(targetY) - fabs((fabs(global_distY) - offsetY)));
+        //  if(fabs(targetY) > 0.0 && fabs(errorY) > fabs(targetY))
+        //      errorY = 0.0;
+        //  if(fabs(targetY) <= 0.0 || fabs(errorY) <= 3.0)
+        //      errorY = 0.0;
+        //  if(fabs((fabs(global_distY) - offsetY)) > fabs(targetY))
+        //      errorY = 0.0;
+        //  pros::lcd::print(1,"error_y: %.2lf", errorY);
+        //  pros::lcd::print(2,"offsetted_y: %.2lf", ((global_distY) - offsetY));
+        //  pros::lcd::print(3,"target_y: %.2lf", targetY);
 
-        if(fabs(target_heading) > 0.0)
+        if (fabs(target_heading) > 0.0)
             errorheading = fabs(fabs(target_heading) - fabs(imu.get_rotation()));
-        if(fabs(target_heading) <= 0.0 || fabs(errorheading) <= 2.0)
+        if (fabs(target_heading) <= 0.0 || fabs(errorheading) <= 2.0)
             errorheading = 0.0;
-        if(fabs(errorheading) > fabs(target_heading))
+        if (fabs(errorheading) > fabs(target_heading))
             errorheading = 0.0;
-        if(fabs(target_heading) > 0.0 && fabs(errorheading) > fabs(target_heading))
+        if (fabs(target_heading) > 0.0 && fabs(errorheading) > fabs(target_heading))
             errorheading = 0.0;
 
+        // pros::lcd::print(4,"target_v_x: %.2lf", target_v_y); 
         if(fabs(errorX) <= 0.0 && fabs(errorY) <= 0.0 && fabs(errorheading) <= 0.0){
             move_voltage_wheels(0,0,0,0);
             lu = 0;
@@ -647,7 +683,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);  
         current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0); 
 
-        current_l_velocity = ((luA.get_actual_velocity()+luB.get_actual_velocity()+llA.get_actual_velocity()+llB.get_actual_velocity())/4.0); 
+        current_l_velocity = ((luA.get_actual_velocity()+luB.get_actual_velocity()+llA.get_actual_velocity()+llB.get_actual_velocity())/4.0); // in RPM
         current_r_velocity = ((ruA.get_actual_velocity()+ruB.get_actual_velocity()+rlA.get_actual_velocity()+rlB.get_actual_velocity())/4.0); 
 
         current_angular = (-current_l_velocity*sin(left_angle)+current_r_velocity*sin(right_angle))/(2.0*WHEEL_BASE_RADIUS); // current angular velocity 
@@ -1058,40 +1094,6 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         if(master.get_digital_new_press(DIGITAL_X)) slam_dunk_actuated = !slam_dunk_actuated;
         if(master.get_digital(DIGITAL_B)) brake();
 
-        //JOEL'S CONVEYOR TEST
-        //pros::lcd::print(5,"pos: %.2f, %%: %.3f, prx: %d", conveyor.get_position(), conveyor.get_position()/conveyor_loop_period, conveyor_optical.get_proximity());
-
-        // if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) { 
-        //     // pros::lcd::print(0, "R1 pressed, CONVEYOR FORWARD\n");
-        //     // conveyor.move(110); 
-        //     step_conveyor();
-
-        //     } 
-        // else if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
-        //     // pros::lcd::print(0, "R2 pressed, CONVEYOR BACKWARD\n");
-        //     // conveyor.move(-110);
-        //     calibrate_conveyor();
-        //     }
-        // else { 
-        //     //pros::lcd::print(0, "CONVEYOR STOPPED\n");
-        //     //pros::lcd::print(0, "CONVEYOR STOPPED\n");
-        //     conveyor.move(0);
-        // }
-
-        // // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
-        // // when L1 is pressed, rollers move forward with NEGATIVE velocity??
-        // if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) { 
-        //     //pros::lcd::print(0, "L2: ROLLER backward, +ve velocity??\n");
-        //     roller.move(110); 
-        // } 
-        // else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) { 
-        //     // detect ring and move conveyor later
-        //     roller.move(-110);
-        //     check_for_ring();
-        // } 
-        // else {
-        //     roller.move(0);
-        // }
 
         if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) conveyor.move(110); 
         else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) conveyor.move(-110);
