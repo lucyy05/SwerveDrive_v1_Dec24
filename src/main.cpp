@@ -325,7 +325,7 @@ void moveBase(){
 
     double current_angular = 0.0; // current angular velocity 
 
-    vector3D current_tl_velocity(0,0,0); //current transaltional velocity
+    vector3D current_tl_velocity(0,0,0); //current translational velocity
 
     vector3D prev_target_v(0,0,0);  
     vector3D prev_target_r(0,0,0); 
@@ -653,18 +653,18 @@ void alignWheels(vector3D heading){
 
 
 void moveAuton(double targetX, double targetY, double target_heading){
-    const double tl_kP = 0.0;
+    const double tl_kP = 0.0;   // PID for translational motion
     const double tl_kI = 0.0;
     const double tl_kD = 0.0;
-    const double rt_kP = 0.0;
+    const double rt_kP = 0.0;   // PID for rotational motion
     const double rt_kI = 0.0;
     const double rt_kD = 0.0;
 
-    const double tl_accel = 0.0;
+    const double tl_accel = 0.0;    // Acceleration rates
     const double rt_accel = 0.0;
 
-    const double max_speed_c = 0.2;
-    const double max_angular_c = 0.2;
+    const double max_speed_c = 0.2; // maximum as a fraction of theoretical max
+    const double max_angular_c = 0.2;   //multiplied by MAX_ANGULAR and MAX_SPEED later
     
     const double tl_thresh = 0.0;
     const double rt_thresh = 0.0;
@@ -673,15 +673,16 @@ void moveAuton(double targetX, double targetY, double target_heading){
     vector3D position(0.0,0.0,0.0);
     vector3D error = target_movement-position;
     vector3D velocity;
+    
+    uint64_t prev_time = pros::micros();
     uint64_t current_time = pros::micros();
-    uint64_t dt;
+    uint64_t dt = 0.0;
 
     bool at_target = false;
 
     //PID for decel only
-    PID X_PID(tl_kP,tl_kI,tl_kD);
-    PID Y_PID(tl_kP,tl_kI,tl_kD);
-    PID Z_PID(rt_kP,rt_kI,rt_kD);
+    PID TL_PID(tl_kP,tl_kI,tl_kD);
+    PID RT_PID(rt_kP,rt_kI,rt_kD);
     imu.tare_heading();
 
     double current_l_velocity = ((luA.get_actual_velocity()+luB.get_actual_velocity()+llA.get_actual_velocity()+llB.get_actual_velocity())/(4.0*SPEED_TO_RPM)); //mm/s
@@ -698,6 +699,14 @@ void moveAuton(double targetX, double targetY, double target_heading){
     double imu_angular = -1.0 * imu.get_gyro_rate().z * TO_RADIANS;
     double imu_heading = wrapAngle(-1.0*imu.get_heading())* TO_RADIANS;
 
+    //main loop
+    while(!at_target){
+        error = target_movement - position;
+        
+    }
+}
+
+void updateValues(){    //run this as a task to update all values
 
 }
 
@@ -1091,7 +1100,7 @@ void initialize(){
     pros::Task slam_dunk(slamDunk);
 }
 
-void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
+void opcontrol(){  
     pros::Task move_base(moveBase);
 
     while(true){
