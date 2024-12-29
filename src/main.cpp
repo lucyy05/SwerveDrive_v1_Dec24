@@ -1209,9 +1209,9 @@ void initialize()
     // imu.reset(true);  //uncomment for actual
     // pros::delay(100);
     // master.print(0,0,"IMU calibrated  ");
-    // while (global_distX == 0.0 || global_distY == 0.0)
-    // {
-    // }
+    while (global_distX == 0.0 || global_distY == 0.0)
+    {
+    }
     // imu2.set_data_rate(5);
     pros::Task slam_dunk(slamDunk, (void *)"slam", TASK_PRIORITY_DEFAULT,
                          TASK_STACK_DEPTH_DEFAULT, "slam task");
