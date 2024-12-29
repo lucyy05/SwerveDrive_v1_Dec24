@@ -737,9 +737,14 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
             brake();
             break;
         }
-
-        target_v_x = delta_X_PID.step(errorX);
-        target_v_y = delta_Y_PID.step(errorY);
+        if(sqrt(errorX*errorX+errorY*errorY)>400.0){
+            target_v_x = check_sign(errorX)*MAX_SPEED*0.5;
+            target_v_y = check_sign(errorY)*MAX_SPEED*0.5;
+        }else{
+            target_v_x = delta_X_PID.step(errorX);
+            target_v_y = delta_Y_PID.step(errorY);
+        }
+        
 
         target_r_heading = delta_Heading_PID.step(errorheading);
         // pros::lcd::print(4,"target_v_x: %.2lf", target_v_y);
@@ -1176,7 +1181,7 @@ void autonomous()
 pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT + 1,
                        TASK_STACK_DEPTH_DEFAULT, "serial task");
 
-pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT + 1,
+pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
                          TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
 
 void initialize()
@@ -1222,8 +1227,8 @@ void initialize()
     }
     pros::Task slam_dunk(slamDunk, (void *)"slam", TASK_PRIORITY_DEFAULT,
                          TASK_STACK_DEPTH_DEFAULT, "slam task");
-    pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT + 1,
-                         TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
+    // pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
+    //                      TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     master.rumble(".-.");
 }
 
