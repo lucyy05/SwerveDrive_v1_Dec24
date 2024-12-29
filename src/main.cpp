@@ -1169,8 +1169,8 @@ void autonomous()
     // pros::Task serial_task(serialRead, (void*)"serial", 1, //Uncomment for actual match
     //                 TASK_STACK_DEPTH_DEFAULT, "Serial read task");
     //JJ NEG RED AUTON
-    negative_red_auton();
-    is_we_red_alliance = true;
+    negative_blue_auton();
+    is_we_red_alliance = false;
 }
 
 pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT + 1,
