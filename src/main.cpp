@@ -1087,24 +1087,25 @@ void positive_blue_auton()
 
 void positive_red_auton()
 {
+    positive_blue_auton();
 }
 
 void negative_blue_auton()
 {
     mobilegoalopen();
 
-        moveBaseAutonomous(0.0, -750.0, 0.0);
-        moveBaseAutonomous(300.0, 0.0, 0.0);
+    moveBaseAutonomous(0.0, -750.0, 0.0);
+    moveBaseAutonomous(300.0, 0.0, 0.0);
 
-        // moveBaseAutonomous(300.0,0.0,0.0);
-        moveBaseAutonomous(0.0, -60.0, 0.0);
-        mobilegoalclose();
-        // start scoring thread
-        rollerOn();
-        conveyorOn();
-        moveBaseAutonomous(0.0, 900.0, 0.0);
-        moveBaseAutonomous(0.0, 0.0, -49.7);
-        moveBaseAutonomous(0.0, 413.0, 0.0);
+    // moveBaseAutonomous(300.0,0.0,0.0);
+    moveBaseAutonomous(0.0, -60.0, 0.0);
+    mobilegoalclose();
+    // start scoring thread
+    rollerOn();
+    conveyorOn();
+    moveBaseAutonomous(0.0, 900.0, 0.0);
+    moveBaseAutonomous(0.0, 0.0, -49.7);
+    moveBaseAutonomous(0.0, 413.0, 0.0);
 
     moveBaseAutonomous(0.0, -150.0, 0.0);
     moveBaseAutonomous(0.0, 150.0, 0.0);
@@ -1160,16 +1161,23 @@ void negative_blue_auton()
 
 void negative_red_auton()
 {
+    negative_blue_auton();
 }
 
 void autonomous()
 {
     // pros::Task serial_task(serialRead, (void*)"serial", 1, //Uncomment for actual match
     //                 TASK_STACK_DEPTH_DEFAULT, "Serial read task");
+    //JJ NEG RED AUTON
+    negative_red_auton();
+    is_we_red_alliance = true;
 }
 
 pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT + 1,
                        TASK_STACK_DEPTH_DEFAULT, "serial task");
+
+pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT + 1,
+                         TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
 
 void initialize()
 {
@@ -1212,7 +1220,6 @@ void initialize()
     while (global_distX == 0.0 || global_distY == 0.0)
     {
     }
-    // imu2.set_data_rate(5);
     pros::Task slam_dunk(slamDunk, (void *)"slam", TASK_PRIORITY_DEFAULT,
                          TASK_STACK_DEPTH_DEFAULT, "slam task");
     pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT + 1,
@@ -1222,18 +1229,16 @@ void initialize()
 
 void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
     //serial_task.remove();
+    serial_task.remove();
+    conveyor_auton.remove();
     pros::Task move_base(moveBase, (void*)"driver", TASK_PRIORITY_MAX-2,
                     TASK_STACK_DEPTH_DEFAULT, "driver task");
     while(true){
-        if(driver == true) move_base.resume();
-        else move_base.suspend();
+        // if(driver == true) move_base.resume();
+        // else move_base.suspend();
 
         leftY = master.get_analog(ANALOG_LEFT_Y);
-
-        if (arcade == true)
-            leftX = 0.0;
-        else
-            leftX = master.get_analog(ANALOG_LEFT_X);
+        leftX = 0.0;
 
         rightX = master.get_analog(ANALOG_RIGHT_X);
         rightY = master.get_analog(ANALOG_RIGHT_Y);
@@ -1241,7 +1246,7 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         if (master.get_digital_new_press(DIGITAL_A))
             mobile_goal_actuated = !mobile_goal_actuated;
         if (master.get_digital_new_press(DIGITAL_B))
-            autonomous();
+            brake();
         if (master.get_digital_new_press(DIGITAL_X))
             slam_dunk_actuated = !slam_dunk_actuated;
 
@@ -1252,7 +1257,7 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
             conveyor.move(-110);
         else
-            //conveyor.move(0);
+            conveyor.move(0);
 
         // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
         // when L1 is pressed, rollers move forward with NEGATIVE velocity??
@@ -1261,7 +1266,7 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
             roller.move(-110);
         else
-            //roller.move(0);
+            roller.move(0);
 
         if (mobile_goal_actuated)
         {
@@ -1294,8 +1299,6 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
             slammingState = SLAM_START_STATE;
         }
 
-        // if(master.get_digital_new_press(DIGITAL_LEFT)) arcade = !arcade;
-        // if(master.get_digital_new_press(DIGITAL_LEFT)) driver = !driver;
         if (master.get_digital_new_press(DIGITAL_LEFT))
             yoinker_actuated = !yoinker_actuated;
         if (master.get_digital_new_press(DIGITAL_Y))
