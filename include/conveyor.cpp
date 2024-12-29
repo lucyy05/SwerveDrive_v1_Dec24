@@ -231,7 +231,7 @@ int conveyor_step = 0;
 void step_conveyor(){
     conveyor_step = (conveyor_step+1) % 4;
     #ifndef DISABLE_CONVEYOR_LCD_PRINTS
-    pros::lcd::print(1, "stp: %d/3, pos: %f", conveyor_step, conveyor.get_position());
+    // pros::lcd::print(1, "stp: %d/3, pos: %f", conveyor_step, conveyor.get_position());
     #endif
     conveyor_go_to_step(conveyor_step);
 }

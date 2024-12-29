@@ -923,6 +923,102 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
     }
 }
 
+
+void alignWheels(vector3D heading){ 
+    double left_angle; 
+    double right_angle; 
+    double left_target_angle; 
+    double right_target_angle; 
+    //vector3D rotational_v_vector; // vector expression for angular velocity -- only has z component 
+
+    vector3D current_left_vector; // direction unit vector for wheels
+    vector3D current_right_vector; 
+
+    double l_error = 0.0; // how far the left and right angles wrt to the their respective target angles 
+    double r_error = 0.0; 
+
+    double l_angle_pid = 0.0; // power diff for angular velocity 
+    double r_angle_pid = 0.0; 
+
+    uint32_t start_t = pros::millis();
+    uint32_t elapsed_t = pros::millis();
+    bool flag = false;
+    bool loop_flag = true;
+
+    //PID instances
+    PID left_angle_PID(30, 0, 5000); 
+    PID right_angle_PID(30, 0, 5000); 
+
+    vector3D null_v = vector3D(0,0,0);
+
+    while(loop_flag){ 
+        target_v = heading; // target velocity 
+        left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor)-90.0)*TO_RADIANS;     //takes robot right as 0
+        right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor)-90.0)*TO_RADIANS;   //Y axis positive is front
+
+        current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);  
+        current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0); 
+
+
+   
+        v_left = target_v + null_v; //in order to rotate counterclockwise
+        v_right = target_v - null_v; 
+
+        bool reverse_right = false; 
+        bool reverse_left = false; 
+        
+        // check if the angle is obtuse 
+        if (v_left * current_left_vector < 0){   
+            // reverse if angle is obtuse for shorter rotation 
+            v_left = -v_left; 
+            reverse_left = true; 
+        } 
+
+        if (v_right * current_right_vector < 0){   
+            // reverse if angle is obtuse for shorter rotation 
+            v_right = -v_right; 
+            reverse_right = true; 
+        } 
+
+        l_error = angle(v_left, current_left_vector); 
+        r_error = angle(v_right, current_right_vector); 
+        
+        if (std::isnan(l_error) || std::isnan(r_error)) { 
+            l_error = 0.0;
+            r_error = 0.0; 
+        } 
+
+        if(fabs(l_error)<(2.0*TO_RADIANS)&&fabs(r_error)<(2.0*TO_RADIANS)){
+            if(!flag){
+                flag = true;
+                start_t = pros::millis();
+            }
+            elapsed_t = pros::millis() - start_t;
+            if(elapsed_t>200){
+                loop_flag = false;
+            }
+        }
+
+        // angle pid: based on error, pid updates the power to the wheels 
+        l_angle_pid = left_angle_PID.step(l_error); //power to force anticlockwise aiming
+        r_angle_pid = right_angle_PID.step(r_error); 
+        
+        lu = (int32_t)scale * (l_angle_pid) * 1.0; 
+        ll = (int32_t)scale * (l_angle_pid) * -1.0; 
+        ru = (int32_t)scale * (r_angle_pid) * 1.0; 
+        rl = (int32_t)scale * (-r_angle_pid) * -1.0; 
+
+        clampVoltage(MAX_VOLTAGE);
+        //limitVoltage(MAX_VOLTAGE);
+
+        std::cout << lu << " : " << ll << " : " << ru << " : " << rl << std::endl; 
+        move_voltage_wheels(lu,ll,ru,rl);
+        pros::delay(2);
+    }
+    return;
+}
+
+
 void turn180(bool turnleft)
 {
     // auton_heading_kP = 0.058; //Without Mogo
@@ -1039,12 +1135,12 @@ void conveyorAuton(void* params){
         conveyor.move(20);
         roller.move(-100);
         double hue_value = conveyor_optical.get_hue();
-        pros::lcd::print(5,"Hue:%lf",hue_value);
+        // pros::lcd::print(5,"Hue:%lf",hue_value);
         //rgb = conveyor_optical.get_rgb();
         if(!blue_detected){
             if(hue_value > 190.0 && hue_value < 230.0){
                 blue_detected = true;
-                pros::lcd::print(3,"blue");
+                // pros::lcd::print(3,"blue");
                 blue++;
             }
             // else if(!(hue_value > 120.0 && hue_value < 140.0)){
@@ -1057,10 +1153,10 @@ void conveyorAuton(void* params){
 
         if(hue_value > 120.0 && hue_value < 140.0){
             hook_detected = true;
-            pros::lcd::print(3,"hook detected");
+            // pros::lcd::print(3,"hook detected");
         }
 
-        pros::lcd::print(0,"hue:%.1lf",hue_value);
+        // pros::lcd::print(0,"hue:%.1lf",hue_value);
 
         if(hook_detected){
             //pros::lcd::print(1,"Hook");
@@ -1095,13 +1191,6 @@ void conveyorAuton(void* params){
 
         pros::delay(2);
     }
-}
-
-void yoink(bool yoinketh){
-    if (yoinketh)
-        yoinker.set_value(0);
-    else
-        yoinker.set_value(1);
 }
 
 void yoink(bool yoinketh){
@@ -1211,10 +1300,37 @@ void negative_red_auton()
 {
 }
 
+void test(){
+//      vector3D targetheading (0,-MAX_SPEED,0); 
+// alignWheels(targetheading);
+// moveBaseAutonomous(0.0, -60.0, 0.0);
+// pros::delay(3000);
+//      pros::lcd::print(2,"test bef align wheel");
+     
+//      alignWheels(targetheading);
+//      pros::lcd::print(2,"test after align wheel");
+//     moveBaseAutonomous(0.0, 60.0, 0.0);
+//     pros::delay(3000);
+//     // alignWheels(targetheading);
+//     moveBaseAutonomous(0.0, -150.0, 0.0);
+//     pros::delay(3000);
+//     // alignWheels(targetheading);
+//     moveBaseAutonomous(0.0, 150.0, 0.0);
+//     pros::delay(3000);
+//     // alignWheels(targetheading);
+    moveBaseAutonomous(0.0, -500.0, 0.0);
+    pros::delay(3000);
+    // alignWheels(targetheading);
+    moveBaseAutonomous(0.0, 500.0, 0.0);
+    pros::delay(3000);
+}
+
+
 void autonomous()
 {
     // pros::Task serial_task(serialRead, (void*)"serial", 1, //Uncomment for actual match
     //                 TASK_STACK_DEPTH_DEFAULT, "Serial read task");
+    test();
 }
 
 pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT + 1,
@@ -1264,13 +1380,13 @@ void initialize()
     // imu2.set_data_rate(5);
     pros::Task slam_dunk(slamDunk, (void *)"slam", TASK_PRIORITY_DEFAULT,
                          TASK_STACK_DEPTH_DEFAULT, "slam task");
-    pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT + 1,
-                         TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
+    // pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT + 1,
+    //                      TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     master.rumble(".-.");
 }
 
 void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
-    //serial_task.remove();
+    serial_task.remove();
     pros::Task move_base(moveBase, (void*)"driver", TASK_PRIORITY_MAX-2,
                     TASK_STACK_DEPTH_DEFAULT, "driver task");
     while(true){
@@ -1290,7 +1406,7 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         if (master.get_digital_new_press(DIGITAL_A))
             mobile_goal_actuated = !mobile_goal_actuated;
         if (master.get_digital_new_press(DIGITAL_B))
-            autonomous();
+            brake();
         if (master.get_digital_new_press(DIGITAL_X))
             slam_dunk_actuated = !slam_dunk_actuated;
 

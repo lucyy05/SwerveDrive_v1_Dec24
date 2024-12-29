@@ -72,7 +72,7 @@
 #define ROLLER_MOTOR 6
 #define CONVEYOR_MOTOR 7
 
-#define SERIALPORT 20
+#define SERIALPORT 19
 
 #define ZERO_VECTOR INFINITY
 
@@ -139,7 +139,7 @@ const double TO_DEGREES = (180.0 / M_PI);
 const double TO_RADIANS = (M_PI / 180.0);
 const double MAX_VOLTAGE = 12000.0;
 const int MAX_CURRENT_BASE = 1800;
-const int VOLTAGE_CUTOFF = 2700; // mV
+const int VOLTAGE_CUTOFF = 2000; // mV
 
 //moving (moveBase)
 vector3D target_v;
@@ -293,7 +293,7 @@ bool mobile_goal_actuated = false;
 bool mobile_goal_jaw = false;
 
 //Yoinker
-bool yoinker_actuated = true;
+bool yoinker_actuated = false;
 
 //Optical flow
 const double ALPHA = 0.85;
@@ -309,4 +309,3 @@ bool roller_lifts = false;
 //Driver
 bool driver = false;
 bool arcade = false;
-bool yoinker_actuated = true;
