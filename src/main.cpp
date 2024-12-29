@@ -653,6 +653,10 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
 
     PID delta_Heading_PID(auton_heading_kP, auton_heading_kI, auton_heading_kD);
 
+    // delta_X_PID.init();
+    // delta_Y_PID.init();
+    // delta_Heading_PID.init();
+
     vector3D L2I_pos(WHEEL_BASE_RADIUS, 0.0, 0.0);
     vector3D imu_angular;
     vector3D angular_error;
@@ -676,8 +680,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
     double offsetY = global_distY;
     // pros::lcd::print(6, "offset_y:%.1lf", offsetY);
     if (fabs(target_heading) > 0.0)
-        while (imu.tare_rotation() == PROS_ERR)
-            ;
+        while (imu.tare_rotation() == PROS_ERR);
 
     while (true)
     {
@@ -738,8 +741,13 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
             break;
         }
 
-        target_v_x = delta_X_PID.step(errorX);
-        target_v_y = delta_Y_PID.step(errorY);
+        if(fabs(errorX) < 400.0 && fabs(errorY) < 400.0){
+            delta_X_PID.init(0.06,0.0,0.2);
+            delta_Y_PID.init(0.06,0.0,0.2);
+        }
+
+        target_v_x = std::clamp(delta_X_PID.step(errorX),MAX_SPEED*0.1,MAX_SPEED*(-0.1));
+        target_v_y = std::clamp(delta_Y_PID.step(errorY),MAX_SPEED*0.1,MAX_SPEED*(-0.1));
 
         target_r_heading = delta_Heading_PID.step(errorheading);
         // pros::lcd::print(4,"target_v_x: %.2lf", target_v_y);
@@ -882,7 +890,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
         // ll = (int32_t)std::clamp(lscale * (l_velocity_pid - l_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
         // ru = (int32_t)std::clamp(rscale * (r_velocity_pid + r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
         // rl = (int32_t)std::clamp(rscale * (r_velocity_pid - r_angle_pid), -MAX_VOLTAGE, MAX_VOLTAGE);
-
+        
         lu = (int32_t)(lscale * (l_velocity_pid + l_angle_pid));
         ll = (int32_t)(lscale * (l_velocity_pid - l_angle_pid));
         ru = (int32_t)(rscale * (r_velocity_pid + r_angle_pid));
