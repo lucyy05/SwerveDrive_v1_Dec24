@@ -554,16 +554,16 @@ void slamDunk(void *params)
 void moveBaseAutonomous(double targetX, double targetY, double target_heading)
 {
     targetY *= -1.0;
-    // if(fabs(targetX) < 400.0 || fabs(targetY) < 400.0){
-    //     auton_distance_kP = 0.17; //swerve wheel rotation distance
-    //     auton_distance_kI = 0.0;
-    //     auton_distance_kD = 2.0;
-    // }
-    // else{
-    auton_distance_kP = 0.07; // swerve wheel rotation distance
-    auton_distance_kI = 0.0;
-    auton_distance_kD = 0.02;
-    // }
+    if(fabs(targetX) < 400.0 || fabs(targetY) < 400.0){
+        auton_distance_kP = 0.06; //swerve wheel rotation distance
+        auton_distance_kI = 0.0;
+        auton_distance_kD = 0.2;
+    }
+    else{
+        auton_distance_kP = 0.0001; //swerve wheel rotation distance
+        auton_distance_kI = 0.0;
+        auton_distance_kD = 0.0;
+    }
     double v_right_velocity = 0.0; // target velocity magnitude
     double v_left_velocity = 0.0;
 
@@ -640,8 +640,8 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
         // auton_azim_kI = 0.0;    //drunk
         // auton_azim_kD = 15.0;
 
-        auton_azim_kP = 0.18; // azimuth, for correcting rotation
-        auton_azim_kI = 0.0;  // drunk
+        auton_azim_kP = 0.05; //azimuth, for correcting rotation
+        auton_azim_kI = 0.0;    //drunk
         auton_azim_kD = 10.0;
 
         AUTON_ANGULAR_THRESH = 0.00; // Threshold under which to ignore angular error
@@ -703,20 +703,20 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
             errorY = targetY - (global_distY - offsetY);
         else
             errorY = 0.0;
-        if (errorY < 2.0 && errorY > -2.0)
+        if(errorY < 2.0 && errorY > -2.0)
             errorY = 0.0;
-        // pros::lcd::print(1,"err_x: %1.1lf, err_y: %1.1lf", errorX, errorY);
-        //  if(fabs(targetY) > 0.0)
-        //      errorY = fabs(fabs(targetY) - fabs((fabs(global_distY) - offsetY)));
-        //  if(fabs(targetY) > 0.0 && fabs(errorY) > fabs(targetY))
-        //      errorY = 0.0;
-        //  if(fabs(targetY) <= 0.0 || fabs(errorY) <= 3.0)
-        //      errorY = 0.0;
-        //  if(fabs((fabs(global_distY) - offsetY)) > fabs(targetY))
-        //      errorY = 0.0;
-        //  pros::lcd::print(1,"error_y: %.2lf", errorY);
-        //  pros::lcd::print(2,"offsetted_y: %.2lf", ((global_distY) - offsetY));
-        //  pros::lcd::print(3,"target_y: %.2lf", targetY);
+        pros::lcd::print(1,"err_x: %1.1lf, err_y: %1.1lf", errorX, errorY);
+        // if(fabs(targetY) > 0.0)
+        //     errorY = fabs(fabs(targetY) - fabs((fabs(global_distY) - offsetY)));
+        // if(fabs(targetY) > 0.0 && fabs(errorY) > fabs(targetY))
+        //     errorY = 0.0;
+        // if(fabs(targetY) <= 0.0 || fabs(errorY) <= 3.0)
+        //     errorY = 0.0;
+        // if(fabs((fabs(global_distY) - offsetY)) > fabs(targetY))
+        //     errorY = 0.0;
+        // pros::lcd::print(1,"error_y: %.2lf", errorY);
+        // pros::lcd::print(2,"offsetted_y: %.2lf", ((global_distY) - offsetY));
+        // pros::lcd::print(3,"target_y: %.2lf", targetY);
 
         if (fabs(target_heading) > 0.0)
             errorheading = fabs(fabs(target_heading) - fabs(imu.get_rotation()));
@@ -1221,38 +1221,13 @@ void initialize()
     master.rumble(".-.");
 }
 
-void opcontrol()
-{ // TODO: JOEL PLEASE MAKE CONVEYOR A TASK
-    // serial_task.remove();
-    pros::Task move_base(moveBase, (void *)"driver", TASK_PRIORITY_MAX - 2,
-                         TASK_STACK_DEPTH_DEFAULT, "driver task");
-    int blue = 0;
-    int red = 0;
-    while (true)
-    {
-        //double hue_value = conveyor_optical.get_hue();
-        // pros::lcd::print(0,"%lf",hue_value);
-        // if(hue_value < 14.0){
-        //     red_detected = true;
-        //     pros::lcd::print(3,"red");
-        //     red++;
-        // }
-        // else if(hue_value > 190.0 && hue_value < 230.0){
-        //     blue_detected = true;
-        //     pros::lcd::print(3,"blue");
-        //     blue++;
-        // }
-        // else{
-        //     blue_detected = false;
-        //     pros::lcd::print(3,"no colour");
-        // }
-        //  pros::lcd::print(4,"red count: %d",red);
-        //   pros::lcd::print(5,"blue count: %d",blue);
-
-        if (driver == true)
-            move_base.resume();
-        else
-            move_base.suspend();
+void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
+    //serial_task.remove();
+    pros::Task move_base(moveBase, (void*)"driver", TASK_PRIORITY_MAX-2,
+                    TASK_STACK_DEPTH_DEFAULT, "driver task");
+    while(true){
+        if(driver == true) move_base.resume();
+        else move_base.suspend();
 
         leftY = master.get_analog(ANALOG_LEFT_Y);
 
