@@ -260,7 +260,8 @@ const int defaultSlamValue = 2974;
 enum SlammingState {
     SLAM_START_STATE = 0,
     SLAM_MID_STATE = 1,
-    SLAM_EXTENDED_STATE = 2
+    SLAM_EXTENDED_STATE = 2,
+    SLAM_LADDER = 3
 };
 
 SlammingState slammingState = SLAM_START_STATE;
