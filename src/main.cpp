@@ -1104,6 +1104,13 @@ void yoink(bool yoinketh){
         yoinker.set_value(1);
 }
 
+void yoink(bool yoinketh){
+    if (yoinketh)
+        yoinker.set_value(0);
+    else
+        yoinker.set_value(1);
+}
+
 void positive_blue_auton()
 {
     mobilegoalopen();
@@ -1112,7 +1119,19 @@ void positive_blue_auton()
     moveBaseAutonomous(535.0,0.0,0.0);
     conveyor.move(50);
     pros::delay(500);
+    rollerOn();
+    //score alliance stakes
+    moveBaseAutonomous(535.0,0.0,0.0);
+    conveyor.move(50);
+    pros::delay(500);
 
+    //grab mobile goal
+    moveBaseAutonomous(-300.0,0.0,0.0);
+    moveBaseAutonomous(0.0,200.0,0.0);
+    turn90(true);
+    moveBaseAutonomous(0.0,-390.0,0.0);
+    mobilegoalclose();
+    moveBaseAutonomous(0.0,-510.0,0.0);
     //grab mobile goal
     moveBaseAutonomous(-300.0,0.0,0.0);
     moveBaseAutonomous(0.0,200.0,0.0);
@@ -1129,9 +1148,27 @@ void positive_blue_auton()
     moveBaseAutonomous(.0,650.0,0.0);   
     moveBaseAutonomous(.0,-490.0,0.0);
     moveBaseAutonomous(.0,490.0,0.0);
+    //scoring 3 rings and clearing positive corner
+    moveBaseAutonomous(-250.0,0.0,0.0);
+    //tested until here
+    // moveBaseAutonomous(.0,1300.0,0.0);   
+    moveBaseAutonomous(.0,650.0,0.0);   
+    moveBaseAutonomous(.0,650.0,0.0);   
+    moveBaseAutonomous(.0,-490.0,0.0);
+    moveBaseAutonomous(.0,490.0,0.0);
 
     //scoring 1 more rings and slamming mobile goal into positive corner
+    //scoring 1 more rings and slamming mobile goal into positive corner
 
+    moveBaseAutonomous(.0,-700.0,0.0);
+    moveBaseAutonomous(250.0,0.0,0.0);
+    turn180(true);
+    moveBaseAutonomous(250.0,0.0,0.0);
+    moveBaseAutonomous(0.0,-450.0,0.0);
+    mobilegoalopen();
+    //ready for match state
+    moveBaseAutonomous(.0,100.0,0.0);
+    moveBaseAutonomous(-500.0,.0,0.0);
     moveBaseAutonomous(.0,-700.0,0.0);
     moveBaseAutonomous(250.0,0.0,0.0);
     turn180(true);
@@ -1313,6 +1350,7 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         if (master.get_digital_new_press(DIGITAL_Y))
             roller_lifts = !roller_lifts;
 
+        yoink(yoinker_actuated);
         yoink(yoinker_actuated);
 
         if (roller_lifts)
