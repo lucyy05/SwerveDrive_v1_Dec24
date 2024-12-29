@@ -558,7 +558,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
     {
         auton_distance_kP = 0.3; // swerve wheel rotation distance
         auton_distance_kI = 0.0;
-        auton_distance_kD = 0.2;
+        auton_distance_kD = 20.0; // 20 was
     }
     else
     {
@@ -573,6 +573,13 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
         auton_distance_kI = 0.0;
         auton_distance_kD = 0.2;
     }
+
+    // if(fabs(targetX) > 800.0 || fabs(targetY) >800.0){
+    //     auton_distance_kP = 0.1; //swerve wheel rotation distance
+    //     auton_distance_kI = 0.0;
+    //     auton_distance_kD = 0.0; // 20 was
+    // }
+
     double v_right_velocity = 0.0; // target velocity magnitude
     double v_left_velocity = 0.0;
 
@@ -649,6 +656,10 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
         // auton_azim_kI = 0.0;    //drunk
         // auton_azim_kD = 15.0;
 
+        // auton_azim_kP = 0.18; // azimuth, for correcting rotation
+        // auton_azim_kI = 0.0;  // drunk
+        // auton_azim_kD = 10.0;
+
         auton_azim_kP = 0.05; //azimuth, for correcting rotation
         auton_azim_kI = 0.0;    //drunk
         auton_azim_kD = 10.0;
@@ -715,18 +726,6 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
         if(errorY < 2.0 && errorY > -2.0)
             errorY = 0.0;
         pros::lcd::print(1,"err_x: %1.1lf, err_y: %1.1lf", errorX, errorY);
-        // if(fabs(targetY) > 0.0)
-        //     errorY = fabs(fabs(targetY) - fabs((fabs(global_distY) - offsetY)));
-        // if(fabs(targetY) > 0.0 && fabs(errorY) > fabs(targetY))
-        //     errorY = 0.0;
-        // if(fabs(targetY) <= 0.0 || fabs(errorY) <= 3.0)
-        //     errorY = 0.0;
-        // if(fabs((fabs(global_distY) - offsetY)) > fabs(targetY))
-        //     errorY = 0.0;
-        // pros::lcd::print(1,"error_y: %.2lf", errorY);
-        // pros::lcd::print(2,"offsetted_y: %.2lf", ((global_distY) - offsetY));
-        // pros::lcd::print(3,"target_y: %.2lf", targetY);
-
         if (fabs(target_heading) > 0.0)
             errorheading = fabs(fabs(target_heading) - fabs(imu.get_rotation()));
         if (fabs(target_heading) <= 0.0 || fabs(errorheading) <= 2.0)
@@ -736,9 +735,8 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
         if (fabs(target_heading) > 0.0 && fabs(errorheading) > fabs(target_heading))
             errorheading = 0.0;
 
-        if (fabs(errorX) <= 3.0 && fabs(errorY) <= 3.0 && fabs(errorheading) <= 2.0)
-        {
-            move_voltage_wheels(0, 0, 0, 0);
+        if(fabs(errorX) <= 3.0 && fabs(errorY) <= 3.0 && fabs(errorheading) <= 0.5){
+            move_voltage_wheels(0,0,0,0);
             lu = 0;
             ll = 0;
             ru = 0;
@@ -1084,88 +1082,40 @@ void conveyorAuton(void* params){
 void positive_blue_auton()
 {
     mobilegoalopen();
-    // start scoring thread
-    rollerOn();
-    moveBaseAutonomous(535.0,0.0,0.0);
-    moveBaseAutonomous(-300.0,0.0,0.0);
-    moveBaseAutonomous(.0,200.0,0.0);
-    turn90(true);
-    moveBaseAutonomous(.0,-900.0,0.0);
-    moveBaseAutonomous(-200.0,0.0,0.0);
-    moveBaseAutonomous(.0,900.0,0.0);
-}
+rollerOn();
+//score alliance stakes
+moveBaseAutonomous(535.0,0.0,0.0);
+conveyor.move(50);
+pros::delay(500);
 
-void positive_red_auton()
-{
-}
+//grab mobile goal
+moveBaseAutonomous(-300.0,0.0,0.0);
+moveBaseAutonomous(0.0,200.0,0.0);
+turn90(true);
+moveBaseAutonomous(0.0,-390.0,0.0);
+mobilegoalclose();
+moveBaseAutonomous(0.0,-510.0,0.0);
 
-void negative_blue_auton()
-{
-    mobilegoalopen();
+//scoring 3 rings and clearing positive corner
+moveBaseAutonomous(-250.0,0.0,0.0);
+//tested until here
+// moveBaseAutonomous(.0,1300.0,0.0);   
+moveBaseAutonomous(.0,650.0,0.0);   
+moveBaseAutonomous(.0,650.0,0.0);   
+moveBaseAutonomous(.0,-490.0,0.0);
+moveBaseAutonomous(.0,490.0,0.0);
 
-        moveBaseAutonomous(0.0, -750.0, 0.0);
-        moveBaseAutonomous(300.0, 0.0, 0.0);
+//scoring 1 more rings and slamming mobile goal into positive corner
 
-        // moveBaseAutonomous(300.0,0.0,0.0);
-        moveBaseAutonomous(0.0, -60.0, 0.0);
-        mobilegoalclose();
-        // start scoring thread
-        rollerOn();
-        conveyorOn();
-        moveBaseAutonomous(0.0, 900.0, 0.0);
-        moveBaseAutonomous(0.0, 0.0, -49.7);
-        moveBaseAutonomous(0.0, 413.0, 0.0);
-
-    moveBaseAutonomous(0.0, -150.0, 0.0);
-    moveBaseAutonomous(0.0, 150.0, 0.0);
-    moveBaseAutonomous(0.0, -300.0, 0.0);
-    mobilegoalopen();
-    rollerOff();
-    conveyorOff();
-    // RAISE ARM HERE
-    // STOP SCORING THREAD
-    moveBaseAutonomous(0.0, -1300.0, 0.0);
-
-    /*UPIN MOVEMENT START*/
-    // mobilegoalopen();
-    // moveBaseAutonomous(0.0, -430.0, 0.0);
-    // moveBaseAutonomous(0.0, -425.0, 0.0);
-    // pros::delay(50);
-    // mobilegoalclose();
-    // pros::delay(5000);
-    // moveBaseAutonomous(340.0, 0.0, 0.0);
-    // master.rumble("--");
-    // pros::delay(5);
-    // mobilegoalclose();
-    // pros::delay(100);
-    // turn20(false);
-    // rollerOn();
-    // moveBaseAutonomous(0.0, 400.0, 0.0);
-    // turn180(true);
-    // conveyorOn();
-    // moveBaseAutonomous(-250.0, 0.0, 0.0);
-    // moveBaseAutonomous(0.0, 350.0, 0.0);
-    // moveBaseAutonomous(0.0, -550.0, 0.0);
-    // pros::delay(3000);
-    /*UPIN MOVEMENT END*/
-
-    /*IPIN MOVEMENT START*/
-    // mobilegoalopen();
-    // moveBaseAutonomous(0.0, -910.0, 0.0);
-    // pros::delay(10);
-    // mobilegoalclose();
-    // pros::delay(100);
-    // turn30(false);
-    // rollerOn();
-    // moveBaseAutonomous(0.0, 400.0, 0.0);
-    // turn180(true);
-    // conveyorOn();
-    // moveBaseAutonomous(150.0, 0.0, 0.0);
-    // moveBaseAutonomous(0.0, 350.0, 0.0);
-    // moveBaseAutonomous(0.0, -750.0, 0.0);
-    // pros::delay(3000);
-    /*IPIN MOVEMENT END*/
-    // serial_task.remove(); //Uncomment for actual match
+moveBaseAutonomous(.0,-700.0,0.0);
+moveBaseAutonomous(250.0,0.0,0.0);
+turn180(true);
+moveBaseAutonomous(250.0,0.0,0.0);
+moveBaseAutonomous(0.0,-450.0,0.0);
+mobilegoalopen();
+//ready for match state
+moveBaseAutonomous(.0,100.0,0.0);
+moveBaseAutonomous(-500.0,.0,0.0);
 }
 
 void negative_red_auton()

@@ -196,17 +196,17 @@ const double auton_angle_kP_right = 55.0;
 const double auton_angle_kI_right = 0.0;
 const double auton_angle_kD_right = 5000.0;
 
-const double auton_l_velocity_kP = 0.0006;   //swerve wheel rotation velocity for auton
+const double auton_l_velocity_kP = 0.0007;   //swerve wheel rotation velocity for auton
 const double auton_l_velocity_kI = 0.000;     //tune for translate
 const double auton_l_velocity_kD = 0.02;
 
-const double auton_r_velocity_kP = 0.0006;   //swerve wheel rotation velocity for auton
+const double auton_r_velocity_kP = 0.0007;   //swerve wheel rotation velocity for auton
 const double auton_r_velocity_kI = 0.000;     //tune for translate
 const double auton_r_velocity_kD = 0.02;
 
-double auton_distance_kP = 0.15; //swerve wheel rotation distance
-double auton_distance_kI = 0.0;
-double auton_distance_kD = 0.2;
+double auton_distance_kP ; //swerve wheel rotation distance
+double auton_distance_kI;
+double auton_distance_kD;
 
 // const double auton_distance_kP = 0.15; //swerve wheel rotation distance auton translate left or right
 // const double auton_distance_kI = 0.0;
@@ -308,3 +308,4 @@ bool roller_lifts = false;
 //Driver
 bool driver = false;
 bool arcade = false;
+bool yoinker_actuated = true;
