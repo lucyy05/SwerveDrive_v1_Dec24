@@ -1423,13 +1423,13 @@ void initialize()
 
 void opcontrol()
 { // TODO: JOEL PLEASE MAKE CONVEYOR A TASK
-    // serial_task.remove();
-    // pros::Task move_base(moveBase, (void*)"driver", TASK_PRIORITY_MAX-2,
-    //                 TASK_STACK_DEPTH_DEFAULT, "driver task");
+    serial_task.remove();
+    pros::Task move_base(moveBase, (void*)"driver", TASK_PRIORITY_MAX-2,
+                    TASK_STACK_DEPTH_DEFAULT, "driver task");
     while (true)
     {
-        // if(driver == true) move_base.resume();
-        // else move_base.suspend();
+        if(driver == true) move_base.resume();
+        else move_base.suspend();
 
         leftY = master.get_analog(ANALOG_LEFT_Y);
 
@@ -1444,7 +1444,7 @@ void opcontrol()
         if (master.get_digital_new_press(DIGITAL_A))
             mobile_goal_actuated = !mobile_goal_actuated;
         if (master.get_digital_new_press(DIGITAL_B))
-            autonomous();
+            brake();
         if (master.get_digital_new_press(DIGITAL_X))
             slam_dunk_actuated = !slam_dunk_actuated;
 
