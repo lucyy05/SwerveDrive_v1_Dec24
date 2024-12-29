@@ -554,15 +554,24 @@ void slamDunk(void *params)
 void moveBaseAutonomous(double targetX, double targetY, double target_heading)
 {
     targetY *= -1.0;
-    if(fabs(targetX) < 400.0 || fabs(targetY) < 400.0){
-        auton_distance_kP = 0.06; //swerve wheel rotation distance
+    if (((fabs(targetX) > 50.0) || (fabs(targetY) > 50.0))&& ((fabs(targetX) <100.0) || (fabs(targetY)< 100.0)))
+    {
+        auton_distance_kP = 0.3; // swerve wheel rotation distance
         auton_distance_kI = 0.0;
         auton_distance_kD = 0.2;
     }
-    else{
-        auton_distance_kP = 0.0001; //swerve wheel rotation distance
+    else
+    {
+        auton_distance_kP = 0.1; // swerve wheel rotation distance
         auton_distance_kI = 0.0;
-        auton_distance_kD = 0.0;
+        auton_distance_kD = 0.02;
+    }
+
+    if (fabs(targetX) > 400.0 || fabs(targetY) > 400.0)
+    {
+        auton_distance_kP = 0.16; // swerve wheel rotation distance
+        auton_distance_kI = 0.0;
+        auton_distance_kD = 0.2;
     }
     double v_right_velocity = 0.0; // target velocity magnitude
     double v_left_velocity = 0.0;
