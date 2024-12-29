@@ -992,7 +992,8 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
             slammingState = SLAM_START_STATE;
         }
 
-        if(master.get_digital_new_press(DIGITAL_LEFT)) arcade = !arcade;
+        if (master.get_digital_new_press(DIGITAL_LEFT))
+            yoinker_actuated = !yoinker_actuated;
         if(master.get_digital_new_press(DIGITAL_Y)) roller_lifts = !roller_lifts;
 
         if(roller_lifts) {
@@ -1001,6 +1002,11 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         else{
             roller_lifter.set_value(0);
         }
+
+        if (yoinker_actuated)
+            yoinker.set_value(0);
+        else
+            yoinker.set_value(1);
 
         pros::delay(2);
     }
