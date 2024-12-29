@@ -8,6 +8,8 @@
 #include <vector>
 #include "vector.h"
 #include "pros/imu.hpp"
+//CAVEN CODE COPY, FOR IPIN
+
 //#include "api.h"
 
 /* robot with base (UPIN) */
@@ -57,9 +59,13 @@
 #define SOLENOID_SENSOR_PORT 'D'
 #define mobilegoal_bottom 'G'
 #define POTENTIOMETER_SENSOR_PORT 'H'
+#define YOINKER_SENSOR_PORT 'F'
 
-#define CONVEYOR_OPTICAL 1
+#define CONVEYOR_OPTICAL 2
 #define CONVEYOR_THRES_PROX 130
+#define CONVEYOR_PROX_THRES 130
+#define CONVEYOR_GREEN_THRES 200
+#define CONVEYOR_RED_MIN_THRESH 10
 
 #define SLAM_DUNK_MOTOR 3
 
@@ -89,6 +95,7 @@ pros::ADIDigitalOut slam_in_out(SLAM_DUNK_SOLENOID);
 pros::ADIAnalogIn slam_dunk(SLAM_DUNK_SENSOR_PORT);
 pros::ADIDigitalOut solenoid(SOLENOID_SENSOR_PORT);
 pros::ADIDigitalOut mobilegoal_bot(mobilegoal_bottom);
+pros::ADIDigitalOut yoinker(YOINKER_SENSOR_PORT);
 
 // pros::Motor intakeLower(UPPER_INTAKE_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
 // pros::Motor intakeUpper(LOWER_INTAKE_MOTOR, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
@@ -113,6 +120,7 @@ extern "C" void vexGenericSerialEnable(  uint32_t index, uint32_t nu );
 extern "C" void vexGenericSerialBaudrate(  uint32_t index, uint32_t rate );
 extern "C" int32_t vexGenericSerialTransmit( uint32_t index, uint8_t *buffer, int32_t length );
 
+
 /* Controllers */
 int leftX = 0, leftY = 0, rightX = 0, rightY = 0;
 
@@ -126,11 +134,11 @@ const double WHEEL_BASE_RADIUS = 161.50;    // mm
 const double MAX_SPEED = (2.0*M_PI*WHEEL_RADIUS*MAX_RPM)/60.0;  //mm per second
 const double SPEED_TO_RPM = 60.0/(2.0*M_PI*WHEEL_RADIUS);
 const double MAX_ANGULAR = MAX_SPEED/WHEEL_BASE_RADIUS; // rad/s
-const double MAX_ANGULAR_SCALE = 0.5;
+const double MAX_ANGULAR_SCALE = 0.3;
 const double TO_DEGREES = (180.0 / M_PI);
 const double TO_RADIANS = (M_PI / 180.0);
 const double MAX_VOLTAGE = 12000.0;
-const int MAX_CURRENT_BASE = 1500;
+const int MAX_CURRENT_BASE = 1800;
 const int VOLTAGE_CUTOFF = 2700; // mV
 
 //moving (moveBase)
@@ -180,25 +188,29 @@ const double base_v = 0.7; //this defines the min power of the robot when scalin
 
 /* Autonomous constants START */
 // Swerve wheel pivoting
-const double auton_angle_kP_left = 45.0;
+const double auton_angle_kP_left = 55.0;
 const double auton_angle_kI_left = 0.0;
 const double auton_angle_kD_left = 5000.0;
 
-const double auton_angle_kP_right = 45.0;
+const double auton_angle_kP_right = 55.0;
 const double auton_angle_kI_right = 0.0;
 const double auton_angle_kD_right = 5000.0;
 
-const double auton_l_velocity_kP = 0.0005;   //swerve wheel rotation velocity for auton
+const double auton_l_velocity_kP = 0.0006;   //swerve wheel rotation velocity for auton
 const double auton_l_velocity_kI = 0.000;     //tune for translate
 const double auton_l_velocity_kD = 0.02;
 
-const double auton_r_velocity_kP = 0.00056;   //swerve wheel rotation velocity for auton
+const double auton_r_velocity_kP = 0.0006;   //swerve wheel rotation velocity for auton
 const double auton_r_velocity_kI = 0.000;     //tune for translate
 const double auton_r_velocity_kD = 0.02;
 
-const double auton_distance_kP = 0.05; //swerve wheel rotation distance
-const double auton_distance_kI = 0.0;
-const double auton_distance_kD = 0.50;
+double auton_distance_kP = 0.15; //swerve wheel rotation distance
+double auton_distance_kI = 0.0;
+double auton_distance_kD = 0.2;
+
+// const double auton_distance_kP = 0.15; //swerve wheel rotation distance auton translate left or right
+// const double auton_distance_kI = 0.0;
+// const double auton_distance_kD = 500.0;
 
 double auton_heading_kP = 0.09; //swerve heading
 double auton_heading_kI = 0.0;
@@ -240,7 +252,7 @@ bool isRightFlipped = false;
 //Slam dunk
 // int defaultSlamValue = 0;
 // Slam dunk constants -- IPIN
-const int defaultSlamValue = 2975;
+const int defaultSlamValue = 2974;
 
 // Slam dunk constants -- UPIN
 //const int defaultSlamValue = 2998;
@@ -271,10 +283,16 @@ double optical_v_y = 0.0;
 
 //CONVEYOR
 int detected_ring_time = 0;
+bool blue_detected = false;
+bool others_detected = false;
+bool hook_detected = false;
 
 //Mobile goal grabber
 bool mobile_goal_actuated = false;
 bool mobile_goal_jaw = false;
+
+//Yoinker
+bool yoinker_actuated = true;
 
 //Optical flow
 const double ALPHA = 0.85;
@@ -288,5 +306,5 @@ const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * sc
 bool roller_lifts = false;
 
 //Driver
-bool driver = true;
+bool driver = false;
 bool arcade = false;
