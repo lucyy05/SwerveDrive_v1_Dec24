@@ -513,11 +513,11 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading){
         auton_distance_kD = 2.0;
     }
 
-    if(fabs(targetX) > 800.0 || fabs(targetY) >800.0){
-        auton_distance_kP = 0.1; //swerve wheel rotation distance
-        auton_distance_kI = 0.0;
-        auton_distance_kD = 0.0; // 20 was
-    }
+    // if(fabs(targetX) > 800.0 || fabs(targetY) >800.0){
+    //     auton_distance_kP = 0.1; //swerve wheel rotation distance
+    //     auton_distance_kI = 0.0;
+    //     auton_distance_kD = 0.0; // 20 was
+    // }
 
     double v_right_velocity = 0.0; // target velocity magnitude
     double v_left_velocity = 0.0;
@@ -939,7 +939,9 @@ moveBaseAutonomous(0.0,-510.0,0.0);
 //scoring 3 rings and clearing positive corner
 moveBaseAutonomous(-250.0,0.0,0.0);
 //tested until here
-moveBaseAutonomous(.0,1300.0,0.0);
+// moveBaseAutonomous(.0,1300.0,0.0);   
+moveBaseAutonomous(.0,650.0,0.0);   
+moveBaseAutonomous(.0,650.0,0.0);   
 moveBaseAutonomous(.0,-490.0,0.0);
 moveBaseAutonomous(.0,490.0,0.0);
 
