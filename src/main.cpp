@@ -757,6 +757,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
         // Y axis positive is front
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor) - 90.0) * TO_RADIANS;
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor) - 90.0) * TO_RADIANS;
+
         current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);
         current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0);
 
