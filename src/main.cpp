@@ -156,10 +156,26 @@ void clampVoltage(int32_t VOLTAGE)
 
 void limitVoltage(int32_t BATTERY_VOLTAGE)
 {
-    lu = lu * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF) / BATTERY_VOLTAGE) + VOLTAGE_CUTOFF;
-    ll = ll * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF) / BATTERY_VOLTAGE) + VOLTAGE_CUTOFF;
-    ru = ru * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF) / BATTERY_VOLTAGE) + VOLTAGE_CUTOFF;
-    rl = rl * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF) / BATTERY_VOLTAGE) + VOLTAGE_CUTOFF;
+    if(fabs(lu)<VOLTAGE_CUTOFF){
+        lu = 0;
+    }else{
+        lu = (lu * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF)/BATTERY_VOLTAGE)) + VOLTAGE_CUTOFF;
+    }
+    if(fabs(ll)<VOLTAGE_CUTOFF){
+        ll = 0;
+    }else{
+        ll = (ll * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF)/BATTERY_VOLTAGE)) + VOLTAGE_CUTOFF;
+    }
+    if(fabs(ru)<VOLTAGE_CUTOFF){
+        ru = 0;
+    }else{
+        ru = (ru * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF)/BATTERY_VOLTAGE)) + VOLTAGE_CUTOFF;
+    }
+    if(fabs(rl)<VOLTAGE_CUTOFF){
+        rl = 0;
+    }else{
+        rl = (rl * ((BATTERY_VOLTAGE - VOLTAGE_CUTOFF)/BATTERY_VOLTAGE)) + VOLTAGE_CUTOFF;
+    }
 }
 
 void move_voltage_wheels(int32_t lu, int32_t ll, int32_t ru, int32_t rl)
