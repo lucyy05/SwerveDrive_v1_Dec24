@@ -287,6 +287,7 @@ double optical_v_y = 0.0;
 int detected_ring_time = 0;
 bool blue_detected = false;
 bool others_detected = false;
+bool red_detected = false;
 bool hook_detected = false;
 
 //Mobile goal grabber
@@ -316,5 +317,6 @@ bool tasks_enabled = false;
 
 bool conveyor_enable = true;
 
+bool auton_start = false;
 uint32_t auton_time = 0;
 const uint32_t max_auton_time = 29000;
