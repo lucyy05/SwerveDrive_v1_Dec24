@@ -552,6 +552,7 @@ void slamDunk(void *params)
             break;
         case SLAM_LADDER: // extended all the way
             slam_target = defaultSlamValue - 1100;
+            break;
         default:
             slam_target = defaultSlamValue;
             break;
@@ -1157,14 +1158,14 @@ void conveyorAuton(void* params){
             if(pros::millis() > (auton_time + max_auton_time)){
                 break;
             }
-            conveyor.move(60);
+            conveyor.move(70);
             roller.move(-100);
             double hue_value = conveyor_optical.get_hue();
             // pros::lcd::print(5,"Hue:%lf",hue_value);
             // rgb = conveyor_optical.get_rgb();
             if (!blue_detected)
             {
-                if (hue_value > 190.0 && hue_value < 230.0)
+                if (hue_value > 195.0 && hue_value < 225.0)
                 {
                     blue_detected = true;
                     // pros::lcd::print(3,"blue");
@@ -1178,7 +1179,7 @@ void conveyorAuton(void* params){
             }
             // pros::lcd::print(1, "blue:%d, others:%d", blue, others);
 
-            if (hue_value > 120.0 && hue_value < 140.0)
+            if (hue_value > 125.0 && hue_value < 140.0)
             {
                 hook_detected = true;
                 // pros::lcd::print(3,"hook detected");
@@ -1220,11 +1221,7 @@ void conveyorAuton(void* params){
                 }
                 // pros::lcd::print(2,"no Hook");
             }
-
-                pros::delay(2);
-        }
-        else{
-            pros::delay(100);
+            pros::delay(2);
         }
     }
 }
@@ -1337,32 +1334,34 @@ void negative_blue_auton()
     yoinker_actuated = !yoinker_actuated;
     yoink(yoinker_actuated);
 
-    moveBaseAutonomous(0.0, -710.0, 0.0, 6000);
-    moveBaseAutonomous(300.0, 0.0, 0.0, 6000);
+    moveBaseAutonomous(0.0, -705.0, 0.0, 3000);
+    moveBaseAutonomous(245.0, 0.0, 0.0, 3000);
 
-    moveBaseAutonomous(0.0, -60.0, 0.0, 6000);
+    moveBaseAutonomous(0.0, -61.0, 0.0, 3000);
     mobilegoalclose();
+    pros::delay(15);
     // start scoring thread
     rollerOn();
     // conveyorOn();
     moveBaseAutonomous(0.0, 900.0, 0.0, 6000);
     // moveBaseAutonomous(0.0, 0.0, -56.0);
-    moveBaseAutonomous(-500.0, 0.0, 0.0, 3000);
-    roller_lifter.set_value(1);
-    moveBaseAutonomous(0.0, 350.0, 0.0, 3000);
-    roller_lifter.set_value(0);
-    moveBaseAutonomous(0.0, -150.0, 0.0, 6000);
-    moveBaseAutonomous(0.0, 150.0, 0.0, 6000);
-    moveBaseAutonomous(0.0, -300.0, 0.0, 6000);
-    moveBaseAutonomous(0.0, 150.0, 0.0, 6000);
-    moveBaseAutonomous(0.0, -200.0, 0.0, 6000);
-    moveBaseAutonomous(150.0, 0.0, 0.0, 6000);
-    moveBaseAutonomous(0.0, 0.0, -50.0, 6000);
+    moveBaseAutonomous(-420.0, 0.0, 0.0, 3000);
+    //roller_lifter.set_value(1);
+    moveBaseAutonomous(0.0, 600.0, 0.0, 1500);
+    //roller_lifter.set_value(0);
+    moveBaseAutonomous(0.0, -350.0, 0.0, 1000);
+    moveBaseAutonomous(0.0, 350.0, 0.0, 1500);
+    moveBaseAutonomous(0.0, -350.0, 0.0, 1000);
+    moveBaseAutonomous(0.0, 350.0, 0.0, 1500);
+    moveBaseAutonomous(0.0, -350.0, 0.0, 1000);
+    moveBaseAutonomous(-350.0, 0.0, 0.0, 1500);
+    moveBaseAutonomous(250.0, 0.0, 0.0, 1500);
+    moveBaseAutonomous(0.0, 0.0, -47.0, 7000);
     rollerOff();
     //conveyorOff();
     slammingState = SLAM_LADDER;
-    pros::delay(5);
-    moveBaseAutonomous(0.0, -1100.0, 0.0, 6000);
+    pros::delay(15);
+    moveBaseAutonomous(0.0, -1205.0, 0.0, 6000);
 }
 
 void negative_red_auton()
