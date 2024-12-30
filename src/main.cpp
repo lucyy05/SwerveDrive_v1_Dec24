@@ -62,48 +62,48 @@ void serialRead(void *params)
         if(pros::millis() > (auton_time + max_auton_time)){
             break;
         }
-            int32_t nRead = vexGenericSerialReceive(SERIALPORT - 1, buffer, bufLength);
-            if (nRead >= 0)
+        int32_t nRead = vexGenericSerialReceive(SERIALPORT - 1, buffer, bufLength);
+        if (nRead >= 0)
+        {
+            std::stringstream dataStream("");
+            bool recordOpticalX = false;
+            bool recordOpticalY = false;
+            for (int i = 0; i < nRead; i++)
             {
-                std::stringstream dataStream("");
-                bool recordOpticalX = false;
-                bool recordOpticalY = false;
-                for (int i = 0; i < nRead; i++)
+                char thisDigit = (char)buffer[i];
+                if (thisDigit == 'D' || thisDigit == 'I' || thisDigit == 'A' || thisDigit == 'X' || thisDigit == 'C' || thisDigit == 'Y')
                 {
-                    char thisDigit = (char)buffer[i];
-                    if (thisDigit == 'D' || thisDigit == 'I' || thisDigit == 'A' || thisDigit == 'X' || thisDigit == 'C' || thisDigit == 'Y')
-                    {
-                        recordOpticalX = false;
-                        recordOpticalY = false;
-                    }
-                    if (thisDigit == 'C')
-                    {
-                        recordOpticalX = false;
-                        dataStream >> dist_X;
-                        global_distX = dist_X * -10.0;
-                        dataStream.str(std::string());
-                        prevDist_x = dist_X * -10.0;
-                    }
-                    if (thisDigit == 'D')
-                    {
-                        recordOpticalY = false;
-                        dataStream >> dist_Y;
-                        global_distY = dist_Y * -10.0;
-                        dataStream.str(std::string());
-                        prevDist_y = dist_Y * -10.0;
-                    }
-                    if (recordOpticalX)
-                        dataStream << (char)buffer[i];
-                    if (recordOpticalY)
-                        dataStream << (char)buffer[i];
-                    if (thisDigit == 'X')
-                        recordOpticalX = true;
-                    if (thisDigit == 'Y')
-                        recordOpticalY = true;
+                    recordOpticalX = false;
+                    recordOpticalY = false;
                 }
-                pros::lcd::print(6,"%.1lf",global_distY);
+                if (thisDigit == 'C')
+                {
+                    recordOpticalX = false;
+                    dataStream >> dist_X;
+                    global_distX = dist_X * -10.0;
+                    dataStream.str(std::string());
+                    prevDist_x = dist_X * -10.0;
+                }
+                if (thisDigit == 'D')
+                {
+                    recordOpticalY = false;
+                    dataStream >> dist_Y;
+                    global_distY = dist_Y * -10.0;
+                    dataStream.str(std::string());
+                    prevDist_y = dist_Y * -10.0;
+                }
+                if (recordOpticalX)
+                    dataStream << (char)buffer[i];
+                if (recordOpticalY)
+                    dataStream << (char)buffer[i];
+                if (thisDigit == 'X')
+                    recordOpticalX = true;
+                if (thisDigit == 'Y')
+                    recordOpticalY = true;
             }
-            pros::Task::delay(2);
+            pros::lcd::print(6,"%.1lf",global_distY);
+        }
+        pros::Task::delay(2);
     }
 }
 
@@ -594,7 +594,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
     }
     else if (fabs(targetX) > 400.0 || fabs(targetY) > 400.0)
     {
-        auton_distance_kP = 0.11; // swerve wheel rotation distance
+        auton_distance_kP = 0.13; // swerve wheel rotation distance
         auton_distance_kI = 0.0;
         auton_distance_kD = 0.2;
     }
@@ -934,6 +934,8 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
         // move_voltage_wheels(0,0,0,0);
         //  pros::lcd::print(2,"lu:%d, ru:%d",lu,ru);
         //  pros::lcd::print(3,"ll:%d, rl:%d",ll,rl);
+        pros::lcd::print(1,"errorY: %.1lf",errorY);
+        pros::lcd::print(2,"errorX: %.1lf",errorX);
         move_voltage_wheels(lu, ll, ru, rl);
         pros::delay(3);
     }
@@ -1518,7 +1520,7 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         if (master.get_digital_new_press(DIGITAL_A))
             mobile_goal_actuated = !mobile_goal_actuated;
         if (master.get_digital_new_press(DIGITAL_B))
-            brake();
+            autonomous();
         if (master.get_digital_new_press(DIGITAL_X))
             slam_dunk_actuated = !slam_dunk_actuated;
 
