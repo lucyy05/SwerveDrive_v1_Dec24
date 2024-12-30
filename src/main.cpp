@@ -596,9 +596,9 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
     }
     else if (fabs(targetX) > 400.0 || fabs(targetY) > 400.0)
     {
-        auton_distance_kP = 0.12; // swerve wheel rotation distance
+        auton_distance_kP = 0.11; // swerve wheel rotation distance
         auton_distance_kI = 0.0;
-        auton_distance_kD = 2.;
+        auton_distance_kD = 0.2;
     }
     else
     {
@@ -1239,7 +1239,7 @@ void positive_blue_auton()
     pros::delay(500);
     rollerOn();
     conveyor.move(0);
-    
+
     // grab mobile goal
     moveBaseAutonomous(-300.0, 0.0, 0.0);
     moveBaseAutonomous(0.0, 200.0, 0.0);
@@ -1277,6 +1277,7 @@ void positive_blue_auton()
 
 void positive_red_auton()
 {
+    
     mobilegoalopen();
     rollerOn();
     // score alliance stakes
@@ -1324,7 +1325,7 @@ void negative_blue_auton()
 {
     mobilegoalopen();
     yoinker_actuated = !yoinker_actuated;
-    yoink(yoinker_actuated);
+    yoink(false);
 
     moveBaseAutonomous(0.0, -750.0, 0.0);
     moveBaseAutonomous(300.0, 0.0, 0.0);
@@ -1412,8 +1413,8 @@ void autonomous()
                     TASK_STACK_DEPTH_DEFAULT, "Serial read task");
     pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT + 1,
                               TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
-    is_we_red_alliance = true;
-    test();
+    is_we_red_alliance = false;
+    negative_blue_auton();
 }
 
 pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT + 1,
