@@ -1152,74 +1152,79 @@ void conveyorAuton(void* params){
     mobilegoalclose();
     while (true)
     {
-        if(pros::millis() > (auton_time + max_auton_time)){
-            break;
-        }
-        conveyor.move(20);
-        roller.move(-100);
-        double hue_value = conveyor_optical.get_hue();
-        // pros::lcd::print(5,"Hue:%lf",hue_value);
-        // rgb = conveyor_optical.get_rgb();
-        if (!blue_detected)
-        {
-            if (hue_value > 190.0 && hue_value < 230.0)
-            {
-                blue_detected = true;
-                // pros::lcd::print(3,"blue");
-                blue++;
+        if(conveyor_enable){
+            if(pros::millis() > (auton_time + max_auton_time)){
+                break;
             }
-            // else if(!(hue_value > 120.0 && hue_value < 140.0)){
-            //     others_detected = true;
-            //     others++;
-            //     pros::lcd::print(3,"no colour");
-            // }
-        }
-        // pros::lcd::print(1, "blue:%d, others:%d", blue, others);
-
-        if (hue_value > 120.0 && hue_value < 140.0)
-        {
-            hook_detected = true;
-            // pros::lcd::print(3,"hook detected");
-        }
-
-            // pros::lcd::print(0,"hue:%.1lf",hue_value);
-
-        if (hook_detected)
-        {
-            // pros::lcd::print(1,"Hook");
-            // ros::delay(200);
-            hook_detected = false;
-            if (is_we_red_alliance ^ blue_detected)
+            conveyor.move(20);
+            roller.move(-100);
+            double hue_value = conveyor_optical.get_hue();
+            // pros::lcd::print(5,"Hue:%lf",hue_value);
+            // rgb = conveyor_optical.get_rgb();
+            if (!blue_detected)
             {
-                conveyor.tare_position();
-                conveyor_go_to_score();
-                pros::delay(100);
-                blue_detected = false;
-                // pros::lcd::print(6,"scoring");
-            }
-            else
-            {
-                conveyor.tare_position();
-                // while(conveyor.get_position() < 555){
-                //     conveyor.move(127);
+                if (hue_value > 190.0 && hue_value < 230.0)
+                {
+                    blue_detected = true;
+                    // pros::lcd::print(3,"blue");
+                    blue++;
+                }
+                // else if(!(hue_value > 120.0 && hue_value < 140.0)){
+                //     others_detected = true;
+                //     others++;
+                //     pros::lcd::print(3,"no colour");
                 // }
-                // conveyor.move(0);
-                // conveyor.brake();
-                // pros::delay(50);
-                // conveyor.tare_position();
-                // while(conveyor.get_position() > -20){
-                //     conveyor.move(-127);
-                // }
-                conveyor_go_to_yeet();
-                pros::delay(100);
-                // others_detected = false;
-                blue_detected = false;
-                // pros::lcd::print(6,"yeeting");
             }
-            // pros::lcd::print(2,"no Hook");
-        }
+            // pros::lcd::print(1, "blue:%d, others:%d", blue, others);
 
-            pros::delay(2);
+            if (hue_value > 120.0 && hue_value < 140.0)
+            {
+                hook_detected = true;
+                // pros::lcd::print(3,"hook detected");
+            }
+
+                // pros::lcd::print(0,"hue:%.1lf",hue_value);
+
+            if (hook_detected)
+            {
+                // pros::lcd::print(1,"Hook");
+                // ros::delay(200);
+                hook_detected = false;
+                if (is_we_red_alliance ^ blue_detected)
+                {
+                    conveyor.tare_position();
+                    conveyor_go_to_score();
+                    pros::delay(100);
+                    blue_detected = false;
+                    // pros::lcd::print(6,"scoring");
+                }
+                else
+                {
+                    conveyor.tare_position();
+                    // while(conveyor.get_position() < 555){
+                    //     conveyor.move(127);
+                    // }
+                    // conveyor.move(0);
+                    // conveyor.brake();
+                    // pros::delay(50);
+                    // conveyor.tare_position();
+                    // while(conveyor.get_position() > -20){
+                    //     conveyor.move(-127);
+                    // }
+                    conveyor_go_to_yeet();
+                    pros::delay(100);
+                    // others_detected = false;
+                    blue_detected = false;
+                    // pros::lcd::print(6,"yeeting");
+                }
+                // pros::lcd::print(2,"no Hook");
+            }
+
+                pros::delay(2);
+        }
+        else{
+            pros::delay(100);
+        }
     }
 }
 
@@ -1233,6 +1238,7 @@ void yoink(bool yoinketh)
 
 void positive_blue_auton()
 {
+    conveyor_enable = false;
     mobilegoalopen();
     rollerOn();
     // score alliance stakes
@@ -1241,6 +1247,7 @@ void positive_blue_auton()
     pros::delay(500);
     rollerOn();
     conveyor.move(0);
+    conveyor_enable = true;
     
     // grab mobile goal
     moveBaseAutonomous(-300.0, 0.0, 0.0);
