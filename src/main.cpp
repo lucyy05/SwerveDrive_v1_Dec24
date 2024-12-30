@@ -1463,11 +1463,11 @@ void autonomous()
     // serial_task.resume();
     // conveyor_auton.resume();
     auton_time = pros::millis();
+    is_we_red_alliance = false;
     pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
                         TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     auton_start = true;
     negative_blue_auton();
-    is_we_red_alliance = false;
     // conveyor_auton.suspend();
     // conveyor_auton.remove();
 
