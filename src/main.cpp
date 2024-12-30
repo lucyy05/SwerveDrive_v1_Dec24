@@ -46,7 +46,7 @@ void setMotorCurrentLimit(int current)
 
 void serialRead(void *params)
 {
-    //if(!tasks_enabled) return;
+    if(!tasks_enabled) return;
     vexGenericSerialEnable(SERIALPORT - 1, 0);
     vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
     pros::delay(5);
@@ -1419,11 +1419,13 @@ void autonomous()
     // tasks_enabled = true;
     // serial_task.resume();
     // conveyor_auton.resume();
-    // pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
-    //                     TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
+    pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
+                        TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     auton_time = pros::millis();
     positive_blue_auton();
     is_we_red_alliance = false;
+    conveyor_auton.suspend();
+    conveyor_auton.remove();
 
 }
 
@@ -1435,6 +1437,9 @@ void initialize()
     pros::lcd::initialize();
     conveyor_optical.set_led_pwm(100);
     conveyor_optical.set_integration_time(2);
+    tasks_enabled = true;
+    pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
+                    TASK_STACK_DEPTH_DEFAULT, "Serial read task");
     // if (serial_task_enabled == false)
     // { // Test code, remove for actual match code
     //     pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT,
@@ -1445,11 +1450,11 @@ void initialize()
     // //while(!imu.reset(true)&&!imu2.reset(true));
     // vexGenericSerialEnable(SERIALPORT - 1, 0);
     // vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
-    pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
-                    TASK_STACK_DEPTH_DEFAULT, "Serial read task");
-    while(!tasks_enabled) pros::delay(1);
-    pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
-                    TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
+    // pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
+    //                 TASK_STACK_DEPTH_DEFAULT, "Serial read task");
+    // while(!tasks_enabled) pros::delay(1);
+    // pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
+    //                 TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     pros::delay(10);
 
     while (imu.reset(true) == PROS_ERR)
@@ -1473,9 +1478,9 @@ void initialize()
     // imu.reset(true);  //uncomment for actual
     // pros::delay(100);
     // master.print(0,0,"IMU calibrated  ");
-    // while (global_distX == 0.0 || global_distY == 0.0)
-    // {
-    // }
+    while (global_distX == 0.0 || global_distY == 0.0)
+    {
+    }
     // imu2.set_data_rate(5);
     pros::Task slam_dunk(slamDunk, (void *)"slam", TASK_PRIORITY_DEFAULT,
                          TASK_STACK_DEPTH_DEFAULT, "slam task");
@@ -1486,6 +1491,7 @@ void initialize()
 
 void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
     //serial_task.remove();
+    tasks_enabled = false;
     pros::Task move_base(moveBase, (void*)"driver", TASK_PRIORITY_MAX-2,
                     TASK_STACK_DEPTH_DEFAULT, "driver task");
     while (true)
