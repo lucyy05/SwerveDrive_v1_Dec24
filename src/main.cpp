@@ -47,7 +47,8 @@ void setMotorCurrentLimit(int current)
 
 void serialRead(void *params)
 {
-    if(!tasks_enabled) return;
+    if (!tasks_enabled)
+        return;
     vexGenericSerialEnable(SERIALPORT - 1, 0);
     vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
     pros::delay(5);
@@ -60,51 +61,52 @@ void serialRead(void *params)
     int bufLength = 256;
     while (true)
     {
-        if(pros::millis() > (auton_time + max_auton_time)){
+        if (pros::millis() > (auton_time + max_auton_time))
+        {
             break;
         }
-            int32_t nRead = vexGenericSerialReceive(SERIALPORT - 1, buffer, bufLength);
-            if (nRead >= 0)
+        int32_t nRead = vexGenericSerialReceive(SERIALPORT - 1, buffer, bufLength);
+        if (nRead >= 0)
+        {
+            std::stringstream dataStream("");
+            bool recordOpticalX = false;
+            bool recordOpticalY = false;
+            for (int i = 0; i < nRead; i++)
             {
-                std::stringstream dataStream("");
-                bool recordOpticalX = false;
-                bool recordOpticalY = false;
-                for (int i = 0; i < nRead; i++)
+                char thisDigit = (char)buffer[i];
+                if (thisDigit == 'D' || thisDigit == 'I' || thisDigit == 'A' || thisDigit == 'X' || thisDigit == 'C' || thisDigit == 'Y')
                 {
-                    char thisDigit = (char)buffer[i];
-                    if (thisDigit == 'D' || thisDigit == 'I' || thisDigit == 'A' || thisDigit == 'X' || thisDigit == 'C' || thisDigit == 'Y')
-                    {
-                        recordOpticalX = false;
-                        recordOpticalY = false;
-                    }
-                    if (thisDigit == 'C')
-                    {
-                        recordOpticalX = false;
-                        dataStream >> dist_X;
-                        global_distX = dist_X * -10.0;
-                        dataStream.str(std::string());
-                        prevDist_x = dist_X * -10.0;
-                    }
-                    if (thisDigit == 'D')
-                    {
-                        recordOpticalY = false;
-                        dataStream >> dist_Y;
-                        global_distY = dist_Y * -10.0;
-                        dataStream.str(std::string());
-                        prevDist_y = dist_Y * -10.0;
-                    }
-                    if (recordOpticalX)
-                        dataStream << (char)buffer[i];
-                    if (recordOpticalY)
-                        dataStream << (char)buffer[i];
-                    if (thisDigit == 'X')
-                        recordOpticalX = true;
-                    if (thisDigit == 'Y')
-                        recordOpticalY = true;
+                    recordOpticalX = false;
+                    recordOpticalY = false;
                 }
-                pros::lcd::print(6,"%.1lf",global_distY);
+                if (thisDigit == 'C')
+                {
+                    recordOpticalX = false;
+                    dataStream >> dist_X;
+                    global_distX = dist_X * -10.0;
+                    dataStream.str(std::string());
+                    prevDist_x = dist_X * -10.0;
+                }
+                if (thisDigit == 'D')
+                {
+                    recordOpticalY = false;
+                    dataStream >> dist_Y;
+                    global_distY = dist_Y * -10.0;
+                    dataStream.str(std::string());
+                    prevDist_y = dist_Y * -10.0;
+                }
+                if (recordOpticalX)
+                    dataStream << (char)buffer[i];
+                if (recordOpticalY)
+                    dataStream << (char)buffer[i];
+                if (thisDigit == 'X')
+                    recordOpticalX = true;
+                if (thisDigit == 'Y')
+                    recordOpticalY = true;
             }
-            pros::Task::delay(2);
+            pros::lcd::print(6, "%.1lf", global_distY);
+        }
+        pros::Task::delay(2);
     }
 }
 
@@ -584,39 +586,50 @@ void slamDunk(void *params)
     }
 }
 
-void moveBaseAutonomous(double targetX, double targetY, double target_heading,int32_t timeout = 5000)
+void moveBaseAutonomous(double targetX, double targetY, double target_heading, int32_t timeout = 5000)
 {
     int32_t start_time = pros::millis();
     targetY *= -1.0;
-    if(fabs(targetX) > 400.0){
-        auton_distance_kP = 0.14; //swerve wheel rotation distance
+    if (fabs(targetX) > 400.0)
+    {
+        auton_distance_kP = 0.14; // swerve wheel rotation distance
         auton_distance_kI = 0.0;
         auton_distance_kD = 0.0; // 20 was
     }
-    else if(fabs(targetX) > 240.0) {
-        auton_distance_kP = 0.3; //swerve wheel rotation distance
+    else if (fabs(targetX) > 240.0)
+    {
+        auton_distance_kP = 0.3; // swerve wheel rotation distance
         auton_distance_kI = 0.0;
         auton_distance_kD = 0.0;
-    } else if(fabs(targetX) > 80.0) {
-        auton_distance_kP = 0.2; //swerve wheel rotation distance
+    }
+    else if (fabs(targetX) > 80.0)
+    {
+        auton_distance_kP = 0.2; // swerve wheel rotation distance
         auton_distance_kI = 0.0;
         auton_distance_kD = 0.0;
-    } 
+    }
 
-    if (fabs(targetY) > 680.0){
+    if (fabs(targetY) > 680.0)
+    {
         auton_distance_kP = 0.12; // swerve wheel rotation distance
         auton_distance_kI = 0.009;
         auton_distance_kD = 0.2;
-    } else if(fabs(targetY) > 640.0) {
-        auton_distance_kP = 0.14; //swerve wheel rotation distance
+    }
+    else if (fabs(targetY) > 640.0)
+    {
+        auton_distance_kP = 0.14; // swerve wheel rotation distance
         auton_distance_kI = 0.0;
         auton_distance_kD = 0.0;
-    } else if(fabs(targetY) > 180.0) {
-        auton_distance_kP = 0.3; //swerve wheel rotation distance
+    }
+    else if (fabs(targetY) > 180.0)
+    {
+        auton_distance_kP = 0.3; // swerve wheel rotation distance
         auton_distance_kI = 0.0;
         auton_distance_kD = 2.0;
-    }else if(fabs(targetY) > 40.0){
-        auton_distance_kP = 0.3; //swerve wheel rotation distance
+    }
+    else if (fabs(targetY) > 40.0)
+    {
+        auton_distance_kP = 0.3; // swerve wheel rotation distance
         auton_distance_kI = 0.0;
         auton_distance_kD = 0.;
     }
@@ -628,15 +641,15 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading,in
     // }else{
     //   auton_distance_kP = 0.3; //swerve wheel rotation distance
     //     auton_distance_kI = 0.0;
-    //     auton_distance_kD = 0.0;  
+    //     auton_distance_kD = 0.0;
     // }
-    
+
     // if (fabs(targetY) > 400.0 && fabs(targetX) < 1.0 ){
     //     auton_distance_kP = 0.12; // swerve wheel rotation distance
     //     auton_distance_kI = 0.009;
     //     auton_distance_kD = 0.2;
     // }
-    
+
     // else{
     //     auton_distance_kP = 0.3; //swerve wheel rotation distance
     //     auton_distance_kI = 0.0;
@@ -765,11 +778,13 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading,in
     double offsetY = global_distY;
     // pros::lcd::print(6, "offset_y:%.1lf", offsetY);
     if (fabs(target_heading) > 0.0)
-        while (imu.tare_rotation() == PROS_ERR);
+        while (imu.tare_rotation() == PROS_ERR)
+            ;
 
     while (pros::millis() < (start_time + timeout))
     {
-        if(pros::millis() > (auton_time + max_auton_time)){
+        if (pros::millis() > (auton_time + max_auton_time))
+        {
             break;
         }
         prev_target_v = target_v; // prev target velocity
@@ -999,9 +1014,9 @@ void alignWheels(vector3D heading)
     bool flag = false;
     bool loop_flag = true;
 
-    //PID instances
-    PID left_angle_PID(70, 0, 6000); 
-    PID right_angle_PID(70, 0, 6000); 
+    // PID instances
+    PID left_angle_PID(70, 0, 6000);
+    PID right_angle_PID(70, 0, 6000);
 
     vector3D null_v = vector3D(0, 0, 0);
 
@@ -1011,11 +1026,11 @@ void alignWheels(vector3D heading)
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor) - 90.0) * TO_RADIANS;   // takes robot right as 0
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor) - 90.0) * TO_RADIANS; // Y axis positive is front
 
-        current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);  
-        current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0); 
+        current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);
+        current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0);
 
-        v_left = target_v + null_v; //in order to rotate counterclockwise
-        v_right = target_v - null_v; 
+        v_left = target_v + null_v; // in order to rotate counterclockwise
+        v_right = target_v - null_v;
 
         bool reverse_right = false;
         bool reverse_left = false;
@@ -1044,8 +1059,10 @@ void alignWheels(vector3D heading)
             r_error = 0.0;
         }
 
-        if(fabs(l_error)<(3.0*TO_RADIANS)&&fabs(r_error)<(3.0*TO_RADIANS)){
-            if(!flag){
+        if (fabs(l_error) < (3.0 * TO_RADIANS) && fabs(r_error) < (3.0 * TO_RADIANS))
+        {
+            if (!flag)
+            {
                 flag = true;
                 start_t = pros::millis();
             }
@@ -1179,19 +1196,22 @@ void conveyorOff()
     conveyor.move(-110);
 }
 
-void conveyorAuton(void* params){
-    //100 - 140 hook hues
-    //190 - 220 blue hues
-    //350 - 10 red hues
-    //pros::c::optical_rgb_s_t rgb;
-    // if(!tasks_enabled) return;
+void conveyorAuton(void *params)
+{
+    // 100 - 140 hook hues
+    // 190 - 220 blue hues
+    // 350 - 10 red hues
+    // pros::c::optical_rgb_s_t rgb;
+    //  if(!tasks_enabled) return;
     int blue = 0;
     int others = 0;
     // mobilegoalclose();
     while (true)
     {
-        if(conveyor_enable){
-            if(pros::millis() > (auton_time + max_auton_time)){
+        if (conveyor_enable)
+        {
+            if (pros::millis() > (auton_time + max_auton_time))
+            {
                 break;
             }
             conveyor.move(20);
@@ -1221,7 +1241,7 @@ void conveyorAuton(void* params){
                 // pros::lcd::print(3,"hook detected");
             }
 
-                // pros::lcd::print(0,"hue:%.1lf",hue_value);
+            // pros::lcd::print(0,"hue:%.1lf",hue_value);
 
             if (hook_detected)
             {
@@ -1257,12 +1277,12 @@ void conveyorAuton(void* params){
                 }
                 // pros::lcd::print(2,"no Hook");
             }
-
-                pros::delay(2);
         }
-        else{
-            pros::delay(100);
+        else
+        {
+            conveyor.move(20);
         }
+        pros::delay(2);
     }
 }
 
@@ -1286,7 +1306,7 @@ void positive_blue_auton()
     rollerOn();
     conveyor.move(0);
     conveyor_enable = true;
-    
+
     // grab mobile goal
     moveBaseAutonomous(-300.0, 0.0, 0.0);
     moveBaseAutonomous(0.0, 300.0, 0.0);
@@ -1294,27 +1314,29 @@ void positive_blue_auton()
     // moveBaseAutonomous(0.0, -390.0, 0.0);
     vector3D targetheading(0, MAX_SPEED, 0);
     alignWheels(targetheading);
-    moveBaseAutonomous(0.0, -900, 0.0,10000);
+    moveBaseAutonomous(0.0, -900, 0.0, 10000);
     mobilegoalclose();
     // moveBaseAutonomous(0.0, -510.0, 0.0);
     // moveBaseAutonomous(0.0, -200, 0.0);
-    
+
     // scoring 3 rings and clearing positive corner
-    moveBaseAutonomous(-400.0, 0.0, 0.0,  1500);
+    moveBaseAutonomous(-400.0, 0.0, 0.0, 1500);
     // tested until here
     //  moveBaseAutonomous(.0,1300.0,0.0);
-    moveBaseAutonomous(100.0, 0.0, 0.0,  1000);
+    moveBaseAutonomous(100.0, 0.0, 0.0, 1000);
     // alignWheels(targetheading);
-    moveBaseAutonomous(.0, 679.0, 0.0,2000);
-    moveBaseAutonomous(200.0, 0.0, 0.0,  1500);
-    moveBaseAutonomous(.0, 679.0, 0.0,2000);
-        moveBaseAutonomous(-400.0, 0.0, 0.0,  1000);
-    moveBaseAutonomous(.0, 679.0, 0.0,2000);
+    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
+    moveBaseAutonomous(200.0, 0.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
+    moveBaseAutonomous(-400.0, 0.0, 0.0, 1000);
+    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
 
-    moveBaseAutonomous(.0, -300.0, 0.0, 1500);
-    moveBaseAutonomous(.0, 300.0, 0.0,1500);
-moveBaseAutonomous(.0, -100.0, 0.0,1500);
-moveBaseAutonomous(100.0, 0.0, 0.0,1000);
+    moveBaseAutonomous(.0, -200.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 220.0, 0.0, 700);
+    moveBaseAutonomous(.0, -200.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 220.0, 0.0, 700);
+    moveBaseAutonomous(.0, -50.0, 0.0, 1500);
+    moveBaseAutonomous(50.0, 0.0, 0.0, 1000);
     // scoring 1 more rings and slamming mobile goal into positive corner
     // scoring 1 more rings and slamming mobile goal into positive corner
     // moveBaseAutonomous(.0, -700.0, 0.0);
@@ -1327,52 +1349,46 @@ moveBaseAutonomous(100.0, 0.0, 0.0,1000);
     // ready for match state
     moveBaseAutonomous(.0, 100.0, 0.0);
     moveBaseAutonomous(-500.0, .0, 0.0);
-
 }
 
 void positive_red_auton()
 {
+    conveyor_enable = false;
     mobilegoalopen();
     rollerOn();
     // score alliance stakes
     moveBaseAutonomous(-535.0, 0.0, 0.0);
     conveyor.move(50);
-    pros::delay(500);
+    pros::delay(800);
     rollerOn();
     conveyor.move(0);
+    conveyor_enable = true;
 
-    // grab mobile goal
     moveBaseAutonomous(300.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, 200.0, 0.0);
-    turn90(false);  
-    moveBaseAutonomous(0.0, -390.0, 0.0);
+    moveBaseAutonomous(0.0, 300.0, 0.0);
+    turn90(false);
+    vector3D targetheading(0, MAX_SPEED, 0);
+    alignWheels(targetheading);
+    moveBaseAutonomous(0.0, -900, 0.0, 10000);
     mobilegoalclose();
-    moveBaseAutonomous(0.0, -510.0, 0.0);
+moveBaseAutonomous(400.0, 0.0, 0.0, 1500);
+    moveBaseAutonomous(-100.0, 0.0, 0.0, 1000);
+moveBaseAutonomous(.0, 679.0, 0.0, 2000);
+    moveBaseAutonomous(-200.0, 0.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
+    moveBaseAutonomous(400.0, 0.0, 0.0, 1000);
+    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
 
-    // scoring 3 rings and clearing positive corner
-    moveBaseAutonomous(250.0, 0.0, 0.0);
-    // tested until here
-    //  moveBaseAutonomous(.0,1300.0,0.0);
-    moveBaseAutonomous(.0, 650.0, 0.0);
-    moveBaseAutonomous(.0, 650.0, 0.0);
-    moveBaseAutonomous(.0, -300.0, 0.0);
-    moveBaseAutonomous(.0, 490.0, 0.0);
-
-
-    // scoring 1 more rings and slamming mobile goal into positive corner
-
-
-    moveBaseAutonomous(.0, -700.0, 0.0);
-    moveBaseAutonomous(-250.0, 0.0, 0.0);
-    moveBaseAutonomous(.0, 50.0, 0.0);
-    turn180(false);
-    moveBaseAutonomous(-250.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, 450.0, 0.0);
+    moveBaseAutonomous(.0, -200.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 220.0, 0.0, 700);
+    moveBaseAutonomous(.0, -200.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 220.0, 0.0, 700);
+    moveBaseAutonomous(.0, -50.0, 0.0, 1500);
+    moveBaseAutonomous(50.0, 0.0, 0.0, 1000);
+    turn180(true);
     mobilegoalopen();
-    // ready for match state
     moveBaseAutonomous(.0, 100.0, 0.0);
     moveBaseAutonomous(500.0, .0, 0.0);
-    
 }
 
 void negative_blue_auton()
@@ -1397,7 +1413,7 @@ void negative_blue_auton()
     moveBaseAutonomous(0.0, 150.0, 0.0);
     moveBaseAutonomous(0.0, -300.0, 0.0);
     rollerOff();
-    //conveyorOff();
+    // conveyorOff();
     slammingState = SLAM_LADDER;
     moveBaseAutonomous(0.0, -1300.0, 0.0);
 }
@@ -1431,18 +1447,18 @@ void negative_red_auton()
 
 void test()
 {
-    vector3D targetheading (0,MAX_SPEED,0);
+    vector3D targetheading(0, MAX_SPEED, 0);
     // pros::lcd::print(2,"test bef align wheel");
     // alignWheels(targetheading);
-    pros::lcd::print(2,"test after align wheel");
+    pros::lcd::print(2, "test after align wheel");
     mobilegoalclose();
     moveBaseAutonomous(0.0, -60.0, 0.0);
     mobilegoalopen();
     // pros::delay(3000);
-    //      
+    //
 
     //      alignWheels(targetheading);
-    //      
+    //
     //     moveBaseAutonomous(0.0, 60.0, 0.0);
     //     pros::delay(3000);
     //     // alignWheels(targetheading);
@@ -1461,11 +1477,12 @@ void test()
     pros::delay(3000);
 }
 
-void competition_initialize() {
-
+void competition_initialize()
+{
 }
 
-void disabled() {
+void disabled()
+{
     // tasks_enabled = false;
     // serial_task.suspend();
     // conveyor_auton.suspend();
@@ -1479,14 +1496,13 @@ void autonomous()
     // serial_task.resume();
     // conveyor_auton.resume();
     pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
-                        TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
+                              TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     auton_time = pros::millis();
 
     positive_blue_auton();
     is_we_red_alliance = false;
     // conveyor_auton.suspend();
     // conveyor_auton.remove();
-
 }
 
 // pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT + 1,
@@ -1498,8 +1514,8 @@ void initialize()
     conveyor_optical.set_led_pwm(100);
     conveyor_optical.set_integration_time(2);
     tasks_enabled = true;
-    pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
-                    TASK_STACK_DEPTH_DEFAULT, "Serial read task");
+    pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT,
+                           TASK_STACK_DEPTH_DEFAULT, "Serial read task");
     // if (serial_task_enabled == false)
     // { // Test code, remove for actual match code
     //     pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT,
@@ -1549,15 +1565,18 @@ void initialize()
     master.rumble(".-.");
 }
 
-void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
-    //serial_task.remove();
+void opcontrol()
+{ // TODO: JOEL PLEASE MAKE CONVEYOR A TASK
+    // serial_task.remove();
     tasks_enabled = false;
-    pros::Task move_base(moveBase, (void*)"driver", TASK_PRIORITY_MAX-2,
-                    TASK_STACK_DEPTH_DEFAULT, "driver task");
+    pros::Task move_base(moveBase, (void *)"driver", TASK_PRIORITY_MAX - 2,
+                         TASK_STACK_DEPTH_DEFAULT, "driver task");
     while (true)
     {
-        if(driver == true) move_base.resume();
-        else move_base.suspend();
+        if (driver == true)
+            move_base.resume();
+        else
+            move_base.suspend();
 
         leftY = master.get_analog(ANALOG_LEFT_Y);
 
@@ -1594,18 +1613,18 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         else
             roller.move(0);
 
-                if (mobile_goal_actuated)
-                {
-                    solenoid.set_value(1);
-                    pros::Task::delay(110);
-                    mobilegoal_bot.set_value(0);
-                }
-                else
-                {
-                    solenoid.set_value(0);
-                    pros::Task::delay(110);
-                    mobilegoal_bot.set_value(1);
-                }
+        if (mobile_goal_actuated)
+        {
+            solenoid.set_value(1);
+            pros::Task::delay(110);
+            mobilegoal_bot.set_value(0);
+        }
+        else
+        {
+            solenoid.set_value(0);
+            pros::Task::delay(110);
+            mobilegoal_bot.set_value(1);
+        }
 
         if (slam_dunk_actuated)
             slam_in_out.set_value(1);
