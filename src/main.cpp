@@ -936,8 +936,8 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading, i
         // move_voltage_wheels(0,0,0,0);
         //  pros::lcd::print(2,"lu:%d, ru:%d",lu,ru);
         //  pros::lcd::print(3,"ll:%d, rl:%d",ll,rl);
-        //move_voltage_wheels(lu, ll, ru, rl);
-        move_voltage_wheels(0, 0, 0, 0);
+        move_voltage_wheels(lu, ll, ru, rl);
+        // move_voltage_wheels(0, 0, 0, 0);
         pros::delay(3);
     }
 }
