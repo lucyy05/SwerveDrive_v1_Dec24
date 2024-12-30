@@ -59,6 +59,9 @@ void serialRead(void *params)
     int bufLength = 256;
     while (true)
     {
+        if(pros::millis() > (auton_time + max_auton_time)){
+            break;
+        }
             int32_t nRead = vexGenericSerialReceive(SERIALPORT - 1, buffer, bufLength);
             if (nRead >= 0)
             {
@@ -1149,6 +1152,9 @@ void conveyorAuton(void* params){
     mobilegoalclose();
     while (true)
     {
+        if(pros::millis() > (auton_time + max_auton_time)){
+            break;
+        }
         conveyor.move(20);
         roller.move(-100);
         double hue_value = conveyor_optical.get_hue();
@@ -1424,8 +1430,8 @@ void autonomous()
     auton_time = pros::millis();
     positive_blue_auton();
     is_we_red_alliance = false;
-    conveyor_auton.suspend();
-    conveyor_auton.remove();
+    // conveyor_auton.suspend();
+    // conveyor_auton.remove();
 
 }
 
