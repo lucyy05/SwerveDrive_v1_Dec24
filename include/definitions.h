@@ -72,8 +72,8 @@
 #define ROLLER_MOTOR 6
 #define CONVEYOR_MOTOR 7
 
-//#define SERIALPORT 19 // for ipin
-#define SERIALPORT 12 //for upin
+#define SERIALPORT 19 // for ipin
+//#define SERIALPORT 12 //for upin
 
 #define ZERO_VECTOR INFINITY
 
