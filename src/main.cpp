@@ -1436,7 +1436,7 @@ void autonomous()
                         TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     auton_time = pros::millis();
     positive_blue_auton();
-    is_we_red_alliance = true;
+    is_we_red_alliance = false;
     // conveyor_auton.suspend();
     // conveyor_auton.remove();
 
