@@ -594,9 +594,9 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
     }
     else if (fabs(targetX) > 400.0 || fabs(targetY) > 400.0)
     {
-        auton_distance_kP = 0.12; // swerve wheel rotation distance
+        auton_distance_kP = 0.11; // swerve wheel rotation distance
         auton_distance_kI = 0.0;
-        auton_distance_kD = 2.;
+        auton_distance_kD = 0.2;
     }
     else
     {
