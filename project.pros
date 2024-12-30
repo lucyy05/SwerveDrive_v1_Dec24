@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "Main",
+    "project_name": "JJ POS BLUE",
     "target": "v5",
     "templates": {
       "kernel": {
@@ -309,8 +309,8 @@
       }
     },
     "upload_options": {
-      "slot": 3,
-      "icon": "clawbot",
+      "slot": 1,
+      "icon": "power",
       "after": "screen"
     },
     "use_early_access": true

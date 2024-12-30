@@ -72,7 +72,8 @@
 #define ROLLER_MOTOR 6
 #define CONVEYOR_MOTOR 7
 
-#define SERIALPORT 19
+//#define SERIALPORT 19 // for ipin
+#define SERIALPORT 12 //for upin
 
 #define ZERO_VECTOR INFINITY
 
@@ -274,7 +275,7 @@ double slam_Kd = 0.1;
 double slam_Ki = 0.0;
 
 //Serial read
-bool serial_task_enabled = false;
+bool serial_task_enabled = true;
 double global_distY = 0.0;
 double global_distX = 0.0;
 double global_errorY = 0.0;
@@ -307,5 +308,11 @@ const double scale_factor = height_from_gnd * 2.0 * tan(42.0 / 2.0) / (35.0 * sc
 bool roller_lifts = false;
 
 //Driver
-bool driver = false;
-bool arcade = false;
+bool driver = true;
+bool arcade = true;
+
+//Tasks
+bool tasks_enabled = false;
+
+uint32_t auton_time = 0;
+const uint32_t max_auton_time = 29000;

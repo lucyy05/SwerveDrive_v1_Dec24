@@ -1,8 +1,5 @@
 #include "main.h"
 
-void disabled() {}
-void competition_initialize() {}
-
 // Function to determine sign of a integer variable, returns bool
 template <typename T>
 int sgn(T val)
@@ -49,6 +46,7 @@ void setMotorCurrentLimit(int current)
 
 void serialRead(void *params)
 {
+    //if(!tasks_enabled) return;
     vexGenericSerialEnable(SERIALPORT - 1, 0);
     vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
     pros::delay(5);
@@ -61,47 +59,48 @@ void serialRead(void *params)
     int bufLength = 256;
     while (true)
     {
-        int32_t nRead = vexGenericSerialReceive(SERIALPORT - 1, buffer, bufLength);
-        if (nRead >= 0)
-        {
-            std::stringstream dataStream("");
-            bool recordOpticalX = false;
-            bool recordOpticalY = false;
-            for (int i = 0; i < nRead; i++)
+            int32_t nRead = vexGenericSerialReceive(SERIALPORT - 1, buffer, bufLength);
+            if (nRead >= 0)
             {
-                char thisDigit = (char)buffer[i];
-                if (thisDigit == 'D' || thisDigit == 'I' || thisDigit == 'A' || thisDigit == 'X' || thisDigit == 'C' || thisDigit == 'Y')
+                std::stringstream dataStream("");
+                bool recordOpticalX = false;
+                bool recordOpticalY = false;
+                for (int i = 0; i < nRead; i++)
                 {
-                    recordOpticalX = false;
-                    recordOpticalY = false;
+                    char thisDigit = (char)buffer[i];
+                    if (thisDigit == 'D' || thisDigit == 'I' || thisDigit == 'A' || thisDigit == 'X' || thisDigit == 'C' || thisDigit == 'Y')
+                    {
+                        recordOpticalX = false;
+                        recordOpticalY = false;
+                    }
+                    if (thisDigit == 'C')
+                    {
+                        recordOpticalX = false;
+                        dataStream >> dist_X;
+                        global_distX = dist_X * -10.0;
+                        dataStream.str(std::string());
+                        prevDist_x = dist_X * -10.0;
+                    }
+                    if (thisDigit == 'D')
+                    {
+                        recordOpticalY = false;
+                        dataStream >> dist_Y;
+                        global_distY = dist_Y * -10.0;
+                        dataStream.str(std::string());
+                        prevDist_y = dist_Y * -10.0;
+                    }
+                    if (recordOpticalX)
+                        dataStream << (char)buffer[i];
+                    if (recordOpticalY)
+                        dataStream << (char)buffer[i];
+                    if (thisDigit == 'X')
+                        recordOpticalX = true;
+                    if (thisDigit == 'Y')
+                        recordOpticalY = true;
                 }
-                if (thisDigit == 'C')
-                {
-                    recordOpticalX = false;
-                    dataStream >> dist_X;
-                    global_distX = dist_X * -10.0;
-                    dataStream.str(std::string());
-                    prevDist_x = dist_X * -10.0;
-                }
-                if (thisDigit == 'D')
-                {
-                    recordOpticalY = false;
-                    dataStream >> dist_Y;
-                    global_distY = dist_Y * -10.0;
-                    dataStream.str(std::string());
-                    prevDist_y = dist_Y * -10.0;
-                }
-                if (recordOpticalX)
-                    dataStream << (char)buffer[i];
-                if (recordOpticalY)
-                    dataStream << (char)buffer[i];
-                if (thisDigit == 'X')
-                    recordOpticalX = true;
-                if (thisDigit == 'Y')
-                    recordOpticalY = true;
+                pros::lcd::print(6,"%.1lf",global_distY);
             }
-        }
-        pros::Task::delay(2);
+            pros::Task::delay(2);
     }
 }
 
@@ -719,6 +718,9 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
 
     while (true)
     {
+        if(pros::millis() > (auton_time + max_auton_time)){
+            break;
+        }
         prev_target_v = target_v; // prev target velocity
         prev_target_r = target_r; // prev target rotation
         // if(fabs(targetX) > 0.0)
@@ -941,13 +943,13 @@ void alignWheels(vector3D heading){
     double r_angle_pid = 0.0; 
 
     uint32_t start_t = pros::millis();
-    uint32_t elapsed_t = pros::millis();
+    uint32_t elapsed_t = 0;
     bool flag = false;
     bool loop_flag = true;
 
     //PID instances
-    PID left_angle_PID(30, 0, 5000); 
-    PID right_angle_PID(30, 0, 5000); 
+    PID left_angle_PID(70, 0, 6000); 
+    PID right_angle_PID(70, 0, 6000); 
 
     vector3D null_v = vector3D(0,0,0);
 
@@ -959,8 +961,6 @@ void alignWheels(vector3D heading){
         current_left_vector = vector3D(cos(left_angle), sin(left_angle), 0.0);  
         current_right_vector = vector3D(cos(right_angle), sin(right_angle), 0.0); 
 
-
-   
         v_left = target_v + null_v; //in order to rotate counterclockwise
         v_right = target_v - null_v; 
 
@@ -988,7 +988,7 @@ void alignWheels(vector3D heading){
             r_error = 0.0; 
         } 
 
-        if(fabs(l_error)<(2.0*TO_RADIANS)&&fabs(r_error)<(2.0*TO_RADIANS)){
+        if(fabs(l_error)<(3.0*TO_RADIANS)&&fabs(r_error)<(3.0*TO_RADIANS)){
             if(!flag){
                 flag = true;
                 start_t = pros::millis();
@@ -1017,7 +1017,6 @@ void alignWheels(vector3D heading){
     }
     return;
 }
-
 
 void turn180(bool turnleft)
 {
@@ -1128,68 +1127,69 @@ void conveyorAuton(void* params){
     //190 - 220 blue hues
     //350 - 10 red hues
     //pros::c::optical_rgb_s_t rgb;
+    // if(!tasks_enabled) return;
     int blue = 0;
     int others = 0;
     mobilegoalclose();
     while(true){
-        conveyor.move(20);
-        roller.move(-100);
-        double hue_value = conveyor_optical.get_hue();
-        // pros::lcd::print(5,"Hue:%lf",hue_value);
-        //rgb = conveyor_optical.get_rgb();
-        if(!blue_detected){
-            if(hue_value > 190.0 && hue_value < 230.0){
-                blue_detected = true;
-                // pros::lcd::print(3,"blue");
-                blue++;
-            }
-            // else if(!(hue_value > 120.0 && hue_value < 140.0)){
-            //     others_detected = true;
-            //     others++;
-            //     pros::lcd::print(3,"no colour");
-            // }
-        }
-        pros::lcd::print(1,"blue:%d, others:%d",blue,others);
-
-        if(hue_value > 120.0 && hue_value < 140.0){
-            hook_detected = true;
-            // pros::lcd::print(3,"hook detected");
-        }
-
-        // pros::lcd::print(0,"hue:%.1lf",hue_value);
-
-        if(hook_detected){
-            //pros::lcd::print(1,"Hook");
-            //ros::delay(200);
-            hook_detected = false;
-            if(is_we_red_alliance ^ blue_detected){
-                conveyor.tare_position();
-                conveyor_go_to_score();
-                pros::delay(100);
-                blue_detected = false;
-                //pros::lcd::print(6,"scoring");
-            }else{
-                conveyor.tare_position();
-                // while(conveyor.get_position() < 555){
-                //     conveyor.move(127);
+            conveyor.move(20);
+            roller.move(-100);
+            double hue_value = conveyor_optical.get_hue();
+            // pros::lcd::print(5,"Hue:%lf",hue_value);
+            //rgb = conveyor_optical.get_rgb();
+            if(!blue_detected){
+                if(hue_value > 190.0 && hue_value < 230.0){
+                    blue_detected = true;
+                    // pros::lcd::print(3,"blue");
+                    blue++;
+                }
+                // else if(!(hue_value > 120.0 && hue_value < 140.0)){
+                //     others_detected = true;
+                //     others++;
+                //     pros::lcd::print(3,"no colour");
                 // }
-                // conveyor.move(0);
-                // conveyor.brake();
-                // pros::delay(50);
-                // conveyor.tare_position();
-                // while(conveyor.get_position() > -20){
-                //     conveyor.move(-127);
-                // }
-                conveyor_go_to_yeet();
-                pros::delay(100);
-                //others_detected = false;
-                blue_detected = false;
-                //pros::lcd::print(6,"yeeting");
             }
-            //pros::lcd::print(2,"no Hook");
-        }
+            //pros::lcd::print(1,"blue:%d, others:%d",blue,others);
 
-        pros::delay(2);
+            if(hue_value > 120.0 && hue_value < 140.0){
+                hook_detected = true;
+                // pros::lcd::print(3,"hook detected");
+            }
+
+            // pros::lcd::print(0,"hue:%.1lf",hue_value);
+
+            if(hook_detected){
+                //pros::lcd::print(1,"Hook");
+                //ros::delay(200);
+                hook_detected = false;
+                if(is_we_red_alliance ^ blue_detected){
+                    conveyor.tare_position();
+                    conveyor_go_to_score();
+                    pros::delay(100);
+                    blue_detected = false;
+                    //pros::lcd::print(6,"scoring");
+                }else{
+                    conveyor.tare_position();
+                    // while(conveyor.get_position() < 555){
+                    //     conveyor.move(127);
+                    // }
+                    // conveyor.move(0);
+                    // conveyor.brake();
+                    // pros::delay(50);
+                    // conveyor.tare_position();
+                    // while(conveyor.get_position() > -20){
+                    //     conveyor.move(-127);
+                    // }
+                    conveyor_go_to_yeet();
+                    pros::delay(100);
+                    //others_detected = false;
+                    blue_detected = false;
+                    //pros::lcd::print(6,"yeeting");
+                }
+                //pros::lcd::print(2,"no Hook");
+            }
+
+            pros::delay(2);
     }
 }
 
@@ -1205,22 +1205,12 @@ void positive_blue_auton()
     mobilegoalopen();
     rollerOn();
     //score alliance stakes
-    moveBaseAutonomous(535.0,0.0,0.0);
-    conveyor.move(50);
-    pros::delay(500);
-    rollerOn();
-    //score alliance stakes
+    vector3D targetheading (MAX_SPEED,0,0);
+    alignWheels(targetheading);
     moveBaseAutonomous(535.0,0.0,0.0);
     conveyor.move(50);
     pros::delay(500);
 
-    //grab mobile goal
-    moveBaseAutonomous(-300.0,0.0,0.0);
-    moveBaseAutonomous(0.0,200.0,0.0);
-    turn90(true);
-    moveBaseAutonomous(0.0,-390.0,0.0);
-    mobilegoalclose();
-    moveBaseAutonomous(0.0,-510.0,0.0);
     //grab mobile goal
     moveBaseAutonomous(-300.0,0.0,0.0);
     moveBaseAutonomous(0.0,200.0,0.0);
@@ -1237,20 +1227,12 @@ void positive_blue_auton()
     moveBaseAutonomous(.0,650.0,0.0);   
     moveBaseAutonomous(.0,-490.0,0.0);
     moveBaseAutonomous(.0,490.0,0.0);
-    //scoring 3 rings and clearing positive corner
-    moveBaseAutonomous(-250.0,0.0,0.0);
-    //tested until here
-    // moveBaseAutonomous(.0,1300.0,0.0);   
-    moveBaseAutonomous(.0,650.0,0.0);   
-    moveBaseAutonomous(.0,650.0,0.0);   
-    moveBaseAutonomous(.0,-490.0,0.0);
-    moveBaseAutonomous(.0,490.0,0.0);
 
-    //scoring 1 more rings and slamming mobile goal into positive corner
     //scoring 1 more rings and slamming mobile goal into positive corner
 
     moveBaseAutonomous(.0,-700.0,0.0);
     moveBaseAutonomous(250.0,0.0,0.0);
+    moveBaseAutonomous(0.0,100.0,0.0);
     turn180(true);
     moveBaseAutonomous(250.0,0.0,0.0);
     moveBaseAutonomous(0.0,-450.0,0.0);
@@ -1258,15 +1240,48 @@ void positive_blue_auton()
     //ready for match state
     moveBaseAutonomous(.0,100.0,0.0);
     moveBaseAutonomous(-500.0,.0,0.0);
-    moveBaseAutonomous(.0,-700.0,0.0);
-    moveBaseAutonomous(250.0,0.0,0.0);
-    turn180(true);
-    moveBaseAutonomous(250.0,0.0,0.0);
-    moveBaseAutonomous(0.0,-450.0,0.0);
-    mobilegoalopen();
-    //ready for match state
-    moveBaseAutonomous(.0,100.0,0.0);
-    moveBaseAutonomous(-500.0,.0,0.0);
+}
+
+void positive_red_auton(){
+    mobilegoalopen(); 
+    rollerOn(); 
+    // score alliance stakes 
+    moveBaseAutonomous(-535.0, 0.0, 0.0); 
+    conveyor.move(50); 
+    pros::delay(500); 
+    rollerOn(); 
+ 
+    // grab mobile goal 
+    moveBaseAutonomous(300.0, 0.0, 0.0); 
+    moveBaseAutonomous(0.0, 200.0, 0.0); 
+    turn90(false);   
+    moveBaseAutonomous(0.0, -390.0, 0.0); 
+    mobilegoalclose(); 
+    moveBaseAutonomous(0.0, -510.0, 0.0); 
+ 
+    // scoring 3 rings and clearing positive corner 
+    moveBaseAutonomous(250.0, 0.0, 0.0); 
+    // tested until here 
+    //  moveBaseAutonomous(.0,1300.0,0.0); 
+    moveBaseAutonomous(.0, 650.0, 0.0); 
+    moveBaseAutonomous(.0, 650.0, 0.0); 
+    moveBaseAutonomous(.0, -490.0, 0.0); 
+    moveBaseAutonomous(.0, 490.0, 0.0); 
+ 
+ 
+    // scoring 1 more rings and slamming mobile goal into positive corner 
+ 
+ 
+    moveBaseAutonomous(.0, -700.0, 0.0); 
+    moveBaseAutonomous(-250.0, 0.0, 0.0); 
+    moveBaseAutonomous(.0, 100.0, 0.0); 
+    turn180(false); 
+    moveBaseAutonomous(250.0, 0.0, 0.0); 
+    moveBaseAutonomous(0.0, 450.0, 0.0); 
+    mobilegoalopen(); 
+    // ready for match state 
+    moveBaseAutonomous(.0, 100.0, 0.0); 
+    moveBaseAutonomous(-500.0, .0, 0.0);
 }
 
 void negative_blue_auton()
@@ -1282,7 +1297,7 @@ void negative_blue_auton()
     mobilegoalclose();
     // start scoring thread
     rollerOn();
-    conveyorOn();
+    //conveyorOn();
     moveBaseAutonomous(0.0, 900.0, 0.0);
     moveBaseAutonomous(0.0, 0.0, -49.7);
     moveBaseAutonomous(0.0, 413.0, 0.0);
@@ -1291,22 +1306,45 @@ void negative_blue_auton()
     moveBaseAutonomous(0.0, 150.0, 0.0);
     moveBaseAutonomous(0.0, -300.0, 0.0);
     rollerOff();
-    conveyorOff();
+    //conveyorOff();
     slammingState = SLAM_LADDER;
     moveBaseAutonomous(0.0, -1300.0, 0.0);
 }
 
 void negative_red_auton()
 {
+    mobilegoalopen();
+    yoinker_actuated = !yoinker_actuated;
+    yoink(yoinker_actuated);
+
+    moveBaseAutonomous(0.0, -750.0, 0.0);
+    moveBaseAutonomous(300.0, 0.0, 0.0);
+
+    moveBaseAutonomous(0.0, -60.0, 0.0);
+    mobilegoalclose();
+    // start scoring thread
+    rollerOn();
+    //conveyorOn();
+    moveBaseAutonomous(0.0, 900.0, 0.0);
+    moveBaseAutonomous(0.0, 0.0, 49.7);
+    moveBaseAutonomous(0.0, 413.0, 0.0);
+
+    moveBaseAutonomous(0.0, -150.0, 0.0);
+    moveBaseAutonomous(0.0, 150.0, 0.0);
+    moveBaseAutonomous(0.0, -300.0, 0.0);
+    rollerOff();
+    //conveyorOff();
+    slammingState = SLAM_LADDER;
+    moveBaseAutonomous(0.0, -1300.0, 0.0);
 }
 
 void test(){
-//      vector3D targetheading (0,-MAX_SPEED,0); 
-// alignWheels(targetheading);
-// moveBaseAutonomous(0.0, -60.0, 0.0);
-// pros::delay(3000);
-//      pros::lcd::print(2,"test bef align wheel");
-     
+    vector3D targetheading (0,-MAX_SPEED,0);
+    alignWheels(targetheading);
+    moveBaseAutonomous(0.0, 200.0, 0.0);
+    // pros::delay(3000);
+    //pros::lcd::print(2,"test bef align wheel");
+
 //      alignWheels(targetheading);
 //      pros::lcd::print(2,"test after align wheel");
 //     moveBaseAutonomous(0.0, 60.0, 0.0);
@@ -1318,39 +1356,61 @@ void test(){
 //     moveBaseAutonomous(0.0, 150.0, 0.0);
 //     pros::delay(3000);
 //     // alignWheels(targetheading);
-    moveBaseAutonomous(0.0, -500.0, 0.0);
-    pros::delay(3000);
-    // alignWheels(targetheading);
-    moveBaseAutonomous(0.0, 500.0, 0.0);
-    pros::delay(3000);
+    // moveBaseAutonomous(0.0, -500.0, 0.0);
+    // pros::delay(3000);
+    // // alignWheels(targetheading);
+    // moveBaseAutonomous(0.0, 500.0, 0.0);
+    // pros::delay(3000);
 }
 
+void competition_initialize() {
+
+}
+
+void disabled() {
+    // tasks_enabled = false;
+    // serial_task.suspend();
+    // conveyor_auton.suspend();
+}
 
 void autonomous()
 {
-    // pros::Task serial_task(serialRead, (void*)"serial", 1, //Uncomment for actual match
+    // serial_read = pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
     //                 TASK_STACK_DEPTH_DEFAULT, "Serial read task");
-    test();
+    // tasks_enabled = true;
+    // serial_task.resume();
+    // conveyor_auton.resume();
+    // pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
+    //                     TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
+    auton_time = pros::millis();
+    positive_blue_auton();
+    is_we_red_alliance = false;
+
 }
 
-pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT + 1,
-                       TASK_STACK_DEPTH_DEFAULT, "serial task");
+// pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT + 1,
+//                        TASK_STACK_DEPTH_DEFAULT, "serial task");
 
 void initialize()
 {
     pros::lcd::initialize();
     conveyor_optical.set_led_pwm(100);
     conveyor_optical.set_integration_time(2);
-    if (serial_task_enabled == false)
-    { // Test code, remove for actual match code
-        pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT,
-                               TASK_STACK_DEPTH_DEFAULT, "serial task");
-        serial_task_enabled = true;
-        pros::delay(15);
-    }
+    // if (serial_task_enabled == false)
+    // { // Test code, remove for actual match code
+    //     pros::Task serial_task(serialRead, (void *)"serial", TASK_PRIORITY_DEFAULT,
+    //                            TASK_STACK_DEPTH_DEFAULT, "serial task");
+    //     serial_task_enabled = true;
+    //     pros::delay(15);
+    // }
     // //while(!imu.reset(true)&&!imu2.reset(true));
     // vexGenericSerialEnable(SERIALPORT - 1, 0);
     // vexGenericSerialBaudrate(SERIALPORT - 1, 115200);
+    pros::Task serial_task(serialRead, (void*)"serial", TASK_PRIORITY_DEFAULT,
+                    TASK_STACK_DEPTH_DEFAULT, "Serial read task");
+    while(!tasks_enabled) pros::delay(1);
+    pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
+                    TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     pros::delay(10);
 
     while (imu.reset(true) == PROS_ERR)
@@ -1374,9 +1434,9 @@ void initialize()
     // imu.reset(true);  //uncomment for actual
     // pros::delay(100);
     // master.print(0,0,"IMU calibrated  ");
-    while (global_distX == 0.0 || global_distY == 0.0)
-    {
-    }
+    // while (global_distX == 0.0 || global_distY == 0.0)
+    // {
+    // }
     // imu2.set_data_rate(5);
     pros::Task slam_dunk(slamDunk, (void *)"slam", TASK_PRIORITY_DEFAULT,
                          TASK_STACK_DEPTH_DEFAULT, "slam task");
@@ -1386,7 +1446,7 @@ void initialize()
 }
 
 void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
-    serial_task.remove();
+    //serial_task.remove();
     pros::Task move_base(moveBase, (void*)"driver", TASK_PRIORITY_MAX-2,
                     TASK_STACK_DEPTH_DEFAULT, "driver task");
     while(true){
@@ -1417,7 +1477,7 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
             conveyor.move(-110);
         else
-            //conveyor.move(0);
+            conveyor.move(0);
 
         // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
         // when L1 is pressed, rollers move forward with NEGATIVE velocity??
@@ -1426,7 +1486,7 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
             roller.move(-110);
         else
-            //roller.move(0);
+            roller.move(0);
 
         if (mobile_goal_actuated)
         {
@@ -1466,7 +1526,6 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         if (master.get_digital_new_press(DIGITAL_Y))
             roller_lifts = !roller_lifts;
 
-        yoink(yoinker_actuated);
         yoink(yoinker_actuated);
 
         if (roller_lifts)
