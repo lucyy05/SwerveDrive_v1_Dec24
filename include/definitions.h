@@ -294,7 +294,7 @@ bool mobile_goal_actuated = false;
 bool mobile_goal_jaw = false;
 
 //Yoinker
-bool yoinker_actuated = false;
+bool yoinker_actuated = true;
 
 //Optical flow
 const double ALPHA = 0.85;
