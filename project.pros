@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "JJ POS BLUE",
+    "project_name": "CAVEN NEG BLUE",
     "target": "v5",
     "templates": {
       "kernel": {

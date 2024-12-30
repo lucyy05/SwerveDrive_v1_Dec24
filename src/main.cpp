@@ -589,19 +589,19 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
     if (((fabs(targetX) < 100.0) && (fabs(targetY) < 100.0)))
     {
         auton_distance_kP = 0.3; // swerve wheel rotation distance
-        auton_distance_kI = 0.0;
+        auton_distance_kI = 0.009;
         auton_distance_kD = 20.0; // 20 was
     }
     else if (fabs(targetX) > 400.0 || fabs(targetY) > 400.0)
     {
-        auton_distance_kP = 0.11; // swerve wheel rotation distance
-        auton_distance_kI = 0.0;
+        auton_distance_kP = 0.12; // swerve wheel rotation distance
+        auton_distance_kI = 0.009;
         auton_distance_kD = 0.2;
     }
     else
     {
         auton_distance_kP = 0.1; // swerve wheel rotation distance
-        auton_distance_kI = 0.0;
+        auton_distance_kI = 0.007;
         auton_distance_kD = 0.02;
     }
 
@@ -1149,14 +1149,14 @@ void conveyorAuton(void* params){
     // if(!tasks_enabled) return;
     int blue = 0;
     int others = 0;
-    mobilegoalclose();
+    //mobilegoalclose();
     while (true)
     {
         if(conveyor_enable){
             if(pros::millis() > (auton_time + max_auton_time)){
                 break;
             }
-            conveyor.move(20);
+            conveyor.move(60);
             roller.move(-100);
             double hue_value = conveyor_optical.get_hue();
             // pros::lcd::print(5,"Hue:%lf",hue_value);
