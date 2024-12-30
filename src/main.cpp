@@ -1526,8 +1526,8 @@ void autonomous()
     pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
                         TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     auton_start = true;
-    negative_blue_auton();
-    is_we_red_alliance = false;
+    positive_red_auton();
+    is_we_red_alliance = true;
     // conveyor_auton.suspend();
     // conveyor_auton.remove();
 }
