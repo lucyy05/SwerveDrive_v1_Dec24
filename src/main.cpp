@@ -1160,12 +1160,14 @@ void conveyorAuton(void* params){
             if(pros::millis() > (auton_time + max_auton_time)){
                 break;
             }
-            conveyor.move(60);
+            //conveyor.move(60);
             roller.move(-105);
             double hue_value = conveyor_optical.get_hue();
+            pros::c::optical_rgb_s_t rgb = conveyor_optical.get_rgb();
+            pros::lcd::print(5,"R:%.1lf,G:%.1lf,B:%.1lf",rgb.red,rgb.green,rgb.blue);
             // pros::lcd::print(5,"Hue:%lf",hue_value);
             // rgb = conveyor_optical.get_rgb();
-            if (!blue_detected)
+            if (!hook_detected)
             {
                 if (hue_value > 175.0 && hue_value < 245.0)
                 {
@@ -1199,7 +1201,7 @@ void conveyorAuton(void* params){
             if (hook_detected)
             {
                 // pros::lcd::print(1,"Hook");
-                // ros::delay(200);
+                // pros::delay(200);
                 hook_detected = false;
                 if (is_we_red_alliance ^ blue_detected)
                 {
