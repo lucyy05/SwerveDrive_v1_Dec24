@@ -62,48 +62,48 @@ void serialRead(void *params)
         if(pros::millis() > (auton_time + max_auton_time)){
             break;
         }
-            int32_t nRead = vexGenericSerialReceive(SERIALPORT - 1, buffer, bufLength);
-            if (nRead >= 0)
+        int32_t nRead = vexGenericSerialReceive(SERIALPORT - 1, buffer, bufLength);
+        if (nRead >= 0)
+        {
+            std::stringstream dataStream("");
+            bool recordOpticalX = false;
+            bool recordOpticalY = false;
+            for (int i = 0; i < nRead; i++)
             {
-                std::stringstream dataStream("");
-                bool recordOpticalX = false;
-                bool recordOpticalY = false;
-                for (int i = 0; i < nRead; i++)
+                char thisDigit = (char)buffer[i];
+                if (thisDigit == 'D' || thisDigit == 'I' || thisDigit == 'A' || thisDigit == 'X' || thisDigit == 'C' || thisDigit == 'Y')
                 {
-                    char thisDigit = (char)buffer[i];
-                    if (thisDigit == 'D' || thisDigit == 'I' || thisDigit == 'A' || thisDigit == 'X' || thisDigit == 'C' || thisDigit == 'Y')
-                    {
-                        recordOpticalX = false;
-                        recordOpticalY = false;
-                    }
-                    if (thisDigit == 'C')
-                    {
-                        recordOpticalX = false;
-                        dataStream >> dist_X;
-                        global_distX = dist_X * -10.0;
-                        dataStream.str(std::string());
-                        prevDist_x = dist_X * -10.0;
-                    }
-                    if (thisDigit == 'D')
-                    {
-                        recordOpticalY = false;
-                        dataStream >> dist_Y;
-                        global_distY = dist_Y * -10.0;
-                        dataStream.str(std::string());
-                        prevDist_y = dist_Y * -10.0;
-                    }
-                    if (recordOpticalX)
-                        dataStream << (char)buffer[i];
-                    if (recordOpticalY)
-                        dataStream << (char)buffer[i];
-                    if (thisDigit == 'X')
-                        recordOpticalX = true;
-                    if (thisDigit == 'Y')
-                        recordOpticalY = true;
+                    recordOpticalX = false;
+                    recordOpticalY = false;
                 }
-                // pros::lcd::print(6,"%.1lf",global_distY);
+                if (thisDigit == 'C')
+                {
+                    recordOpticalX = false;
+                    dataStream >> dist_X;
+                    global_distX = dist_X * -10.0;
+                    dataStream.str(std::string());
+                    prevDist_x = dist_X * -10.0;
+                }
+                if (thisDigit == 'D')
+                {
+                    recordOpticalY = false;
+                    dataStream >> dist_Y;
+                    global_distY = dist_Y * -10.0;
+                    dataStream.str(std::string());
+                    prevDist_y = dist_Y * -10.0;
+                }
+                if (recordOpticalX)
+                    dataStream << (char)buffer[i];
+                if (recordOpticalY)
+                    dataStream << (char)buffer[i];
+                if (thisDigit == 'X')
+                    recordOpticalX = true;
+                if (thisDigit == 'Y')
+                    recordOpticalY = true;
             }
-            pros::Task::delay(2);
+            // pros::lcd::print(6,"%.1lf",global_distY);
+        }
+        pros::Task::delay(2);
     }
 }
 
@@ -770,7 +770,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading, i
         if (fabs(target_heading) > 0.0 && fabs(errorheading) > fabs(target_heading))
             errorheading = 0.0;
 
-        if (fabs(errorX) <= 3.0 && fabs(errorY) <= 3.0 && fabs(errorheading) <= 0.5)
+        if (fabs(errorX) <= 1.5 && fabs(errorY) <= 1.5 && fabs(errorheading) <= 0.7)
         {
             move_voltage_wheels(0, 0, 0, 0);
             lu = 0;
@@ -1120,7 +1120,7 @@ void mobilegoalopen()
 void mobilegoalclose()
 {
     solenoid.set_value(1);
-    pros::Task::delay(110);
+    pros::Task::delay(100);
     mobilegoal_bot.set_value(0);
 }
 
@@ -1150,9 +1150,9 @@ void conveyorAuton(void* params){
     //350 - 10 red hues
     //pros::c::optical_rgb_s_t rgb;
     // if(!tasks_enabled) return;
-    int blue = 0;
-    int hook = 0;
-    int others = 0;
+    // int blue = 0;
+    // int hook = 0;
+    // int others = 0;
     //mobilegoalclose();
     while (true)
     {
@@ -1160,7 +1160,7 @@ void conveyorAuton(void* params){
             if(pros::millis() > (auton_time + max_auton_time)){
                 break;
             }
-            //conveyor.move(60);
+            conveyor.move(60);
             roller.move(-105);
             double hue_value = conveyor_optical.get_hue();
             pros::c::optical_rgb_s_t rgb = conveyor_optical.get_rgb();
@@ -1172,13 +1172,13 @@ void conveyorAuton(void* params){
                 if (hue_value > 175.0 && hue_value < 245.0)
                 {
                     blue_detected = true;
-                    blue++;
-                    pros::lcd::print(3,"blue:%d",blue);
+                    // blue++;
+                    // pros::lcd::print(3,"blue:%d",blue);
                 }
                 else if(hue_value < 25.0){
                     red_detected = true;
-                    others++;
-                    pros::lcd::print(2,"red:%d",others);
+                    // others++;
+                    // pros::lcd::print(2,"red:%d",others);
                 }
                 // else if(!(hue_value > 120.0 && hue_value < 140.0)){
                 //     others_detected = true;
@@ -1191,8 +1191,8 @@ void conveyorAuton(void* params){
             if (hue_value > 110.0 && hue_value < 145.0)
             {
                 hook_detected = true;
-                hook++;
-                pros::lcd::print(4,"hook:%d",hook);
+                // hook++;
+                // pros::lcd::print(4,"hook:%d",hook);
                 // pros::lcd::print(3,"hook detected");
             }
 
@@ -1346,11 +1346,14 @@ void negative_blue_auton()
     yoink(yoinker_actuated);
 
     moveBaseAutonomous(0.0, -705.0, 0.0, 3000);
-    moveBaseAutonomous(245.0, 0.0, 0.0, 3000);
+    roller_lifter.set_value(1);
+    moveBaseAutonomous(255.2, 0.0, 0.0, 3000);
 
-    moveBaseAutonomous(0.0, -61.0, 0.0, 3000);
+    moveBaseAutonomous(0.0, -90.0, 0.0, 3000);
     mobilegoalclose();
-    pros::delay(15);
+    pros::delay(100);
+    roller_lifter.set_value(0);
+    pros::delay(150);
     // start scoring thread
     rollerOn();
     // conveyorOn();
@@ -1360,19 +1363,27 @@ void negative_blue_auton()
     //roller_lifter.set_value(1);
     moveBaseAutonomous(0.0, 600.0, 0.0, 1500);
     //roller_lifter.set_value(0);
+    pros::delay(10);
+    moveBaseAutonomous(0.0, -450.0, 0.0, 1000);
+    pros::delay(10);
+    moveBaseAutonomous(0.0, 450.0, 0.0, 1500);
+    pros::delay(10);
     moveBaseAutonomous(0.0, -450.0, 0.0, 1000);
     moveBaseAutonomous(0.0, 450.0, 0.0, 1500);
+    pros::delay(10);
     moveBaseAutonomous(0.0, -450.0, 0.0, 1000);
+    pros::delay(10);
     moveBaseAutonomous(0.0, 450.0, 0.0, 1500);
     moveBaseAutonomous(0.0, -450.0, 0.0, 1000);
+    pros::delay(10);
     moveBaseAutonomous(-380.0, 0.0, 0.0, 1500);
     moveBaseAutonomous(250.0, 0.0, 0.0, 1500);
-    moveBaseAutonomous(0.0, 0.0, -48.0, 7000);
+    moveBaseAutonomous(0.0, 0.0, -50.0, 7000);
     rollerOff();
     //conveyorOff();
-    slammingState = SLAM_LADDER;
+    //slammingState = SLAM_LADDER;
     pros::delay(15);
-    moveBaseAutonomous(0.0, -1205.0, 0.0, 6000);
+    moveBaseAutonomous(0.0, -1000.0, 0.0, 6000);
 }
 
 void negative_red_auton()
