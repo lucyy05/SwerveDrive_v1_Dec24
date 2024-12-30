@@ -309,7 +309,7 @@ bool roller_lifts = false;
 
 //Driver
 bool driver = true;
-bool arcade = true;
+bool arcade = false;
 
 //Tasks
 bool tasks_enabled = false;
