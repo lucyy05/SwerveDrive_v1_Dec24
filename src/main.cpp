@@ -1,4 +1,5 @@
 #include "main.h"
+#include "definitions.h"
 
 // Function to determine sign of a integer variable, returns bool
 template <typename T>
@@ -583,27 +584,64 @@ void slamDunk(void *params)
     }
 }
 
-void moveBaseAutonomous(double targetX, double targetY, double target_heading)
+void moveBaseAutonomous(double targetX, double targetY, double target_heading,int32_t timeout = 5000)
 {
+    int32_t start_time = pros::millis();
     targetY *= -1.0;
-    if (((fabs(targetX) < 100.0) && (fabs(targetY) < 100.0)))
-    {
-        auton_distance_kP = 0.3; // swerve wheel rotation distance
+    if(fabs(targetX) > 400.0){
+        auton_distance_kP = 0.14; //swerve wheel rotation distance
         auton_distance_kI = 0.0;
-        auton_distance_kD = 20.0; // 20 was
+        auton_distance_kD = 0.0; // 20 was
     }
-    else if (fabs(targetX) > 400.0 || fabs(targetY) > 400.0)
-    {
+    else if(fabs(targetX) > 240.0) {
+        auton_distance_kP = 0.3; //swerve wheel rotation distance
+        auton_distance_kI = 0.0;
+        auton_distance_kD = 0.0;
+    } else if(fabs(targetX) > 80.0) {
+        auton_distance_kP = 0.2; //swerve wheel rotation distance
+        auton_distance_kI = 0.0;
+        auton_distance_kD = 0.0;
+    } 
+
+    if (fabs(targetY) > 680.0){
         auton_distance_kP = 0.12; // swerve wheel rotation distance
+        auton_distance_kI = 0.009;
+        auton_distance_kD = 0.2;
+    } else if(fabs(targetY) > 640.0) {
+        auton_distance_kP = 0.14; //swerve wheel rotation distance
         auton_distance_kI = 0.0;
-        auton_distance_kD = 2.;
-    }
-    else
-    {
-        auton_distance_kP = 0.1; // swerve wheel rotation distance
+        auton_distance_kD = 0.0;
+    } else if(fabs(targetY) > 180.0) {
+        auton_distance_kP = 0.3; //swerve wheel rotation distance
         auton_distance_kI = 0.0;
-        auton_distance_kD = 0.02;
+        auton_distance_kD = 2.0;
+    }else if(fabs(targetY) > 40.0){
+        auton_distance_kP = 0.3; //swerve wheel rotation distance
+        auton_distance_kI = 0.0;
+        auton_distance_kD = 0.;
     }
+
+    //     if(fabs(targetX) > 400.0 && fabs(targetY) < 1.0 ){
+    //     auton_distance_kP = 0.14; //swerve wheel rotation distance
+    //     auton_distance_kI = 0.0;
+    //     auton_distance_kD = 0.0; // 20 was
+    // }else{
+    //   auton_distance_kP = 0.3; //swerve wheel rotation distance
+    //     auton_distance_kI = 0.0;
+    //     auton_distance_kD = 0.0;  
+    // }
+    
+    // if (fabs(targetY) > 400.0 && fabs(targetX) < 1.0 ){
+    //     auton_distance_kP = 0.12; // swerve wheel rotation distance
+    //     auton_distance_kI = 0.009;
+    //     auton_distance_kD = 0.2;
+    // }
+    
+    // else{
+    //     auton_distance_kP = 0.3; //swerve wheel rotation distance
+    //     auton_distance_kI = 0.0;
+    //     auton_distance_kD = 0.2;
+    // }
 
     // if(fabs(targetX) > 800.0 || fabs(targetY) >800.0){
     //     auton_distance_kP = 0.1; //swerve wheel rotation distance
@@ -729,7 +767,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
     if (fabs(target_heading) > 0.0)
         while (imu.tare_rotation() == PROS_ERR);
 
-    while (true)
+    while (pros::millis() < (start_time + timeout))
     {
         if(pros::millis() > (auton_time + max_auton_time)){
             break;
@@ -1056,7 +1094,7 @@ void turn90(bool turnleft)
     // auton_heading_kP = 0.09;
     // auton_heading_kI = 0.0;
     // auton_heading_kD = 0.05;
-    auton_heading_kP = 0.15;
+    auton_heading_kP = 0.12;
     auton_heading_kI = 0.0;
     auton_heading_kD = 0.125;
     double heading = 90.0;
@@ -1100,7 +1138,7 @@ void turn20(bool turnleft)
     // auton_heading_kD = 0.25;
     auton_heading_kP = 0.19;
     auton_heading_kI = 0.0;
-    auton_heading_kD = 20.0;
+    auton_heading_kD = 10.0;
     double heading = 20.0;
     if (turnleft == true)
         heading *= -1.0;
@@ -1149,7 +1187,7 @@ void conveyorAuton(void* params){
     // if(!tasks_enabled) return;
     int blue = 0;
     int others = 0;
-    mobilegoalclose();
+    // mobilegoalclose();
     while (true)
     {
         if(conveyor_enable){
@@ -1244,39 +1282,47 @@ void positive_blue_auton()
     // score alliance stakes
     moveBaseAutonomous(535.0, 0.0, 0.0);
     conveyor.move(50);
-    pros::delay(500);
+    pros::delay(800);
     rollerOn();
     conveyor.move(0);
     conveyor_enable = true;
     
     // grab mobile goal
     moveBaseAutonomous(-300.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, 200.0, 0.0);
+    moveBaseAutonomous(0.0, 300.0, 0.0);
     turn90(true);
-    moveBaseAutonomous(0.0, -390.0, 0.0);
+    // moveBaseAutonomous(0.0, -390.0, 0.0);
+    vector3D targetheading(0, MAX_SPEED, 0);
+    alignWheels(targetheading);
+    moveBaseAutonomous(0.0, -900, 0.0,10000);
     mobilegoalclose();
-    moveBaseAutonomous(0.0, -510.0, 0.0);
-
-
+    // moveBaseAutonomous(0.0, -510.0, 0.0);
+    // moveBaseAutonomous(0.0, -200, 0.0);
+    
     // scoring 3 rings and clearing positive corner
-    moveBaseAutonomous(-250.0, 0.0, 0.0);
+    moveBaseAutonomous(-400.0, 0.0, 0.0,  1500);
     // tested until here
     //  moveBaseAutonomous(.0,1300.0,0.0);
-    moveBaseAutonomous(.0, 650.0, 0.0);
-    moveBaseAutonomous(.0, 650.0, 0.0);
-    moveBaseAutonomous(.0, -490.0, 0.0);
-    moveBaseAutonomous(.0, 490.0, 0.0);
+    moveBaseAutonomous(100.0, 0.0, 0.0,  1000);
+    // alignWheels(targetheading);
+    moveBaseAutonomous(.0, 679.0, 0.0,2000);
+    moveBaseAutonomous(200.0, 0.0, 0.0,  1500);
+    moveBaseAutonomous(.0, 679.0, 0.0,2000);
+        moveBaseAutonomous(-400.0, 0.0, 0.0,  1000);
+    moveBaseAutonomous(.0, 679.0, 0.0,2000);
 
-
+    moveBaseAutonomous(.0, -300.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 300.0, 0.0,1500);
+moveBaseAutonomous(.0, -100.0, 0.0,1500);
+moveBaseAutonomous(100.0, 0.0, 0.0,1000);
     // scoring 1 more rings and slamming mobile goal into positive corner
     // scoring 1 more rings and slamming mobile goal into positive corner
-
-    moveBaseAutonomous(.0, -700.0, 0.0);
-    moveBaseAutonomous(250.0, 0.0, 0.0);
-    moveBaseAutonomous(.0, 50.0, 0.0);
+    // moveBaseAutonomous(.0, -700.0, 0.0);
+    // moveBaseAutonomous(250.0, 0.0, 0.0);
+    // moveBaseAutonomous(.0, 50.0, 0.0);
     turn180(true);
-    moveBaseAutonomous(250.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, -450.0, 0.0);
+    // moveBaseAutonomous(250.0, 0.0, 0.0);
+    // moveBaseAutonomous(0.0, -450.0, 0.0);
     mobilegoalopen();
     // ready for match state
     moveBaseAutonomous(.0, 100.0, 0.0);
@@ -1309,7 +1355,7 @@ void positive_red_auton()
     //  moveBaseAutonomous(.0,1300.0,0.0);
     moveBaseAutonomous(.0, 650.0, 0.0);
     moveBaseAutonomous(.0, 650.0, 0.0);
-    moveBaseAutonomous(.0, -490.0, 0.0);
+    moveBaseAutonomous(.0, -300.0, 0.0);
     moveBaseAutonomous(.0, 490.0, 0.0);
 
 
@@ -1435,6 +1481,7 @@ void autonomous()
     pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
                         TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     auton_time = pros::millis();
+
     positive_blue_auton();
     is_we_red_alliance = false;
     // conveyor_auton.suspend();
@@ -1491,9 +1538,9 @@ void initialize()
     // imu.reset(true);  //uncomment for actual
     // pros::delay(100);
     // master.print(0,0,"IMU calibrated  ");
-    while (global_distX == 0.0 || global_distY == 0.0)
-    {
-    }
+    // while (global_distX == 0.0 || global_distY == 0.0)
+    // {
+    // }
     // imu2.set_data_rate(5);
     pros::Task slam_dunk(slamDunk, (void *)"slam", TASK_PRIORITY_DEFAULT,
                          TASK_STACK_DEPTH_DEFAULT, "slam task");
