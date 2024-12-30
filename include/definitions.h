@@ -317,5 +317,6 @@ bool tasks_enabled = false;
 
 bool conveyor_enable = true;
 
+bool auton_start = false;
 uint32_t auton_time = 0;
 const uint32_t max_auton_time = 29000;

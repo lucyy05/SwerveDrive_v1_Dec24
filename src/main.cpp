@@ -59,7 +59,7 @@ void serialRead(void *params)
     int bufLength = 256;
     while (true)
     {
-        if(pros::millis() > (auton_time + max_auton_time)){
+        if(pros::millis() > (auton_time + max_auton_time) && auton_start){
             break;
         }
         int32_t nRead = vexGenericSerialReceive(SERIALPORT - 1, buffer, bufLength);
@@ -733,7 +733,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading, i
 
     while (pros::millis() < (start_time + timeout))
     {
-        if(pros::millis() > (auton_time + max_auton_time)){
+        if(pros::millis() > (auton_time + max_auton_time) && auton_start){
             break;
         }
         prev_target_v = target_v; // prev target velocity
@@ -1157,7 +1157,7 @@ void conveyorAuton(void* params){
     while (true)
     {
         if(conveyor_enable){
-            if(pros::millis() > (auton_time + max_auton_time)){
+            if(pros::millis() > (auton_time + max_auton_time) && auton_start){
                 break;
             }
             conveyor.move(60);
@@ -1462,9 +1462,10 @@ void autonomous()
     // tasks_enabled = true;
     // serial_task.resume();
     // conveyor_auton.resume();
+    auton_time = pros::millis();
     pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
                         TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
-    auton_time = pros::millis();
+    auton_start = true;
     negative_blue_auton();
     is_we_red_alliance = false;
     // conveyor_auton.suspend();
