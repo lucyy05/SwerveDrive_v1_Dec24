@@ -583,8 +583,9 @@ void slamDunk(void *params)
     }
 }
 
-void moveBaseAutonomous(double targetX, double targetY, double target_heading)
+void moveBaseAutonomous(double targetX, double targetY, double target_heading, int32_t timeout = 5000)
 {
+    int32_t start_time = pros::millis();
     targetY *= -1.0;
     if (((fabs(targetX) < 100.0) && (fabs(targetY) < 100.0)))
     {
@@ -729,7 +730,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading)
     if (fabs(target_heading) > 0.0)
         while (imu.tare_rotation() == PROS_ERR);
 
-    while (true)
+    while (pros::millis() < (start_time + timeout))
     {
         if(pros::millis() > (auton_time + max_auton_time)){
             break;
@@ -1331,29 +1332,37 @@ void positive_red_auton()
 
 void negative_blue_auton()
 {
+    slammingState = SLAM_START_STATE;
     mobilegoalopen();
     yoinker_actuated = !yoinker_actuated;
     yoink(yoinker_actuated);
 
-    moveBaseAutonomous(0.0, -750.0, 0.0);
-    moveBaseAutonomous(300.0, 0.0, 0.0);
+    moveBaseAutonomous(0.0, -710.0, 0.0, 6000);
+    moveBaseAutonomous(300.0, 0.0, 0.0, 6000);
 
-    moveBaseAutonomous(0.0, -60.0, 0.0);
+    moveBaseAutonomous(0.0, -60.0, 0.0, 6000);
     mobilegoalclose();
     // start scoring thread
     rollerOn();
     // conveyorOn();
-    moveBaseAutonomous(0.0, 900.0, 0.0);
-    moveBaseAutonomous(0.0, 0.0, -49.7);
-    moveBaseAutonomous(0.0, 413.0, 0.0);
-
-    moveBaseAutonomous(0.0, -150.0, 0.0);
-    moveBaseAutonomous(0.0, 150.0, 0.0);
-    moveBaseAutonomous(0.0, -300.0, 0.0);
+    moveBaseAutonomous(0.0, 900.0, 0.0, 6000);
+    // moveBaseAutonomous(0.0, 0.0, -56.0);
+    moveBaseAutonomous(-500.0, 0.0, 0.0, 3000);
+    roller_lifter.set_value(1);
+    moveBaseAutonomous(0.0, 350.0, 0.0, 3000);
+    roller_lifter.set_value(0);
+    moveBaseAutonomous(0.0, -150.0, 0.0, 6000);
+    moveBaseAutonomous(0.0, 150.0, 0.0, 6000);
+    moveBaseAutonomous(0.0, -300.0, 0.0, 6000);
+    moveBaseAutonomous(0.0, 150.0, 0.0, 6000);
+    moveBaseAutonomous(0.0, -200.0, 0.0, 6000);
+    moveBaseAutonomous(150.0, 0.0, 0.0, 6000);
+    moveBaseAutonomous(0.0, 0.0, -50.0, 6000);
     rollerOff();
     //conveyorOff();
     slammingState = SLAM_LADDER;
-    moveBaseAutonomous(0.0, -1300.0, 0.0);
+    pros::delay(5);
+    moveBaseAutonomous(0.0, -1100.0, 0.0, 6000);
 }
 
 void negative_red_auton()
