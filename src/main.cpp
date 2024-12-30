@@ -1325,7 +1325,7 @@ void negative_blue_auton()
 {
     mobilegoalopen();
     yoinker_actuated = !yoinker_actuated;
-    yoink(false);
+    yoink(yoinker_actuated);
 
     moveBaseAutonomous(0.0, -750.0, 0.0);
     moveBaseAutonomous(300.0, 0.0, 0.0);
