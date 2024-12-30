@@ -1,7 +1,9 @@
 #include "main.h"
 
 void disabled() {}
-void competition_initialize() {}
+void competition_initialize() {
+
+}
 
 // Function to determine sign of a integer variable, returns bool
 template <typename T>
@@ -1236,36 +1238,64 @@ void positive_blue_auton()
     conveyor.move(50);
     pros::delay(500);
     rollerOn();
+    conveyor.move(0);
+    
+    // grab mobile goal
+    moveBaseAutonomous(-300.0, 0.0, 0.0);
+    moveBaseAutonomous(0.0, 200.0, 0.0);
+    turn90(true);
+    moveBaseAutonomous(0.0, -390.0, 0.0);
+    mobilegoalclose();
+    moveBaseAutonomous(0.0, -510.0, 0.0);
+
+
+    // scoring 3 rings and clearing positive corner
+    moveBaseAutonomous(-250.0, 0.0, 0.0);
+    // tested until here
+    //  moveBaseAutonomous(.0,1300.0,0.0);
+    moveBaseAutonomous(.0, 650.0, 0.0);
+    moveBaseAutonomous(.0, 650.0, 0.0);
+    moveBaseAutonomous(.0, -490.0, 0.0);
+    moveBaseAutonomous(.0, 490.0, 0.0);
+
+
+    // scoring 1 more rings and slamming mobile goal into positive corner
+    // scoring 1 more rings and slamming mobile goal into positive corner
+
+    moveBaseAutonomous(.0, -700.0, 0.0);
+    moveBaseAutonomous(250.0, 0.0, 0.0);
+    moveBaseAutonomous(.0, 50.0, 0.0);
+    turn180(true);
+    moveBaseAutonomous(250.0, 0.0, 0.0);
+    moveBaseAutonomous(0.0, -450.0, 0.0);
+    mobilegoalopen();
+    // ready for match state
+    moveBaseAutonomous(.0, 100.0, 0.0);
+    moveBaseAutonomous(-500.0, .0, 0.0);
+
+}
+
+void positive_red_auton()
+{
+    mobilegoalopen();
+    rollerOn();
     // score alliance stakes
-    moveBaseAutonomous(535.0, 0.0, 0.0);
+    moveBaseAutonomous(-535.0, 0.0, 0.0);
     conveyor.move(50);
     pros::delay(500);
+    rollerOn();
+    conveyor.move(0);
 
     // grab mobile goal
-    moveBaseAutonomous(-300.0, 0.0, 0.0);
+    moveBaseAutonomous(300.0, 0.0, 0.0);
     moveBaseAutonomous(0.0, 200.0, 0.0);
-    turn90(true);
-    moveBaseAutonomous(0.0, -390.0, 0.0);
-    mobilegoalclose();
-    moveBaseAutonomous(0.0, -510.0, 0.0);
-    // grab mobile goal
-    moveBaseAutonomous(-300.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, 200.0, 0.0);
-    turn90(true);
+    turn90(false);  
     moveBaseAutonomous(0.0, -390.0, 0.0);
     mobilegoalclose();
     moveBaseAutonomous(0.0, -510.0, 0.0);
 
     // scoring 3 rings and clearing positive corner
-    moveBaseAutonomous(-250.0, 0.0, 0.0);
-    // tested until here
-    //  moveBaseAutonomous(.0,1300.0,0.0);
-    moveBaseAutonomous(.0, 650.0, 0.0);
-    moveBaseAutonomous(.0, 650.0, 0.0);
-    moveBaseAutonomous(.0, -490.0, 0.0);
-    moveBaseAutonomous(.0, 490.0, 0.0);
-    // scoring 3 rings and clearing positive corner
-    moveBaseAutonomous(-250.0, 0.0, 0.0);
+    moveBaseAutonomous(250.0, 0.0, 0.0);
     // tested until here
     //  moveBaseAutonomous(.0,1300.0,0.0);
     moveBaseAutonomous(.0, 650.0, 0.0);
@@ -1273,27 +1303,21 @@ void positive_blue_auton()
     moveBaseAutonomous(.0, -490.0, 0.0);
     moveBaseAutonomous(.0, 490.0, 0.0);
 
-    // scoring 1 more rings and slamming mobile goal into positive corner
+
     // scoring 1 more rings and slamming mobile goal into positive corner
 
+
     moveBaseAutonomous(.0, -700.0, 0.0);
-    moveBaseAutonomous(250.0, 0.0, 0.0);
-    turn180(true);
-    moveBaseAutonomous(250.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, -450.0, 0.0);
+    moveBaseAutonomous(-250.0, 0.0, 0.0);
+    moveBaseAutonomous(.0, 50.0, 0.0);
+    turn180(false);
+    moveBaseAutonomous(-250.0, 0.0, 0.0);
+    moveBaseAutonomous(0.0, 450.0, 0.0);
     mobilegoalopen();
     // ready for match state
     moveBaseAutonomous(.0, 100.0, 0.0);
-    moveBaseAutonomous(-500.0, .0, 0.0);
-    moveBaseAutonomous(.0, -700.0, 0.0);
-    moveBaseAutonomous(250.0, 0.0, 0.0);
-    turn180(true);
-    moveBaseAutonomous(250.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, -450.0, 0.0);
-    mobilegoalopen();
-    // ready for match state
-    moveBaseAutonomous(.0, 100.0, 0.0);
-    moveBaseAutonomous(-500.0, .0, 0.0);
+    moveBaseAutonomous(500.0, .0, 0.0);
+    
 }
 
 void negative_blue_auton()
@@ -1309,7 +1333,7 @@ void negative_blue_auton()
     mobilegoalclose();
     // start scoring thread
     rollerOn();
-    conveyorOn();
+    // conveyorOn();
     moveBaseAutonomous(0.0, 900.0, 0.0);
     moveBaseAutonomous(0.0, 0.0, -49.7);
     moveBaseAutonomous(0.0, 413.0, 0.0);
@@ -1325,6 +1349,29 @@ void negative_blue_auton()
 
 void negative_red_auton()
 {
+    mobilegoalopen();
+    yoinker_actuated = !yoinker_actuated;
+    yoink(yoinker_actuated);
+
+    moveBaseAutonomous(0.0, -750.0, 0.0);
+    moveBaseAutonomous(-300.0, 0.0, 0.0);
+
+    moveBaseAutonomous(0.0, -60.0, 0.0);
+    mobilegoalclose();
+    // start scoring thread
+    rollerOn();
+    // conveyorOn();
+    moveBaseAutonomous(0.0, 900.0, 0.0);
+    moveBaseAutonomous(0.0, 0.0, 49.7);
+    moveBaseAutonomous(0.0, 413.0, 0.0);
+
+    moveBaseAutonomous(0.0, -150.0, 0.0);
+    moveBaseAutonomous(0.0, 150.0, 0.0);
+    moveBaseAutonomous(0.0, -300.0, 0.0);
+    rollerOff();
+    conveyorOff();
+    slammingState = SLAM_LADDER;
+    moveBaseAutonomous(0.0, -1300.0, 0.0);
 }
 
 void test()
