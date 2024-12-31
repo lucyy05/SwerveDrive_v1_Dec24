@@ -1023,7 +1023,7 @@ void alignWheels(vector3D heading, int32_t timeout = 400)
 
     while (loop_flag)
     {
-        if(pros::millis() > start_time + timeout){
+        if(pros::millis() > (start_time + timeout)){
             break;
         }
         target_v = heading;                                                                           // target velocity
