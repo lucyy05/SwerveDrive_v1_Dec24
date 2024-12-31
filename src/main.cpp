@@ -1313,29 +1313,20 @@ void positive_blue_auton()
     moveBaseAutonomous(535.0, 0.0, 0.0);
     conveyor.move(50);
     pros::delay(800);
-    rollerOn();
-=======
-    pros::delay(800);
-
->>>>>>> Stashed changes
     conveyor.move(0);
-    
     conveyor_enable = true;
 pros::delay(2);
 
     // grab mobile goal
     moveBaseAutonomous(-300.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, 300.0, 0.0);
+    moveBaseAutonomous(0.0, 300.0, 0.0,1100);
     turn90(true);
-    // moveBaseAutonomous(0.0, -390.0, 0.0);
+
     vector3D targetheading(0, MAX_SPEED, 0);
     alignWheels(targetheading);
-    moveBaseAutonomous(0.0, -900, 0.0, 10000);
+    moveBaseAutonomous(0.0, -900, 0.0);
     mobilegoalclose();
-    // moveBaseAutonomous(0.0, -510.0, 0.0);
-    // moveBaseAutonomous(0.0, -200, 0.0);
 
-    // scoring 3 rings and clearing positive corner
     moveBaseAutonomous(-400.0, 0.0, 0.0, 1500);
     // tested until here
     //  moveBaseAutonomous(.0,1300.0,0.0);
@@ -1346,59 +1337,14 @@ pros::delay(2);
     moveBaseAutonomous(.0, 679.0, 0.0, 2000);
     moveBaseAutonomous(-400.0, 0.0, 0.0, 1000);
     moveBaseAutonomous(.0, 679.0, 0.0, 2000);
-
     moveBaseAutonomous(.0, -200.0, 0.0, 1500);
     moveBaseAutonomous(.0, 220.0, 0.0, 700);
     moveBaseAutonomous(.0, -200.0, 0.0, 1500);
     moveBaseAutonomous(.0, 220.0, 0.0, 700);
     moveBaseAutonomous(.0, -50.0, 0.0, 1500);
     moveBaseAutonomous(50.0, 0.0, 0.0, 1000);
-    // scoring 1 more rings and slamming mobile goal into positive corner
-    // scoring 1 more rings and slamming mobile goal into positive corner
-    // moveBaseAutonomous(.0, -700.0, 0.0);
-    // moveBaseAutonomous(250.0, 0.0, 0.0);
-    // moveBaseAutonomous(.0, 50.0, 0.0);
     turn180(true);
-    // moveBaseAutonomous(250.0, 0.0, 0.0);
-    // moveBaseAutonomous(0.0, -450.0, 0.0);
-    mobilegoalopen();
-    // ready for match state
-    moveBaseAutonomous(.0, 100.0, 0.0);
-    moveBaseAutonomous(-500.0, .0, 0.0);
-
-=======
-    moveBaseAutonomous(0.0, 300.0, 0.0,1000);
-    turn90(true);
-    vector3D targetheading(0, MAX_SPEED, 0);
-    alignWheels(targetheading);
-    moveBaseAutonomous(0.0, -940, 0.0);
-    mobilegoalclose();
-
-    // scoring 3 rings and clearing positive corner
-    moveBaseAutonomous(-400.0, 0.0, 0.0, 1500);
-
-    moveBaseAutonomous(100.0, 0.0, 0.0, 1100);
-    // alignWheels(targetheading);
-    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
-    moveBaseAutonomous(200.0, 0.0, 0.0, 1500);
-    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
-    moveBaseAutonomous(-400.0, 0.0, 0.0, 1000);
-    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
-
-    moveBaseAutonomous(.0, -200.0, 0.0, 1500);
-    moveBaseAutonomous(.0, 220.0, 0.0, 1500);
-    moveBaseAutonomous(.0, -200.0, 0.0, 1500);
-    moveBaseAutonomous(.0, 220.0, 0.0, 1500);
-    moveBaseAutonomous(.0, -50.0, 0.0, 1000);
-    moveBaseAutonomous(50.0, 0.0, 0.0, 1000);
-
-    turn180(true);
-
-    // mobilegoalopen();
-    // // ready for match state
-    // moveBaseAutonomous(.0, 100.0, 0.0);
-    // moveBaseAutonomous(-500.0, .0, 0.0);
->>>>>>> Stashed changes
+    
 }
 
 void positive_red_auton()
@@ -1414,7 +1360,7 @@ void positive_red_auton()
     conveyor.move(0);
     conveyor_enable = true;
     moveBaseAutonomous(300.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, 300.0, 0.0, 1200);
+    moveBaseAutonomous(0.0, 300.0, 0.0, 1100);
     turn90(false);
     vector3D targetheading(0, MAX_SPEED, 0);
     alignWheels(targetheading);
