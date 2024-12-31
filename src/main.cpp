@@ -432,7 +432,8 @@ void moveBase(void *params)
         rot_pid_double += rotate_robot_PID.step(a_err_d);
 
         rot_FF = (target_r ^ L2I_pos).scalar(r_kF_STATIC);
-        rot_vector_double = rot_pid_double + rot_FF.getY();
+
+      rot_vector_double = rot_pid_double + rot_FF.getY();
         rot_pid = vector3D(0.0, rot_vector_double, 0.0);
 
         v_left = target_v - rot_pid; // in order to rotate counterclockwise
@@ -1232,16 +1233,22 @@ void yoink(bool yoinketh)
 void positive_blue_auton()
 {
     mobilegoalopen();
-    rollerOn();
+    roller.move(-110);
     // score alliance stakes
     moveBaseAutonomous(535.0, 0.0, 0.0);
     conveyor.move(50);
+<<<<<<< Updated upstream
     pros::delay(500);
     rollerOn();
+=======
+    pros::delay(800);
+
+>>>>>>> Stashed changes
     conveyor.move(0);
 
     // grab mobile goal
     moveBaseAutonomous(-300.0, 0.0, 0.0);
+<<<<<<< Updated upstream
     moveBaseAutonomous(0.0, 200.0, 0.0);
     turn90(true);
     moveBaseAutonomous(0.0, -390.0, 0.0);
@@ -1273,6 +1280,39 @@ void positive_blue_auton()
     moveBaseAutonomous(.0, 100.0, 0.0);
     moveBaseAutonomous(-500.0, .0, 0.0);
 
+=======
+    moveBaseAutonomous(0.0, 300.0, 0.0,1000);
+    turn90(true);
+    vector3D targetheading(0, MAX_SPEED, 0);
+    alignWheels(targetheading);
+    moveBaseAutonomous(0.0, -940, 0.0);
+    mobilegoalclose();
+
+    // scoring 3 rings and clearing positive corner
+    moveBaseAutonomous(-400.0, 0.0, 0.0, 1500);
+
+    moveBaseAutonomous(100.0, 0.0, 0.0, 1100);
+    // alignWheels(targetheading);
+    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
+    moveBaseAutonomous(200.0, 0.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
+    moveBaseAutonomous(-400.0, 0.0, 0.0, 1000);
+    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
+
+    moveBaseAutonomous(.0, -200.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 220.0, 0.0, 1500);
+    moveBaseAutonomous(.0, -200.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 220.0, 0.0, 1500);
+    moveBaseAutonomous(.0, -50.0, 0.0, 1000);
+    moveBaseAutonomous(50.0, 0.0, 0.0, 1000);
+
+    turn180(true);
+
+    // mobilegoalopen();
+    // // ready for match state
+    // moveBaseAutonomous(.0, 100.0, 0.0);
+    // moveBaseAutonomous(-500.0, .0, 0.0);
+>>>>>>> Stashed changes
 }
 
 void positive_red_auton()
@@ -1283,6 +1323,7 @@ void positive_red_auton()
     // score alliance stakes
     moveBaseAutonomous(-535.0, 0.0, 0.0);
     conveyor.move(50);
+<<<<<<< Updated upstream
     pros::delay(500);
     rollerOn();
     conveyor.move(0);
@@ -1319,6 +1360,36 @@ void positive_red_auton()
     moveBaseAutonomous(.0, 100.0, 0.0);
     moveBaseAutonomous(500.0, .0, 0.0);
     
+=======
+    pros::delay(800);
+    conveyor.move(0);
+    conveyor_enable = true;
+    moveBaseAutonomous(300.0, 0.0, 0.0);
+    moveBaseAutonomous(0.0, 300.0, 0.0, 1000);
+    turn90(false);
+    vector3D targetheading(0, MAX_SPEED, 0);
+    alignWheels(targetheading);
+    moveBaseAutonomous(0.0, -940, 0.0, 10000);
+    mobilegoalclose();
+moveBaseAutonomous(400.0, 0.0, 0.0, 1500);
+    moveBaseAutonomous(-100.0, 0.0, 0.0, 1100);
+moveBaseAutonomous(.0, 679.0, 0.0, 2000);
+    moveBaseAutonomous(-150.0, 0.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
+    moveBaseAutonomous(400.0, 0.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 679.0, 0.0, 2000);
+
+    moveBaseAutonomous(.0, -200.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 220.0, 0.0, 1500);
+    moveBaseAutonomous(.0, -200.0, 0.0, 1500);
+    moveBaseAutonomous(.0, 220.0, 0.0, 1500);
+    moveBaseAutonomous(.0, -50.0, 0.0, 1000);
+    moveBaseAutonomous(50.0, 0.0, 0.0, 1000);
+    turn180(true);
+    // mobilegoalopen();
+    // moveBaseAutonomous(.0, 100.0, 0.0);
+    // moveBaseAutonomous(500.0, .0, 0.0);
+>>>>>>> Stashed changes
 }
 
 void negative_blue_auton()
