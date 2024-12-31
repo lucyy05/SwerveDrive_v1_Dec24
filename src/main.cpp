@@ -61,7 +61,7 @@ void serialRead(void *params)
     int bufLength = 256;
     while (true)
     {
-        if(pros::millis() > (auton_time + max_auton_time) && auton_start){
+        if((pros::millis() > (auton_time + max_auton_time)) && auton_start){
             break;
         }
         int32_t nRead = vexGenericSerialReceive(SERIALPORT - 1, buffer, bufLength);
@@ -992,8 +992,9 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading, i
     }
 }
 
-void alignWheels(vector3D heading)
+void alignWheels(vector3D heading, int32_t timeout = 400)
 {
+    int32_t start_time = pros::millis();
     double left_angle;
     double right_angle;
     double left_target_angle;
@@ -1015,13 +1016,16 @@ void alignWheels(vector3D heading)
     bool loop_flag = true;
 
     // PID instances
-    PID left_angle_PID(70, 0, 6000);
-    PID right_angle_PID(70, 0, 6000);
+    PID left_angle_PID(200, 0, 6000);
+    PID right_angle_PID(200, 0, 6000);
 
     vector3D null_v = vector3D(0, 0, 0);
 
     while (loop_flag)
     {
+        if(pros::millis() > start_time + timeout){
+            break;
+        }
         target_v = heading;                                                                           // target velocity
         left_angle = wrapAngle(getNormalizedSensorAngle(left_rotation_sensor) - 90.0) * TO_RADIANS;   // takes robot right as 0
         right_angle = wrapAngle(getNormalizedSensorAngle(right_rotation_sensor) - 90.0) * TO_RADIANS; // Y axis positive is front
@@ -1111,13 +1115,13 @@ void turn90(bool turnleft)
     // auton_heading_kP = 0.09;
     // auton_heading_kI = 0.0;
     // auton_heading_kD = 0.05;
-    auton_heading_kP = 0.12;
+    auton_heading_kP = 0.115;
     auton_heading_kI = 0.0;
     auton_heading_kD = 0.125;
     double heading = 90.0;
     if (turnleft == true)
         heading *= -1.0;
-    moveBaseAutonomous(0.0, 0.0, heading);
+    moveBaseAutonomous(0.0, 0.0, heading, 2000);
 }
 
 void turn45(bool turnleft)
@@ -1208,10 +1212,11 @@ void conveyorAuton(void* params){
     //mobilegoalclose();
     while (true)
     {
-        if(conveyor_enable){
-            if(pros::millis() > (auton_time + max_auton_time) && auton_start){
+        if((pros::millis() > (auton_time + max_auton_time)) && auton_start){
                 break;
-            }
+        }
+        if(conveyor_enable){
+            
             conveyor.move(60);
             roller.move(-105);
             double hue_value = conveyor_optical.get_hue();
@@ -1221,7 +1226,7 @@ void conveyorAuton(void* params){
             // rgb = conveyor_optical.get_rgb();
             if (!hook_detected)
             {
-                if (hue_value > 175.0 && hue_value < 245.0)
+                if (hue_value > 200.0 && hue_value < 220.0)
                 {
                     blue_detected = true;
                     // blue++;
@@ -1240,7 +1245,7 @@ void conveyorAuton(void* params){
             }
             // pros::lcd::print(1, "blue:%d, others:%d", blue, others);
 
-            if (hue_value > 110.0 && hue_value < 145.0)
+            if (hue_value > 100.0 && hue_value < 120.0)
             {
                 hook_detected = true;
                 // hook++;
@@ -1284,8 +1289,9 @@ void conveyorAuton(void* params){
                 }
                 // pros::lcd::print(2,"no Hook");
             }
-            pros::delay(2);
         }
+        pros::delay(2);
+
     }
 }
 
@@ -1308,7 +1314,9 @@ void positive_blue_auton()
     pros::delay(800);
     rollerOn();
     conveyor.move(0);
+    
     conveyor_enable = true;
+pros::delay(2);
 
     // grab mobile goal
     moveBaseAutonomous(-300.0, 0.0, 0.0);
@@ -1358,28 +1366,27 @@ void positive_red_auton()
 {
     conveyor_enable = false;
     mobilegoalopen();
-    rollerOn();
+    roller.move(-110);
     // score alliance stakes
     moveBaseAutonomous(-535.0, 0.0, 0.0);
     conveyor.move(50);
     pros::delay(800);
-    rollerOn();
+
     conveyor.move(0);
     conveyor_enable = true;
-
     moveBaseAutonomous(300.0, 0.0, 0.0);
-    moveBaseAutonomous(0.0, 300.0, 0.0);
+    moveBaseAutonomous(0.0, 300.0, 0.0, 1200);
     turn90(false);
     vector3D targetheading(0, MAX_SPEED, 0);
     alignWheels(targetheading);
-    moveBaseAutonomous(0.0, -900, 0.0, 10000);
+    moveBaseAutonomous(0.0, -940, 0.0, 10000);
     mobilegoalclose();
 moveBaseAutonomous(400.0, 0.0, 0.0, 1500);
     moveBaseAutonomous(-100.0, 0.0, 0.0, 1000);
 moveBaseAutonomous(.0, 679.0, 0.0, 2000);
-    moveBaseAutonomous(-200.0, 0.0, 0.0, 1500);
+    moveBaseAutonomous(-150.0, 0.0, 0.0, 1500);
     moveBaseAutonomous(.0, 679.0, 0.0, 2000);
-    moveBaseAutonomous(400.0, 0.0, 0.0, 1000);
+    moveBaseAutonomous(400.0, 0.0, 0.0, 1500);
     moveBaseAutonomous(.0, 679.0, 0.0, 2000);
 
     moveBaseAutonomous(.0, -200.0, 0.0, 1500);
@@ -1389,9 +1396,9 @@ moveBaseAutonomous(.0, 679.0, 0.0, 2000);
     moveBaseAutonomous(.0, -50.0, 0.0, 1500);
     moveBaseAutonomous(50.0, 0.0, 0.0, 1000);
     turn180(true);
-    mobilegoalopen();
-    moveBaseAutonomous(.0, 100.0, 0.0);
-    moveBaseAutonomous(500.0, .0, 0.0);
+    // mobilegoalopen();
+    // moveBaseAutonomous(.0, 100.0, 0.0);
+    // moveBaseAutonomous(500.0, .0, 0.0);
 }
 
 void negative_blue_auton()
@@ -1526,8 +1533,8 @@ void autonomous()
     pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
                         TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     auton_start = true;
-    positive_red_auton();
     is_we_red_alliance = true;
+    positive_red_auton();
     // conveyor_auton.suspend();
     // conveyor_auton.remove();
 }
