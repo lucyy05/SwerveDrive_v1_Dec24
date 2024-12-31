@@ -1,6 +1,6 @@
 #include "definitions.h"
 #include "api.h"
-//#define DISABLE_CONVEYOR_LCD_PRINTS
+#define DISABLE_CONVEYOR_LCD_PRINTS
 
 bool override_ignore_colour = true;
 bool is_we_red_alliance = false;            // are we red and should therefore score red
