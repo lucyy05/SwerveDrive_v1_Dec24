@@ -1518,8 +1518,8 @@ void autonomous()
     pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
                         TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     auton_start = true;
-    is_we_red_alliance = true;
-    positive_red_auton();
+    is_we_red_alliance = false;
+    positive_blue_auton();
     // conveyor_auton.suspend();
     // conveyor_auton.remove();
 }
@@ -1615,16 +1615,17 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
             conveyor.move(-110);
         else
-            // conveyor.move(0);
+            conveyor.move(0);
 
-            // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
-            // when L1 is pressed, rollers move forward with NEGATIVE velocity??
-            if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
-                roller.move(110);
-            else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
-                roller.move(-110);
-            else
-                // roller.move(0);
+
+        // L1 FORWARD, L2 BACKWARD FOR ROLLER (missing hardware)
+        // when L1 is pressed, rollers move forward with NEGATIVE velocity??
+        if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
+            roller.move(110);
+        else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
+            roller.move(-110);
+        else
+            roller.move(0);
 
         if (mobile_goal_actuated)
         {
@@ -1664,7 +1665,6 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         if (master.get_digital_new_press(DIGITAL_Y))
             roller_lifts = !roller_lifts;
 
-        yoink(yoinker_actuated);
         yoink(yoinker_actuated);
 
         if (roller_lifts)
