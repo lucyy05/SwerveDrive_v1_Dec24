@@ -78,6 +78,7 @@ void serialRead(void *params)
                 }
                 if (thisDigit == 'C')
                 {
+                    serial_started = true;
                     recordOpticalX = false;
                     dataStream >> dist_X;
                     global_distX = dist_X * -10.0;
@@ -770,7 +771,7 @@ void moveBaseAutonomous(double targetX, double targetY, double target_heading, i
         if (fabs(target_heading) > 0.0 && fabs(errorheading) > fabs(target_heading))
             errorheading = 0.0;
 
-        if (fabs(errorX) <= 1.5 && fabs(errorY) <= 1.5 && fabs(errorheading) <= 0.7)
+        if (fabs(errorX) <= 1.1 && fabs(errorY) <= 1.1 && fabs(errorheading) <= 0.7)
         {
             move_voltage_wheels(0, 0, 0, 0);
             lu = 0;
@@ -1166,12 +1167,12 @@ void conveyorAuton(void* params){
             roller.move(-105);
             double hue_value = conveyor_optical.get_hue();
             pros::c::optical_rgb_s_t rgb = conveyor_optical.get_rgb();
-            pros::lcd::print(5,"R:%.1lf,G:%.1lf,B:%.1lf",rgb.red,rgb.green,rgb.blue);
+            // pros::lcd::print(5,"R:%.1lf,G:%.1lf,B:%.1lf",rgb.red,rgb.green,rgb.blue);
             // pros::lcd::print(5,"Hue:%lf",hue_value);
             // rgb = conveyor_optical.get_rgb();
             if (!hook_detected)
             {
-                if (hue_value > 175.0 && hue_value < 245.0)
+                if (hue_value > 180.0 && hue_value < 235.0)
                 {
                     blue_detected = true;
                     // blue++;
@@ -1349,9 +1350,9 @@ void negative_blue_auton()
 
     moveBaseAutonomous(0.0, -705.0, 0.0, 3000);
     roller_lifter.set_value(1);
-    moveBaseAutonomous(255.2, 0.0, 0.0, 3000);
+    moveBaseAutonomous(278.2, 0.0, 0.0, 3000);
 
-    moveBaseAutonomous(0.0, -90.0, 0.0, 3000);
+    moveBaseAutonomous(0.0, -88.0, 0.0, 3000);
     mobilegoalclose();
     pros::delay(100);
     roller_lifter.set_value(0);
@@ -1380,39 +1381,60 @@ void negative_blue_auton()
     pros::delay(10);
     moveBaseAutonomous(-380.0, 0.0, 0.0, 1500);
     moveBaseAutonomous(250.0, 0.0, 0.0, 1500);
-    moveBaseAutonomous(0.0, 0.0, -50.0, 7000);
+    moveBaseAutonomous(0.0, 0.0, -60.0, 7000);
     rollerOff();
     //conveyorOff();
     //slammingState = SLAM_LADDER;
     pros::delay(15);
-    moveBaseAutonomous(0.0, -1000.0, 0.0, 6000);
+    moveBaseAutonomous(0.0, -950.0, 0.0, 6000);
 }
 
 void negative_red_auton()
 {
+    slammingState = SLAM_START_STATE;
     mobilegoalopen();
     yoinker_actuated = !yoinker_actuated;
     yoink(yoinker_actuated);
 
-    moveBaseAutonomous(0.0, -750.0, 0.0);
-    moveBaseAutonomous(-300.0, 0.0, 0.0);
+    moveBaseAutonomous(0.0, -705.0, 0.0, 3000);
+    roller_lifter.set_value(1);
+    moveBaseAutonomous(-278.2, 0.0, 0.0, 3000);
 
-    moveBaseAutonomous(0.0, -60.0, 0.0);
+    moveBaseAutonomous(0.0, -88.0, 0.0, 3000);
     mobilegoalclose();
+    pros::delay(100);
+    roller_lifter.set_value(0);
+    pros::delay(150);
     // start scoring thread
     rollerOn();
     // conveyorOn();
-    moveBaseAutonomous(0.0, 900.0, 0.0);
-    moveBaseAutonomous(0.0, 0.0, 49.7);
-    moveBaseAutonomous(0.0, 413.0, 0.0);
-
-    moveBaseAutonomous(0.0, -150.0, 0.0);
-    moveBaseAutonomous(0.0, 150.0, 0.0);
-    moveBaseAutonomous(0.0, -300.0, 0.0);
+    moveBaseAutonomous(0.0, 900.0, 0.0, 6000);
+    // moveBaseAutonomous(0.0, 0.0, -56.0);
+    moveBaseAutonomous(420.0, 0.0, 0.0, 3000);
+    //roller_lifter.set_value(1);
+    moveBaseAutonomous(0.0, 600.0, 0.0, 1500);
+    //roller_lifter.set_value(0);
+    pros::delay(10);
+    moveBaseAutonomous(0.0, -450.0, 0.0, 1000);
+    pros::delay(10);
+    moveBaseAutonomous(0.0, 450.0, 0.0, 1500);
+    pros::delay(10);
+    moveBaseAutonomous(0.0, -450.0, 0.0, 1000);
+    moveBaseAutonomous(0.0, 450.0, 0.0, 1500);
+    pros::delay(10);
+    moveBaseAutonomous(0.0, -450.0, 0.0, 1000);
+    pros::delay(10);
+    moveBaseAutonomous(0.0, 450.0, 0.0, 1500);
+    moveBaseAutonomous(0.0, -450.0, 0.0, 1000);
+    pros::delay(10);
+    moveBaseAutonomous(380.0, 0.0, 0.0, 1500);
+    moveBaseAutonomous(-250.0, 0.0, 0.0, 1500);
+    moveBaseAutonomous(0.0, 0.0, 60.0, 7000);
     rollerOff();
-    conveyorOff();
-    slammingState = SLAM_LADDER;
-    moveBaseAutonomous(0.0, -1300.0, 0.0);
+    //conveyorOff();
+    //slammingState = SLAM_LADDER;
+    pros::delay(15);
+    moveBaseAutonomous(0.0, -950.0, 0.0, 6000);
 }
 
 void test()
@@ -1465,10 +1487,12 @@ void autonomous()
     // serial_task.resume();
     // conveyor_auton.resume();
     auton_time = pros::millis();
+    // is_we_red_alliance = true;
     is_we_red_alliance = false;
     pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
                         TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
     auton_start = true;
+    // negative_red_auton();
     negative_blue_auton();
     // conveyor_auton.suspend();
     // conveyor_auton.remove();
@@ -1501,14 +1525,14 @@ void initialize()
     // while(!tasks_enabled) pros::delay(1);
     // pros::Task conveyor_auton(conveyorAuton, (void *)"conveyor", TASK_PRIORITY_DEFAULT,
     //                 TASK_STACK_DEPTH_DEFAULT, "conveyor auton");
-    pros::delay(10);
+    pros::delay(5);
 
     while (imu.reset(true) == PROS_ERR)
         ;
     while (imu.set_data_rate(5) == PROS_ERR)
         ;
 
-    pros::delay(15); // IMU Calibrated
+    pros::delay(10); // IMU Calibrated
 
     setBrakeModes();
     // setMotorCurrentLimit(MAX_CURRENT_BASE);
@@ -1524,9 +1548,6 @@ void initialize()
     // imu.reset(true);  //uncomment for actual
     // pros::delay(100);
     // master.print(0,0,"IMU calibrated  ");
-    while (global_distX == 0.0 || global_distY == 0.0)
-    {
-    }
     // imu2.set_data_rate(5);
     pros::Task slam_dunk(slamDunk, (void *)"slam", TASK_PRIORITY_DEFAULT,
                          TASK_STACK_DEPTH_DEFAULT, "slam task");
@@ -1538,6 +1559,7 @@ void initialize()
 void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
     //serial_task.remove();
     tasks_enabled = false;
+    serial_started = false;
     pros::Task move_base(moveBase, (void*)"driver", TASK_PRIORITY_MAX-2,
                     TASK_STACK_DEPTH_DEFAULT, "driver task");
     while (true)
@@ -1558,7 +1580,7 @@ void opcontrol(){   //TODO: JOEL PLEASE MAKE CONVEYOR A TASK
         if (master.get_digital_new_press(DIGITAL_A))
             mobile_goal_actuated = !mobile_goal_actuated;
         if (master.get_digital_new_press(DIGITAL_B))
-            autonomous();
+            slammingState = SLAM_EXTENDED_STATE;
         if (master.get_digital_new_press(DIGITAL_X))
             slam_dunk_actuated = !slam_dunk_actuated;
 
