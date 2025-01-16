@@ -553,7 +553,7 @@ void slamDunk(void *params)
             slam_target = defaultSlamValue - 1555;
             break;
         case SLAM_LADDER: // extended all the way
-            slam_target = defaultSlamValue - 660;
+            slam_target = defaultSlamValue - 600;
             break;
         default:
             slam_target = defaultSlamValue;
@@ -574,11 +574,11 @@ void slamDunk(void *params)
         {
             if (slam_target > slam_dunk.get_value() + 10.0)
             {
-                slam_dunk_motor.move(motorPower);
+                slam_dunk_motor.move(-motorPower);
             }
             else if (slam_target < slam_dunk.get_value() - 10.0)
             {
-                slam_dunk_motor.move(-motorPower);
+                slam_dunk_motor.move(motorPower);
             }
         }
         prevError = Error;

@@ -253,7 +253,7 @@ bool isRightFlipped = false;
 //Slam dunk
 // int defaultSlamValue = 0;
 // Slam dunk constants -- IPIN
-const int defaultSlamValue = 2974;
+const int defaultSlamValue = 3220;
 
 // Slam dunk constants -- UPIN
 //const int defaultSlamValue = 2998;
@@ -270,7 +270,7 @@ SlammingState slammingState = SLAM_START_STATE;
 bool slam_dunk_actuated = false;
 
 double slam_target = 0.0;
-double slam_Kp = 0.45;
+double slam_Kp = 0.5;
 double slam_Kd = 0.1;
 double slam_Ki = 0.0;
 
